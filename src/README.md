@@ -1,19 +1,58 @@
 # Source code
 
-This directory contains the reproducible Python modules used to construct and process the PNAD longitudinal income dataset.
+<p align="justify">The <code>src</code> directory contains the reproducible code used to construct the longitudinal PNAD metadata and the annual refined income datasets. The source layer is intentionally small. <code>build_metadata.py</code> defines the historical survey specifications and monetary reference series for 1976–2025, while <code>generate_datasets.py</code> uses those specifications to construct one harmonized income dataset for each available survey year. The scientific information that changes through time—survey variable names, field positions, missing-value codes, source locations, historical currencies, exchange rates, and CPI values—is centralized in the metadata rather than being distributed across separate year-specific scripts.</p>
 
-## Repository structure
+## Modules
+
+### `build_metadata.py`
+
+<p align="justify"><code>build_metadata.py</code> constructs <code>data/metadata/df_metadata.xlsx</code>, the central specification table of the project. Each row corresponds to one year from 1976 through 2025. The table records the income variable (<code>var_renda</code>), its position and width (<code>pos_renda</code>, <code>tam_renda</code>), the household-size variable when required (<code>var_morador</code>, <code>pos_morador</code>, <code>tam_morador</code>), the official IBGE source URL (<code>link</code>), the expected raw-file organization (<code>raw_subdir</code>, <code>raw_pattern</code>, <code>n_files</code>), and the survey-specific missing-income sentinel (<code>missing_renda</code>). The same table also contains <code>Currency</code>, <code>Exchange</code>, <code>Index</code>, <code>Adjust2025</code>, and <code>Inflation</code>, which provide the monetary metadata required for later normalization and comparison across different Brazilian currency regimes.</p>
+
+### `generate_datasets.py`
+
+<p align="justify"><code>generate_datasets.py</code> converts the available PNAD and PNAD Contínua source files into annual Parquet datasets under <code>data/refined/</code>. The output is standardized to the two variables <code>renda</code> and <code>ano</code>. When a historical survey provides household income together with the number of household members, the income variable is transformed to a per-capita value according to the corresponding metadata; when the selected survey variable already provides the required income definition, no household-size transformation is introduced. Survey-specific missing-income codes are excluded according to <code>df_metadata</code>. The code therefore preserves a single longitudinal analytical variable while retaining the historical survey definition in the metadata layer.</p>
+
+## Survey variables
+
+<p align="justify">The income variable is not stable across the PNAD historical record. The table below summarizes the fields currently adopted by the project. Years without a survey—1980, 1991, 1994, 2000, and 2010—remain represented in the metadata chronology but do not generate refined datasets.</p>
+
+| Period | Income variable | Household-size variable when required |
+| --- | --- | --- |
+| 1976 | `V2954` | — |
+| 1977 | `V131` | — |
+| 1978 | `V2541` | — |
+| 1979 | `V2517` | — |
+| 1981 | `V5010` | `V9329` |
+| 1982 | `V602` | — |
+| 1983–1990 | `V5010` | `V9329` |
+| 1992–2003 | `V4614` | `V0105` |
+| 2004–2015 | `V4621` | — |
+| 2016–2025 | `VD4019` | — |
+
+## Primary data sources
+
+<p align="justify">The original microdata are obtained from the Instituto Brasileiro de Geografia e Estatística (IBGE). Historical annual PNAD files are available through the <a href="https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/">PNAD annual microdata archive</a>. From 2016 onward, the project uses the <a href="https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/">PNAD Contínua quarterly microdata archive</a>. The exact year-specific URL used by the pipeline is stored in the <code>link</code> column of <code>df_metadata</code>, including the reweighted PNAD files for 2001–2012 and the specific archive files adopted for later annual PNAD releases.</p>
+
+<p align="justify">The monetary metadata use two external macroeconomic sources. Historical period-average United States dollar exchange-rate values are associated with <a href="https://www3.bcb.gov.br/sgspub/consultarvalores/consultarValoresSeries.do?method=consultarValores">Banco Central do Brasil SGS series 3698</a>, and the price index is based on the <a href="https://fred.stlouisfed.org/series/CPIAUCSL">FRED CPIAUCSL Consumer Price Index for All Urban Consumers</a>. For a year <i>t</i>, the metadata define <code>Inflation</code> as the ratio between the 2025 CPI index and the CPI index of year <i>t</i>, with <code>Adjust2025 = Inflation - 1</code>. These quantities are retained as metadata for downstream normalization; they are not silently imposed during the raw-to-refined construction of the annual income samples.</p>
+
+## Trusted reference data
+
+<p align="justify">The repository keeps external validation series outside the processing pipeline under <code>data/trusted/</code>. The current file, <code>series_gini_ipea_banco_mundial.csv</code>, contains Gini-coefficient values from IPEA and the World Bank and is intended for comparison with inequality measures estimated from the PNAD-derived samples. The relevant public reference portals are <a href="http://www.ipeadata.gov.br/Default.aspx">Ipeadata</a> and the <a href="https://data.worldbank.org/indicator/SI.POV.GINI?locations=BR">World Bank Gini index for Brazil</a>.</p>
+
+## Data products
+
+<p align="justify">The metadata stage produces <code>data/metadata/df_metadata.xlsx</code>. The dataset stage produces <code>data/refined/pnad_refined_&lt;year&gt;.parquet</code> for every available survey year, with <code>renda</code> as the harmonized income variable and <code>ano</code> as the reference year. The repository also retains <code>data/metadata/df_summary_raw_to_refined.csv</code> as an audit summary of the historical conversion. Raw IBGE microdata are expected locally under <code>data/raw/</code> when the pipeline is rerun and are not treated as versioned research artifacts.</p>
+
+## Current repository layout
 
 ```text
 project_pnad/
-├── README.md
 ├── data/
 │   ├── metadata/
+│   │   ├── df_summary_raw_to_refined.csv
 │   │   └── pnad_metadata_old.csv
 │   ├── refined/
-│   │   ├── pnad_refined_1976.parquet
-│   │   ├── ...
-│   │   └── pnad_refined_2025.parquet
+│   │   └── pnad_refined_<year>.parquet
 │   └── trusted/
 │       └── series_gini_ipea_banco_mundial.csv
 ├── notebook/
@@ -23,184 +62,3 @@ project_pnad/
     ├── build_metadata.py
     └── generate_datasets.py
 ```
-
-`data/metadata/df_metadata.xlsx` is generated by `build_metadata.py` and is therefore not listed as a pre-existing source file. `generate_datasets.py` expects raw PNAD files under `data/raw/` by default; that directory contains source microdata and is intentionally treated as a local input rather than a versioned refined artifact.
-
-## `build_metadata.py`
-
-`build_metadata.py` is the Python-module version of the refactored `00_cria_metadata` notebook. It builds the annual PNAD extraction specification table, adds raw-file ingestion metadata (`raw_subdir`, `raw_pattern`, `n_files`, and `missing_renda`), constructs the currency/exchange/inflation adjustment table, merges both sources into `df_metadata`, validates the complete 1976–2025 annual index, and writes:
-
-```text
-data/metadata/df_metadata.xlsx
-```
-
-The output path is resolved from the repository root. The module exposes `build_specs_pnad_df()`, `build_currency_df()`, `build_metadata_df()`, `save_metadata()`, and `main()`.
-
-The notebook in `notebook/00_cria_metadata.ipynb` is a minimal manual entry point that imports and executes `main()` from this module.
-
-### Refactored notebook text
-
-### Imports
-
-### PNAD Income MetaData 
-
-This project builds a **consistent, longitudinal dataset of household income in Brazil** using microdata from the *Pesquisa Nacional por Amostra de Domicílios (PNAD)* and *PNAD Contínua*. The main challenge is structural heterogeneity across years:
-
-- Variable names change (`V2954`, `V4614`, `V4621`, `VD4019`, etc.)
-- Fixed-width positions and lengths vary
-- Some years include household size, others do not
-- Some years have **no survey**
-- Post-2016 data comes from **PNAD Contínua (quarterly)**
-
-To solve this, a unified specification table (`df_specs`) was created with:
-
-- `ano`: reference year  
-- `var_renda`: income variable  
-- `pos_renda`, `tam_renda`: extraction specs  
-- `var_morador`: household size (when available)  
-- `missing_renda`: missing-income sentinel code  
-- `raw_subdir`, `raw_pattern`, `n_files`: raw-file ingestion specification  
-- `link`: official IBGE source  
-
-This enables:
-
-- Automated ingestion (`read_fwf`)
-- Standardization to a single variable (`renda`)
-- Per capita income computation
-- Inflation and FX normalization
-- Distribution analysis (CCDF, log-log, double-log)
-
-The final dataset is:
-
-- **Time-consistent (1976–2025)**
-- **Economically comparable**
-- Suitable for **econophysics analysis** (heavy tails, Pareto, etc.)
-
----
-
-#### Data Sources (IBGE FTP)
-
-1. 1976 — [PNAD Year 1976](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1976/)  
-2. 1977 — [PNAD Year 1977](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1977/)  
-3. 1978 — [PNAD Year 1978](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1978/)  
-4. 1979 — [PNAD Year 1979](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1979/)  
-5. 1980 — No PNAD survey  
-6. 1981 — [PNAD Year 1981](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1981/)  
-7. 1982 — [PNAD Year 1982](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1982/)  
-8. 1983 — [PNAD Year 1983](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1983/)  
-9. 1984 — [PNAD Year 1984](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1984/)  
-10. 1985 — [PNAD Year 1985](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1985/)  
-11. 1986 — [PNAD Year 1986](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1986/)  
-12. 1987 — [PNAD Year 1987](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1987/)  
-13. 1988 — [PNAD Year 1988](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1988/)  
-14. 1989 — [PNAD Year 1989](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1989/)  
-15. 1990 — [PNAD Year 1990](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1990/PND1990N.DAT)  
-16. 1991 — No PNAD survey  
-17. 1992 — [PNAD Year 1992](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1992/)  
-18. 1993 — [PNAD Year 1993](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1993/)  
-19. 1994 — No PNAD survey  
-20. 1995 — [PNAD Year 1995](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1995/)  
-21. 1996 — [PNAD Year 1996](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1996/)  
-22. 1997 — [PNAD Year 1997](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1997/)  
-23. 1998 — [PNAD Year 1998](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1998/)  
-24. 1999 — [PNAD Year 1999](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1999/)  
-25. 2000 — No PNAD survey  
-26. 2001 — [PNAD Year 2001](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2001.zip)  
-27. 2002 — [PNAD Year 2002](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2002.zip)  
-28. 2003 — [PNAD Year 2003](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2003_20150814.zip)  
-29. 2004 — [PNAD Year 2004](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2004.zip)  
-30. 2005 — [PNAD Year 2005](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2005.zip)  
-31. 2006 — [PNAD Year 2006](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2006.zip)  
-32. 2007 — [PNAD Year 2007](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2007_20150814.zip)  
-33. 2008 — [PNAD Year 2008](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2008.zip)  
-34. 2009 — [PNAD Year 2009](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2009_20171228.zip)  
-35. 2010 — No PNAD survey  
-36. 2011 — [PNAD Year 2011](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2011_20150814.zip)  
-37. 2012 — [PNAD Year 2012](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2012_20150814.zip)  
-38. 2013 — [PNAD Year 2013](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/2013/Dados_20170807.zip)  
-39. 2014 — [PNAD Year 2014](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/2014/Dados_20170323.zip)  
-40. 2015 — [PNAD Year 2015](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/2015/Dados_20170517.zip)  
-41. 2016 — [PNAD Year 2016](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2016/)  
-42. 2017 — [PNAD Year 2017](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2017/)  
-43. 2018 — [PNAD Year 2018](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2018/)  
-44. 2019 — [PNAD Year 2019](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2019/)  
-45. 2020 — [PNAD Year 2020](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2020/)  
-46. 2021 — [PNAD Year 2021](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2021/)  
-47. 2022 — [PNAD Year 2022](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2022/)  
-48. 2023 — [PNAD Year 2023](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2023/)  
-49. 2024 — [PNAD Year 2024](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2024/)  
-50. 2025 — [PNAD Year 2025](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2025/)
-
-### Data Normalization and Economic Adjustment Framework
-
-This project constructs a consistent longitudinal dataset of household income in Brazil by integrating PNAD microdata across heterogeneous survey structures and time periods. A critical step in this process is the normalization of monetary values to ensure **temporal comparability** under varying currency regimes, inflation dynamics, and exchange rate fluctuations. To achieve this, two macroeconomic adjustment factors are incorporated:
-
-1. **Exchange Rate (BRL/USD)** — used to normalize income values into a common currency reference.
-2. **Inflation Index (CPI)** — used to express all monetary values in real terms relative to a base year (2025).
-
-The adjustment is defined as:
-
-- **Adjust2025** = $\frac{\text{Index}_{2025}}{\text{Index}_{t}} - 1$
-- **Inflation** = $1 + \text{Adjust2025} = \frac{\text{Index}_{2025}}{\text{Index}_{t}}$
-
-After conversion to USD using the period-average exchange rate, this formulation rescales historical income values to **constant 2025 US-dollar purchasing power (CPI-U basis)**, enabling robust cross-temporal statistical analysis.
-
-#### Data Sources
-
-- **Exchange Rate Source (Brazilian Central Bank — BCB)**  
-  https://www3.bcb.gov.br/sgspub/consultarvalores/consultarValoresSeries.do?method=consultarValores  
-  **Series:** 3698 — *Exchange rate - Free - United States dollar (sale) - period average*
-
-- **Inflation Index Source (Federal Reserve Economic Data — FRED)**  
-  https://fred.stlouisfed.org/series/CPIAUCSL  
-  **Series:** CPIAUCSL — *Consumer Price Index for All Urban Consumers (CPI-U), All Items*
-
-The resulting dataset provides:
-
-- Income values normalized to a **single currency baseline**
-- Adjustment to **constant 2025 US-dollar purchasing power (CPI-U basis)**
-- Compatibility with **econophysics and distributional analysis frameworks**
-
-This ensures that observed dynamics in income distributions reflect **structural economic behavior**, rather than nominal distortions.
-
-### Cria e salva o df_metadata
-
-## `generate_datasets.py`
-
-`generate_datasets.py` is the Python-module version of `01_gera_datasets.ipynb`. It reads the ingestion rules from `data/metadata/df_metadata.xlsx`, identifies survey years with complete raw-file specifications, resolves the expected raw files, parses only the required fixed-width byte fields, removes missing or invalid income observations, computes per-capita income when household-size metadata are present, and writes one compressed Parquet file per available year to:
-
-```text
-data/refined/pnad_refined_<year>.parquet
-```
-
-The default paths are resolved from the repository root:
-
-```text
-data/metadata/df_metadata.xlsx
-data/raw/
-data/refined/
-```
-
-The module exposes `load_metadata()`, `get_available_specs()`, `get_source_files()`, `read_year_fast()`, `generate_datasets()`, and `main()`. `generate_datasets()` returns a summary DataFrame containing raw and retained observation counts, discarded-record diagnostics, per-capita status, execution time, and output filename for each processed year.
-
-The ingestion algorithm remains metadata-driven: no year-specific PNAD parsing rule is hard-coded in this module. Parquet output uses `pandas.to_parquet(..., compression="snappy")`, requiring a Parquet engine such as `pyarrow` or `fastparquet`.
-
-### Notebook text
-
-### PNAD dataset generation
-
-This notebook generates one refined PNAD dataset per available survey year. All year-specific ingestion rules are read from `df_metadata.xlsx`, generated by `00_cria_metadata.ipynb`.
-
-The metadata defines field positions and widths, household-size information, missing-income sentinels, raw-file patterns, subdirectories, and expected file counts. The code below therefore contains no year-specific PNAD ingestion rules.
-
-#### Paths and metadata
-
-The metadata file is read from the fixed project location. The raw and refined data directories are derived from the same project root.
-
-#### Fast fixed-width ingestion
-
-Only the required fixed-width fields are extracted directly from the raw byte lines. This avoids the overhead of `pandas.read_fwf()` while preserving the same zero-based, half-open field positions stored in the metadata. Missing-income filtering and the per-capita transformation are applied during ingestion, reducing memory use.
-
-#### Generate refined datasets
-
-Each year is read, filtered, transformed and immediately written to Parquet. The outer progress bar tracks survey years and the temporary inner bar tracks bytes read from the current raw file. The summary table records retained and discarded observations.

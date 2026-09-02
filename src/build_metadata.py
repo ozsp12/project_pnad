@@ -1,4 +1,9 @@
-"""Build PNAD metadata for the 1976-2025 longitudinal income dataset."""
+"""Build PNAD metadata for the 1976–2025 longitudinal income dataset.
+
+This module is derived from the refactored ``00_cria_metadata`` notebook.
+It centralizes annual extraction specifications, raw-file ingestion metadata,
+currency/exchange-rate information, and CPI-based normalization factors.
+"""
 
 from pathlib import Path
 
@@ -9,10 +14,10 @@ import pandas as pd
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_PATH = REPO_ROOT / "data" / "metadata" / "df_metadata.xlsx"
 
-
-def build_specs_pnad_df():
-    """Build the annual PNAD extraction specification table."""
-    specs_pnad = {
+# define função para construir o dataframe de especificações
+def build_specs_pnad_df(): 
+    # dicionário com metadados por ano (variáveis, posições e links)
+    specs_pnad = {  
         1976: ('V2954', 227, 9, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1976/'),
         1977: ('V131', 288, 9, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1977/'),
         1978: ('V2541', 214, 9, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1978/'),
@@ -63,17 +68,50 @@ def build_specs_pnad_df():
         2023: ('VD4019', 443, 8, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2023/'),
         2024: ('VD4019', 443, 8, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2024/'),
         2025: ('VD4019', 443, 8, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2025/')
-    }
+    }  
+    # define nomes das colunas
+    cols = ['var_renda','pos_renda','tam_renda','var_morador','pos_morador','tam_morador','link']  
+    # cria dataframe a partir do dicionário
+    df = pd.DataFrame.from_dict(specs_pnad, orient='index', columns=cols) 
+    # transforma índice em coluna ano
+    df = df.reset_index().rename(columns={'index':'ano'})  
+    # especificações de ingestão dos arquivos brutos
+    available = df['pos_renda'].notna()
 
-    cols = ['var_renda', 'pos_renda', 'tam_renda', 'var_morador', 'pos_morador', 'tam_morador', 'link']
-    df = pd.DataFrame.from_dict(specs_pnad, orient='index', columns=cols)
-    df = df.reset_index().rename(columns={'index': 'ano'})
+    df['raw_subdir'] = ''
+    df.loc[df['ano'].isin([1983, 1988]), 'raw_subdir'] = df.loc[
+        df['ano'].isin([1983, 1988]), 'ano'
+    ].astype(str)
+
+    df['raw_pattern'] = ''
+    df.loc[available, 'raw_pattern'] = (
+        'DOM' + df.loc[available, 'ano'].astype(str) + '.*'
+    )
+    df.loc[df['ano'] == 1983, 'raw_pattern'] = 'PND83RM*.DAT'
+    df.loc[df['ano'] == 1988, 'raw_pattern'] = 'PND88RM*.DAT'
+
+    df['n_files'] = 0
+    df.loc[available, 'n_files'] = 1
+    df.loc[df['ano'].isin([1983, 1988]), 'n_files'] = 8
+
+    df['missing_renda'] = np.nan
+    df.loc[df['ano'].between(1977, 1990) & available, 'missing_renda'] = 999_999_999
+    df.loc[df['ano'].between(1992, 2015) & available, 'missing_renda'] = 999_999_999_999
+    df.loc[df['ano'].between(2016, 2025) & available, 'missing_renda'] = 99_999_999
+    df.loc[df['ano'].isin([1976, 1981, 1982, 1983, 1984]), 'missing_renda'] = 9_999_999
+
+    # campos textuais vazios para anos sem pesquisa
     df['link'] = df['link'].fillna('')
-    return df.sort_values('ano').reset_index(drop=True)
+    df['raw_subdir'] = df['raw_subdir'].fillna('')
+    df['raw_pattern'] = df['raw_pattern'].fillna('')
+
+    # ordena por ano e reseta índice
+    df = df.sort_values('ano').reset_index(drop=True)
+    return df
 
 
 def build_currency_df():
-    """Build currency, exchange-rate and CPI adjustment metadata."""
+    """Build currency, exchange-rate, and CPI adjustment metadata."""
     df_currency = pd.DataFrame({
         "Year": list(range(1976, 2026)),
         "Currency": [
@@ -122,33 +160,48 @@ def build_currency_df():
 
 
 def build_metadata_df():
-    """Merge PNAD extraction specifications with economic adjustment metadata."""
+    """Merge PNAD extraction specifications with monetary normalization metadata."""
+    df_specs = build_specs_pnad_df()
+
+    available = df_specs["pos_renda"].notna()
+    assert (df_specs.loc[available, "raw_pattern"] != "").all()
+    assert (df_specs.loc[available, "n_files"] > 0).all()
+    assert df_specs.loc[available, "missing_renda"].notna().all()
+
+    df_currency = build_currency_df()
+
     df_metadata = (
-        build_specs_pnad_df()
-        .merge(build_currency_df(), left_on="ano", right_on="Year", how="left")
+        df_specs
+        .merge(df_currency, left_on="ano", right_on="Year", how="left")
         .drop(columns="Year")
     )
 
     assert df_metadata["ano"].is_unique
     assert df_metadata["ano"].tolist() == list(range(1976, 2026))
+
     return df_metadata
 
 
 def save_metadata(df_metadata, output_path=DEFAULT_OUTPUT_PATH):
-    """Save df_metadata to the repository metadata directory."""
+    """Save ``df_metadata`` to the repository metadata directory."""
     output_path = Path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    if not output_path.parent.is_dir():
+        raise FileNotFoundError(
+            f"Pasta de metadata não encontrada: {output_path.parent}"
+        )
+
     df_metadata.to_excel(output_path, index=False)
     return output_path
 
 
 def main(output_path=DEFAULT_OUTPUT_PATH):
-    """Build and save df_metadata, returning the DataFrame and saved path."""
+    """Build, validate, and save ``df_metadata``."""
     df_metadata = build_metadata_df()
-    saved_path = save_metadata(df_metadata, output_path)
-    return df_metadata, saved_path
+    output_path = save_metadata(df_metadata, output_path)
+    return df_metadata, output_path
 
 
 if __name__ == "__main__":
-    _, saved_path = main()
-    print(f"df_metadata saved to: {saved_path}")
+    df_metadata, output_path = main()
+    print(f"df_metadata saved to: {output_path}")
+    print(df_metadata)

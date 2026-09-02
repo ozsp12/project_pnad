@@ -27,19 +27,21 @@ project_pnad/
 
 ## `build_metadata.py`
 
-`build_metadata.py` is the Python-module version of the original `00_cria_metadata.ipynb`. It builds the annual PNAD extraction specification table, constructs the currency/exchange/inflation adjustment table, merges both sources into `df_metadata`, validates the 1976–2025 annual index, and writes the result to:
+`build_metadata.py` is the Python-module version of the refactored `00_cria_metadata` notebook. It builds the annual PNAD extraction specification table, adds raw-file ingestion metadata (`raw_subdir`, `raw_pattern`, `n_files`, and `missing_renda`), constructs the currency/exchange/inflation adjustment table, merges both sources into `df_metadata`, validates the complete 1976–2025 annual index, and writes the result to:
 
 ```text
 data/metadata/df_metadata.xlsx
 ```
 
-The output path is resolved from the repository root, so the module does not depend on a user-specific absolute path.
+The output path is resolved from the repository root, so the module does not depend on a user-specific absolute path. The module exposes `build_specs_pnad_df()`, `build_currency_df()`, `build_metadata_df()`, `save_metadata()`, and `main()`.
 
-### Original notebook text
+The notebook in `notebook/00_cria_metadata.ipynb` is intentionally a minimal manual entry point. It imports and executes `main()` from this module so that the implementation remains centralized in `src/`.
 
-#### Imports
+### Refactored notebook text
 
-#### PNAD Income MetaData 
+### Imports
+
+### PNAD Income MetaData 
 
 This project builds a **consistent, longitudinal dataset of household income in Brazil** using microdata from the *Pesquisa Nacional por Amostra de Domicílios (PNAD)* and *PNAD Contínua*. The main challenge is structural heterogeneity across years:
 
@@ -55,6 +57,8 @@ To solve this, a unified specification table (`df_specs`) was created with:
 - `var_renda`: income variable  
 - `pos_renda`, `tam_renda`: extraction specs  
 - `var_morador`: household size (when available)  
+- `missing_renda`: missing-income sentinel code  
+- `raw_subdir`, `raw_pattern`, `n_files`: raw-file ingestion specification  
 - `link`: official IBGE source  
 
 This enables:
@@ -73,7 +77,7 @@ The final dataset is:
 
 ---
 
-##### Data Sources (IBGE FTP)
+#### Data Sources (IBGE FTP)
 
 1. 1976 — [PNAD Year 1976](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1976/)  
 2. 1977 — [PNAD Year 1977](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1977/)  
@@ -124,9 +128,9 @@ The final dataset is:
 47. 2022 — [PNAD Year 2022](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2022/)  
 48. 2023 — [PNAD Year 2023](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2023/)  
 49. 2024 — [PNAD Year 2024](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2024/)  
-50. 2025 — [PNAD Year 2025](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2025/)  
+50. 2025 — [PNAD Year 2025](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2025/)
 
-#### Data Normalization and Economic Adjustment Framework
+### Data Normalization and Economic Adjustment Framework
 
 This project constructs a consistent longitudinal dataset of household income in Brazil by integrating PNAD microdata across heterogeneous survey structures and time periods. A critical step in this process is the normalization of monetary values to ensure **temporal comparability** under varying currency regimes, inflation dynamics, and exchange rate fluctuations. To achieve this, two macroeconomic adjustment factors are incorporated:
 
@@ -140,7 +144,7 @@ The adjustment is defined as:
 
 After conversion to USD using the period-average exchange rate, this formulation rescales historical income values to **constant 2025 US-dollar purchasing power (CPI-U basis)**, enabling robust cross-temporal statistical analysis.
 
-##### Data Sources
+#### Data Sources
 
 - **Exchange Rate Source (Brazilian Central Bank — BCB)**  
   https://www3.bcb.gov.br/sgspub/consultarvalores/consultarValoresSeries.do?method=consultarValores  
@@ -158,4 +162,4 @@ The resulting dataset provides:
 
 This ensures that observed dynamics in income distributions reflect **structural economic behavior**, rather than nominal distortions.
 
-#### Cria o df_metadata
+### Cria e salva o df_metadata

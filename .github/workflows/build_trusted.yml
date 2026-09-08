@@ -46,7 +46,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/data_trusted assets/tables_analysis/trusted_*.csv
+          git add -A data/data_trusted assets/tables_analysis
           if git diff --cached --quiet; then
             echo "No trusted-data changes to commit."
           else

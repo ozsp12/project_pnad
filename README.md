@@ -1,67 +1,43 @@
-# PNAD Longitudinal Income Dataset
+# PNAD Longitudinal Income Research
 
-<p align="justify">This repository organizes a reproducible longitudinal dataset of Brazilian income distributions constructed from microdata of the <i>Pesquisa Nacional por Amostra de Domicílios</i> (PNAD) and PNAD Contínua. The project covers the period from 1976 to 2025 and is designed primarily for quantitative research on income distributions, inequality, econophysics, heavy tails, Pareto regimes, and long-run structural changes in the Brazilian economy. The central problem is not merely data storage: PNAD microdata are structurally heterogeneous across decades, with changes in variable names, fixed-width positions, file organization, missing-value conventions, household-size information, survey design, currency regimes, and the transition from annual PNAD to PNAD Contínua. The repository therefore separates the historical survey specifications from the refined annual datasets and keeps the transformations explicit and reproducible.</p>
+<p align="justify">This repository provides a compact and reproducible scientific workflow for longitudinal research on the Brazilian income distribution using the Pesquisa Nacional por Amostra de Domicílios (PNAD) and PNAD Contínua. The empirical series covers the available surveys from 1976 through 2025 and is organized as a sequence of explicit transformations: historical survey metadata are consolidated, annual microdata are harmonized into refined income samples, each annual distribution is subjected to deterministic quality control to produce the trusted analytical datasets, and the resulting distributions are characterized through descriptive statistics, empirical complementary cumulative distribution functions, geometric binning, Lorenz geometry, inequality and concentration measures, external validation and Gompertz–Pareto exploratory fits. The repository is intended primarily as research material and supplementary computational documentation for scientific manuscripts; its structure therefore favors transparent data provenance, numbered analytical stages and persistent tables and figures over software-package abstractions.</p>
 
-## Survey coverage
+## Scientific pipeline
 
-<p align="justify">The historical series uses annual PNAD microdata from 1976 through 2015 and PNAD Contínua from 2016 through 2025. The years 1980, 1991, 1994, 2000, and 2010 are retained in the metadata chronology but have no PNAD survey and therefore no refined annual dataset. The change in 2016 is treated explicitly as a survey-regime transition rather than being hidden inside a nominally homogeneous time series. The refined data directory consequently contains one Parquet file for every survey year for which the required income information is available.</p>
+<p align="justify">The source modules are numbered according to the order in which the empirical material is constructed and analyzed. Stages 00–02 define the data pipeline, stage 03 contains the complete general analysis derived from the original exploratory notebook, and subsequent stages are reserved for paper-specific experiments. This numbering makes the repository readable as a scientific procedure: each module has an identifiable input, transformation and output, while generated assets carry the same module prefix so that every table and figure can be traced directly to the code that produced it.</p>
 
-## Income variables
+| Stage | Module | Scientific role | Main output |
+| ---: | --- | --- | --- |
+| 00 | <code>src/00_build_metadata.py</code> | Consolidates historical PNAD/PNAD Contínua extraction specifications and monetary metadata | <code>data/metadata/df_metadata.xlsx</code> |
+| 01 | <code>src/01_build_refined_pnad.py</code> | Harmonizes the original survey records into annual income datasets | <code>data/refined/pnad_refined_YYYY.parquet</code> |
+| 02 | <code>src/02_build_trusted_pnad.py</code> | Applies deterministic upper-tail treatment and distribution-level validation | <code>data/data_trusted/pnad_trusted_YYYY.parquet</code> and audit tables |
+| 03 | <code>src/03_pnad_analysis.py</code> | Reproduces the complete analytical content of notebook 04 | analytical figures and tables |
+| 04 | <code>src/04_pereira_ribeiro.py</code> | Reserved for the synthetic LS–MLE manuscript experiments | paper assets |
+| 05 | <code>src/05_moura_ribeiro.py</code> | Reserved for the Moura–Ribeiro replication and 1976–2025 extension | paper assets |
 
-<p align="justify">The income field changes repeatedly over the historical record. The metadata layer records the variable name and its position for each year, together with the household-size field when the income definition requires a per-capita transformation. This design allows the same analytical variable, <code>renda</code>, to be constructed from heterogeneous original layouts without erasing the provenance of each observation.</p>
+## Data and analyses
 
-| Period | Income variable | Household-size variable when required |
-| --- | --- | --- |
-| 1976 | `V2954` | — |
-| 1977 | `V131` | — |
-| 1978 | `V2541` | — |
-| 1979 | `V2517` | — |
-| 1981 | `V5010` | `V9329` |
-| 1982 | `V602` | — |
-| 1983–1990 | `V5010` | `V9329` |
-| 1992–2003 | `V4614` | `V0105` |
-| 2004–2015 | `V4621` | — |
-| 2016–2025 | `VD4019` | — |
+<p align="justify">Survey definitions are not assumed to be constant through time. The historical PNAD series and the later PNAD Contínua use different variables, layouts and survey regimes, and these differences remain explicit in the metadata rather than being hidden inside a nominally homogeneous dataset. The trusted analytical layer is created only after the refined annual samples pass deterministic checks for finite and non-negative income values, consistency of the survey year, observation counts and the upper-tail cutoff. The general analysis then computes annual descriptive statistics, linear and geometric histogram representations, empirical CCDFs, the double-log Gompertz transformation, Lorenz curves, Gini, Pietra, Kolkata and Zanardi indices, top-income shares, temporal evolution of central tendency and inequality, comparison with external Gini series, and the Gompertz–Pareto least-squares regime analysis present in the original notebook.</p>
 
-## Data sources
+## Assets
 
-<p align="justify">The primary source is the <a href="https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/">IBGE annual PNAD microdata archive</a> for the historical annual survey and the <a href="https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/">IBGE PNAD Contínua quarterly microdata archive</a> for the post-2016 period. The year-specific IBGE URLs are recorded directly in the metadata generated by the project. Monetary metadata include the historical Brazilian currency regime, the period-average United States dollar exchange-rate series from the <a href="https://www3.bcb.gov.br/sgspub/consultarvalores/consultarValoresSeries.do?method=consultarValores">Banco Central do Brasil, SGS series 3698</a>, and the <a href="https://fred.stlouisfed.org/series/CPIAUCSL">U.S. Consumer Price Index for All Urban Consumers, CPIAUCSL</a> from FRED. These quantities are stored as metadata for downstream monetary normalization; the raw-to-refined dataset-generation stage itself preserves the income values defined by the survey transformation and does not silently apply an additional currency conversion.</p>
+<p align="justify">Generated research outputs are stored under <code>assets</code> and are separated according to scientific purpose. Complete diagnostics, validation material and intermediate numerical results belong to the analysis directories, whereas only results explicitly selected for manuscripts belong to the paper directories. Filenames begin with the source-module identifier, for example <code>03_pnad_analysis__gini_validation.pdf</code> or <code>04_pereira_ribeiro__estimator_comparison.csv</code>. This convention provides a direct provenance link between code and output without requiring a workflow framework.</p>
 
-<p align="justify">The repository also contains an independent trusted reference series of the Gini coefficient, <code>data/trusted/series_gini_ipea_banco_mundial.csv</code>, assembled from IPEA and World Bank values. This file is conceptually distinct from the PNAD processing pipeline and is intended for comparison and external validation. The corresponding public reference portals are <a href="http://www.ipeadata.gov.br/Default.aspx">Ipeadata</a> and the <a href="https://data.worldbank.org/indicator/SI.POV.GINI?locations=BR">World Bank Gini index for Brazil</a>.</p>
+| Directory | Content |
+| --- | --- |
+| <code>assets/figures_analysis/</code> | Exploratory, diagnostic and validation figures |
+| <code>assets/tables_analysis/</code> | Audits, complete results and intermediate analytical tables |
+| <code>assets/figures_paper/</code> | Figures explicitly selected for manuscripts |
+| <code>assets/tables_paper/</code> | Tables explicitly selected for manuscripts |
 
-## Monetary metadata
+## Execution
 
-<p align="justify">For every year between 1976 and 2025, the metadata table records the historical currency, an exchange-rate value, a CPI index, and two derived quantities, <code>Adjust2025</code> and <code>Inflation</code>. With <code>Index</code> denoting the CPI value, the normalization factor is defined by \(\mathrm{Inflation}_t=\mathrm{Index}_{2025}/\mathrm{Index}_t\), while \(\mathrm{Adjust2025}_t=\mathrm{Inflation}_t-1\). These columns provide a common basis for subsequent analyses in constant monetary units while keeping the transformation separate from the construction of the annual income samples.</p>
+<p align="justify">The repository uses a deliberately small Python environment. Install the dependencies listed in <code>requirements.txt</code> and execute the numbered modules in sequence according to the stage that must be reconstructed. Rebuilding the complete pipeline from original microdata requires the local PNAD files expected by stage 01; when the refined datasets are already available, execution may begin at stage 02, and when the trusted datasets are already available, the complete general analysis can be regenerated directly with stage 03.</p>
 
-## Repository structure
-
-```text
-project_pnad/
-├── README.md
-├── data/
-│   ├── metadata/
-│   │   ├── df_summary_raw_to_refined.csv
-│   │   └── pnad_metadata_old.csv
-│   ├── refined/
-│   │   ├── pnad_refined_1976.parquet
-│   │   ├── ...
-│   │   └── pnad_refined_2025.parquet
-│   └── trusted/
-│       └── series_gini_ipea_banco_mundial.csv
-├── notebook/
-│   └── 00_cria_metadata.ipynb
-└── src/
-    ├── README.md
-    ├── build_metadata.py
-    └── generate_datasets.py
+```bash
+pip install -r requirements.txt
+python src/02_build_trusted_pnad.py
+python src/03_pnad_analysis.py
 ```
 
-<p align="justify">The raw IBGE microdata are expected locally under <code>data/raw/</code> when the datasets are regenerated, but they are not part of the versioned repository. The <code>metadata</code> directory contains historical specifications and processing summaries; <code>refined</code> contains the annual research datasets; <code>trusted</code> contains external reference data; <code>src</code> contains the reproducible pipeline; and <code>notebook</code> provides a minimal manual entry point for metadata generation. The generated <code>data/metadata/df_metadata.xlsx</code> is the bridge between the survey-specific historical definitions and the dataset-generation stage.</p>
-
-## Processing model
-
-<p align="justify"><code>src/build_metadata.py</code> constructs the 1976–2025 metadata table from the historical survey specifications and the monetary reference series. <code>src/generate_datasets.py</code> then uses that metadata to construct one refined annual income sample for each available survey year, applying the appropriate missing-income convention and the household-size transformation when required. The resulting annual files contain the harmonized variables <code>renda</code> and <code>ano</code>. The processing summary retained in <code>data/metadata/df_summary_raw_to_refined.csv</code> provides an audit of the raw-to-refined conversion.</p>
-
-## Scientific use
-
-<p align="justify">The repository is intended as the empirical base for studies of the Brazilian income distribution over approximately five decades. Its organization is deliberately conservative: survey-specific definitions remain visible, external reference series are kept separate from transformed PNAD data, and the transition between PNAD and PNAD Contínua is explicit. This makes the dataset suitable for analyses in which methodological comparability matters as much as sample size, including CCDF-based distributional studies, Pareto-tail estimation, inequality measures, regime comparisons, and longitudinal econophysics research.</p>
+<p align="justify">The original notebooks are retained temporarily as methodological provenance while the numbered modules are validated against their outputs. They are not the canonical execution path of the repository. The authoritative computational workflow is the sequential source code under <code>src</code>, and the authoritative numerical outputs are the corresponding persistent assets.</p>

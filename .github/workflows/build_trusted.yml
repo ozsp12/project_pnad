@@ -13,6 +13,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: pnad-trusted-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-trusted:
     runs-on: ubuntu-latest
@@ -44,5 +48,6 @@ jobs:
             echo "No trusted-data changes to commit."
           else
             git commit -m "build trusted PNAD datasets"
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi

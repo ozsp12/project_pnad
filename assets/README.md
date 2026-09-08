@@ -4,9 +4,9 @@
 
 | Directory | Purpose | Naming convention |
 | --- | --- | --- |
-| <code>figures_analysis/</code> | Exploratory, diagnostic and validation figures | <code>03_pnad_analysis__*.pdf</code> |
+| <code>figures_analysis/</code> | Exploratory, diagnostic and validation figures | <code>03_pnad_analysis__*.svg</code> |
 | <code>figures_paper/</code> | Figures selected for manuscripts | <code>04_pereira_ribeiro__*.pdf</code>, <code>05_moura_ribeiro__*.pdf</code> |
 | <code>tables_analysis/</code> | Audits, intermediate results and complete analytical tables | <code>02_build_trusted_pnad__*.csv</code>, <code>03_pnad_analysis__*.csv</code> |
 | <code>tables_paper/</code> | Tables selected for manuscripts | <code>04_pereira_ribeiro__*.csv</code>, <code>05_moura_ribeiro__*.csv</code> |
 
-<p align="justify">The distinction between analysis and paper assets is methodological rather than cosmetic. A diagnostic result may be necessary to validate a transformation without belonging in the final article, whereas a paper asset must be generated reproducibly from the same code and data while representing a result that has been explicitly selected for publication. The repository therefore does not use figures displayed only interactively as scientific results: relevant numerical objects are persisted as CSV files and relevant plots are written to the corresponding asset directory.</p>
+<p align="justify">The distinction between analysis and paper assets is methodological rather than cosmetic. Analytical figures are stored as SVG because they serve as inspectable evidence and reproducible artifacts of the computational pipeline; publication figures remain reserved for the manuscript-specific directories. A diagnostic result may be necessary to validate a transformation without belonging in the final article, whereas a paper asset must be generated reproducibly from the same code and data while representing a result that has been explicitly selected for publication. The repository therefore does not use figures displayed only interactively as scientific results: relevant numerical objects are persisted as CSV files and relevant plots are written to the corresponding asset directory.</p>

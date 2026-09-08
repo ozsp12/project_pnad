@@ -52,6 +52,9 @@ jobs:
           rm -f assets/figures_analysis/trusted_analysis_lorenz_indices.svg
           rm -f assets/tables_analysis/03_pnad_analysis__*.csv
           rm -f assets/tables_analysis/trusted_analysis_descriptive_statistics.csv
+          rm -f assets/tables_analysis/trusted_analysis_annual_statistics.csv
+          rm -f assets/tables_analysis/trusted_analysis_gini_validation.csv
+          rm -f assets/tables_analysis/trusted_analysis_regime_fits.csv
 
       - name: Run complete PNAD analysis
         env:

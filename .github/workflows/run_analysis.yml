@@ -1,0 +1,62 @@
+name: Run PNAD analysis
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/03_pnad_analysis.py"
+      - "data/metadata/**"
+      - "data/trusted/**"
+      - "data/data_trusted/**"
+      - "requirements.txt"
+      - ".github/workflows/run_analysis.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Ensure trusted datasets exist
+        shell: bash
+        run: |
+          if compgen -G "data/data_trusted/pnad_trusted_*.parquet" > /dev/null; then
+            echo "Trusted datasets already present."
+          else
+            echo "Trusted datasets are absent; rebuilding them from refined data."
+            python src/02_build_trusted_pnad.py
+          fi
+
+      - name: Run complete PNAD analysis
+        env:
+          MPLBACKEND: Agg
+        run: python src/03_pnad_analysis.py
+
+      - name: Commit analytical assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/figures_analysis assets/tables_analysis
+          if [ -d data/data_trusted ]; then
+            git add data/data_trusted
+          fi
+          if git diff --cached --quiet; then
+            echo "No analysis changes to commit."
+          else
+            git commit -m "generate PNAD analysis assets"
+            git push
+          fi

@@ -8,12 +8,12 @@
 
 | Stage | Module | Scientific role | Main output |
 | ---: | --- | --- | --- |
-| 00 | <code>src/00_build_metadata.py</code> | Consolidates historical PNAD/PNAD Contínua extraction specifications and monetary metadata | <code>data/metadata/df_metadata.xlsx</code> |
-| 01 | <code>src/01_build_refined_pnad.py</code> | Harmonizes the original survey records into annual income datasets | <code>data/refined/pnad_refined_YYYY.parquet</code> |
-| 02 | <code>src/02_build_trusted_pnad.py</code> | Applies deterministic upper-tail treatment and distribution-level validation | <code>data/data_trusted/pnad_trusted_YYYY.parquet</code> and audit tables |
-| 03 | <code>src/03_pnad_analysis.py</code> | Reproduces the complete analytical content of notebook 04 | analytical figures and tables |
-| 04 | <code>src/04_pereira_ribeiro.py</code> | Reserved for the synthetic LS–MLE manuscript experiments | paper assets |
-| 05 | <code>src/05_moura_ribeiro.py</code> | Reserved for the Moura–Ribeiro replication and 1976–2025 extension | paper assets |
+| 00 | <code>src/stage_00_build_metadata.py</code> | Consolidates historical PNAD/PNAD Contínua extraction specifications and monetary metadata | <code>data/metadata/df_metadata.xlsx</code> |
+| 01 | <code>src/stage_01_build_refined_pnad.py</code> | Harmonizes the original survey records into annual income datasets | <code>data/refined/pnad_refined_YYYY.parquet</code> |
+| 02 | <code>src/stage_02_build_trusted_pnad.py</code> | Applies deterministic upper-tail treatment and distribution-level validation | <code>data/data_trusted/pnad_trusted_YYYY.parquet</code> and audit tables |
+| 03 | <code>src/stage_03_pnad_analysis.py</code> | Reproduces the complete analytical content of notebook 04 | analytical figures and tables |
+| 04 | <code>src/stage_04_pereira_ribeiro.py</code> | Reserved for the synthetic LS–MLE manuscript experiments | paper assets |
+| 05 | <code>src/stage_05_moura_ribeiro.py</code> | Reserved for the Moura–Ribeiro replication and 1976–2025 extension | paper assets |
 
 ## Data and analyses
 
@@ -21,7 +21,7 @@
 
 ## Assets
 
-<p align="justify">Generated research outputs are stored under <code>assets</code> and are separated according to scientific purpose. Complete diagnostics, validation material and intermediate numerical results belong to the analysis directories, whereas only results explicitly selected for manuscripts belong to the paper directories. Analytical figure filenames use the <code>trusted_analysis_</code> prefix, while stage-specific tables retain their source-module identifier; for example <code>trusted_analysis_gini_validation.svg</code> or <code>04_pereira_ribeiro__estimator_comparison.csv</code>. This convention provides a direct provenance link between code and output without requiring a workflow framework.</p>
+<p align="justify">Generated research outputs are stored under <code>assets</code> and are separated according to scientific purpose. Complete diagnostics, validation material and intermediate numerical results belong to the analysis directories, whereas only results explicitly selected for manuscripts belong to the paper directories. Trusted-analysis figures and tables use the <code>trusted_analysis_</code> prefix, while trusted-data audit tables use the <code>trusted_</code> prefix; for example <code>trusted_analysis_gini_validation.svg</code> or <code>pereira_ribeiro_estimator_comparison.csv</code>. This convention provides a direct provenance link between code and output without requiring a workflow framework.</p>
 
 | Directory | Content |
 | --- | --- |
@@ -36,8 +36,8 @@
 
 ```bash
 pip install -r requirements.txt
-python src/02_build_trusted_pnad.py
-python src/03_pnad_analysis.py
+python src/stage_02_build_trusted_pnad.py
+python src/stage_03_pnad_analysis.py
 ```
 
 <p align="justify">The original notebooks are retained temporarily as methodological provenance while the numbered modules are validated against their outputs. They are not the canonical execution path of the repository. The authoritative computational workflow is the sequential source code under <code>src</code>, and the authoritative numerical outputs are the corresponding persistent assets.</p>

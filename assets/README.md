@@ -32,7 +32,6 @@
 | <code>trusted_distribution_tests.csv</code> | Annual quality-control tests for the trusted-data stage, including counts of invalid values, structural removals, statistical outliers, removal rates, count identities, cutoff validation and before/after changes in mean and median. |
 | <code>trusted_trim_audit.csv</code> | Full annual trimming audit containing the log-MAD center and dispersion, statistical cutoff, structural-invalid counts, statistical-outlier counts, trusted sample size, removal rates, distribution summaries and processing diagnostics. |
 | <code>trusted_analysis_annual_statistics.csv</code> | Complete annual analytical summary with sample counts, nominal and adjusted income statistics, Gini, Pietra, Kolkata and Zanardi indices, and top 10%, 1% and 0.1% income shares. |
-| <code>trusted_analysis_validation.csv</code> | Compact annual validation table containing sample size, valid observations, NaN/zero/negative diagnostics, positive support, maximum income and aggregate income. |
 | <code>trusted_analysis_ccdf.csv</code> | Annual empirical CCDF data with income thresholds, CCDF values, percentages and the double-log Gompertz diagnostic transformation. |
 | <code>trusted_analysis_geometric_bins.csv</code> | Complete geometric-binning dataset containing bin limits, geometric centers, counts, arithmetic and geometric means, medians, standard deviations and CCDF values. |
 | <code>trusted_analysis_geometric_bins_preview.csv</code> | Compact preview of the geometric-binning dataset used for rapid inspection of the generated bin structure. |

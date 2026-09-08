@@ -60,3 +60,5 @@ jobs:
             git commit -m "generate PNAD analysis assets"
             git push
           fi
+
+# trigger: trusted datasets available

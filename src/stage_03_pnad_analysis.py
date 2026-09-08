@@ -991,14 +991,14 @@ def run_analysis():
     df_regime_fits, df_regime_curves = build_regime_datasets(df_ccdf, df_stats_year)
 
     tables = {
-        "trusted_analysis_annual_statistics.csv": df_stats_year,
+        "trusted_analysis_statistics_annual.csv": df_stats_year,
         "trusted_analysis_ccdf.csv": df_ccdf,
         "trusted_analysis_geometric_bins.csv": df_bins,
         "trusted_analysis_geometric_bins_preview.csv": df_bins_preview,
         "trusted_analysis_lorenz.csv": df_lorenz,
         "trusted_analysis_histograms.csv": df_histograms,
-        "trusted_analysis_gini_validation.csv": df_gini_validation,
-        "trusted_analysis_regime_fits.csv": df_regime_fits,
+        "trusted_analysis_gini_validation_annual.csv": df_gini_validation,
+        "trusted_analysis_regime_fits_annual.csv": df_regime_fits,
         "trusted_analysis_regime_curves.csv": df_regime_curves,
     }
     for filename, frame in tables.items():

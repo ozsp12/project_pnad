@@ -29,18 +29,17 @@
 
 | CSV asset | Description |
 | --- | --- |
-| <code>02_build_trusted_pnad__distribution_tests.csv</code> | Annual quality-control tests for the trusted-data stage, including counts of invalid values, structural removals, statistical outliers, removal rates, count identities, cutoff validation and before/after changes in mean and median. |
-| <code>02_build_trusted_pnad__trim_audit.csv</code> | Full annual trimming audit containing the log-MAD center and dispersion, statistical cutoff, structural-invalid counts, statistical-outlier counts, trusted sample size, removal rates, distribution summaries and processing diagnostics. |
-| <code>03_pnad_analysis__annual_statistics.csv</code> | Complete annual analytical summary with sample counts, nominal and adjusted income statistics, Gini, Pietra, Kolkata and Zanardi indices, and top 10%, 1% and 0.1% income shares. |
-| <code>03_pnad_analysis__validation.csv</code> | Compact annual validation table containing sample size, valid observations, NaN/zero/negative diagnostics, positive support, maximum income and aggregate income. |
-| <code>03_pnad_analysis__descriptive_statistics.csv</code> | Reduced annual descriptive-statistics table with nominal and adjusted mean, median, standard deviation, positive minimum, maximum and Gini coefficient. |
-| <code>03_pnad_analysis__ccdf.csv</code> | Annual empirical CCDF data with income thresholds, CCDF values, percentages and the double-log Gompertz diagnostic transformation. |
-| <code>03_pnad_analysis__geometric_bins.csv</code> | Complete geometric-binning dataset containing bin limits, geometric centers, counts, arithmetic and geometric means, medians, standard deviations and CCDF values. |
-| <code>03_pnad_analysis__geometric_bins_preview.csv</code> | Compact preview of the geometric-binning dataset used for rapid inspection of the generated bin structure. |
-| <code>03_pnad_analysis__histograms.csv</code> | Reusable annual histogram data containing bin boundaries, bin centers and observation counts. |
-| <code>03_pnad_analysis__lorenz.csv</code> | Annual Lorenz-curve coordinates on a common population-share grid, used to reproduce the inequality geometry and concentration measures. |
-| <code>03_pnad_analysis__gini_validation.csv</code> | Annual comparison between the calculated PNAD Gini series and available IPEA and World Bank reference values, including differences where the external series are present. |
-| <code>03_pnad_analysis__regime_fits.csv</code> | Annual Gompertz–Pareto regime-fit summary containing selected cutoff, body/tail fractions, Gompertz parameters and fit quality, Pareto exponent and scale, and joint fit diagnostics. |
-| <code>03_pnad_analysis__regime_curves.csv</code> | Point-level annual regime data containing normalized income, empirical CCDF, Gompertz transformation, body/tail classification, selected cutoff and fitted Gompertz/Pareto values. |
+| <code>trusted_distribution_tests.csv</code> | Annual quality-control tests for the trusted-data stage, including counts of invalid values, structural removals, statistical outliers, removal rates, count identities, cutoff validation and before/after changes in mean and median. |
+| <code>trusted_trim_audit.csv</code> | Full annual trimming audit containing the log-MAD center and dispersion, statistical cutoff, structural-invalid counts, statistical-outlier counts, trusted sample size, removal rates, distribution summaries and processing diagnostics. |
+| <code>trusted_analysis_annual_statistics.csv</code> | Complete annual analytical summary with sample counts, nominal and adjusted income statistics, Gini, Pietra, Kolkata and Zanardi indices, and top 10%, 1% and 0.1% income shares. |
+| <code>trusted_analysis_validation.csv</code> | Compact annual validation table containing sample size, valid observations, NaN/zero/negative diagnostics, positive support, maximum income and aggregate income. |
+| <code>trusted_analysis_ccdf.csv</code> | Annual empirical CCDF data with income thresholds, CCDF values, percentages and the double-log Gompertz diagnostic transformation. |
+| <code>trusted_analysis_geometric_bins.csv</code> | Complete geometric-binning dataset containing bin limits, geometric centers, counts, arithmetic and geometric means, medians, standard deviations and CCDF values. |
+| <code>trusted_analysis_geometric_bins_preview.csv</code> | Compact preview of the geometric-binning dataset used for rapid inspection of the generated bin structure. |
+| <code>trusted_analysis_histograms.csv</code> | Reusable annual histogram data containing bin boundaries, bin centers and observation counts. |
+| <code>trusted_analysis_lorenz.csv</code> | Annual Lorenz-curve coordinates on a common population-share grid, used to reproduce the inequality geometry and concentration measures. |
+| <code>trusted_analysis_gini_validation.csv</code> | Annual comparison between the calculated PNAD Gini series and available IPEA and World Bank reference values, including differences where the external series are present. |
+| <code>trusted_analysis_regime_fits.csv</code> | Annual Gompertz–Pareto regime-fit summary containing selected cutoff, body/tail fractions, Gompertz parameters and fit quality, Pareto exponent and scale, and joint fit diagnostics. |
+| <code>trusted_analysis_regime_curves.csv</code> | Point-level annual regime data containing normalized income, empirical CCDF, Gompertz transformation, body/tail classification, selected cutoff and fitted Gompertz/Pareto values. |
 
 <p align="justify">The distinction between analytical and paper assets is methodological rather than cosmetic. A diagnostic result may be necessary to validate a transformation without belonging in the final article, whereas a paper asset must be generated reproducibly from the same code and data while representing a result explicitly selected for publication. Relevant numerical objects are therefore persisted as CSV files and relevant analytical plots are written to SVG rather than existing only as notebook display state.</p>

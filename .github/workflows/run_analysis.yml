@@ -41,8 +41,11 @@ jobs:
             python src/02_build_trusted_pnad.py
           fi
 
-      - name: Remove obsolete analysis PDFs
-        run: find assets/figures_analysis -maxdepth 1 -type f -name "*.pdf" -delete
+      - name: Remove obsolete analysis figures
+        run: |
+          find assets/figures_analysis -maxdepth 1 -type f -name "*.pdf" -delete
+          find assets/figures_analysis -maxdepth 1 -type f -name "03_pnad_analysis__*.svg" -delete
+          rm -f assets/figures_analysis/trusted_analysis_lorenz_indices.svg
 
       - name: Run complete PNAD analysis
         env:

@@ -1,9 +1,10 @@
 """Build trusted annual PNAD datasets and audit each distribution.
 
 Stage 02 reads the annual refined Parquet files created by
-`01_build_refined_pnad.py`, applies the deterministic upper-tail log-MAD
-rule used in the project notebook, validates the resulting annual
-distributions, and writes both trusted datasets and analytical audit tables.
+`01_build_refined_pnad.py`, removes structurally invalid income values,
+applies the deterministic upper-tail log-MAD rule used in the project
+notebook, validates the resulting annual distributions, and writes both
+trusted datasets and analytical audit tables.
 
 The statistical transformation is
 
@@ -12,7 +13,10 @@ The statistical transformation is
     s   = 1.4826 * median(|z_i - m|)
     x_c = exp(m + k s) - 1
 
-with k=6 by default. Only observations x_i > x_c are removed.
+with k=6 by default. The log-MAD rule is applied only to finite,
+non-negative income values. Non-finite or negative values are treated as
+structural invalids, recorded explicitly in the audit, and excluded before
+statistical trimming.
 """
 
 from __future__ import annotations
@@ -64,7 +68,7 @@ def discover_refined_files(refined_path: Path = REFINED_PATH) -> dict[int, Path]
 
 
 def _income_array(df: pd.DataFrame, year: int) -> np.ndarray:
-    """Validate the structural assumptions and return income as float64."""
+    """Validate structural assumptions and return income as float64."""
     required = {"renda", "ano"}
     missing = required.difference(df.columns)
     if missing:
@@ -81,15 +85,16 @@ def _income_array(df: pd.DataFrame, year: int) -> np.ndarray:
     if not np.all(year_values == year):
         raise ValueError(f"{year}: inconsistent values in column 'ano'.")
 
-    income = pd.to_numeric(df["renda"], errors="coerce").to_numpy(float)
-    return income
+    return pd.to_numeric(df["renda"], errors="coerce").to_numpy(float)
 
 
-def distribution_statistics(income: np.ndarray, prefix: str) -> dict[str, float | int]:
-    """Compute the quality-control statistics used for every annual distribution."""
+def distribution_statistics(
+    income: np.ndarray,
+    prefix: str,
+) -> dict[str, float | int]:
+    """Compute annual quality-control statistics."""
     x = np.asarray(income, dtype=float)
     finite = x[np.isfinite(x)]
-    nonnegative = finite[finite >= 0]
     positive = finite[finite > 0]
 
     out: dict[str, float | int] = {
@@ -107,7 +112,11 @@ def distribution_statistics(income: np.ndarray, prefix: str) -> dict[str, float 
             f"{prefix}_max": float(np.max(finite)),
             f"{prefix}_mean": float(np.mean(finite)),
             f"{prefix}_median": float(np.median(finite)),
-            f"{prefix}_std": float(np.std(finite, ddof=1)) if finite.size > 1 else np.nan,
+            f"{prefix}_std": (
+                float(np.std(finite, ddof=1))
+                if finite.size > 1
+                else np.nan
+            ),
             f"{prefix}_q01": float(np.quantile(finite, 0.01)),
             f"{prefix}_q25": float(np.quantile(finite, 0.25)),
             f"{prefix}_q50": float(np.quantile(finite, 0.50)),
@@ -116,10 +125,12 @@ def distribution_statistics(income: np.ndarray, prefix: str) -> dict[str, float 
             f"{prefix}_sum": float(np.sum(finite)),
         })
     else:
-        for key in ("min", "max", "mean", "median", "std", "q01", "q25", "q50", "q75", "q99", "sum"):
+        for key in (
+            "min", "max", "mean", "median", "std",
+            "q01", "q25", "q50", "q75", "q99", "sum",
+        ):
             out[f"{prefix}_{key}"] = np.nan
 
-    out[f"{prefix}_all_nonnegative"] = int(nonnegative.size == finite.size)
     return out
 
 
@@ -131,6 +142,8 @@ def compute_log_mad_threshold(
     """Compute the deterministic annual upper cutoff in log1p space."""
     x = np.asarray(income, dtype=float)
 
+    if x.size == 0:
+        raise ValueError("log-MAD requires at least one valid income value.")
     if not np.isfinite(x).all():
         raise ValueError("log-MAD requires finite income values.")
     if (x < 0).any():
@@ -167,55 +180,89 @@ def compute_log_mad_threshold(
 
 def validate_distribution(
     year: int,
-    before: np.ndarray,
-    after: np.ndarray,
+    raw_income: np.ndarray,
+    valid_income: np.ndarray,
+    trusted_income: np.ndarray,
     cutoff: float,
+    n_invalid: int,
+    n_statistical_outlier: int,
 ) -> dict[str, float | int | bool]:
     """Run deterministic tests on one annual distribution."""
-    before = np.asarray(before, dtype=float)
-    after = np.asarray(after, dtype=float)
+    raw_income = np.asarray(raw_income, dtype=float)
+    valid_income = np.asarray(valid_income, dtype=float)
+    trusted_income = np.asarray(trusted_income, dtype=float)
 
-    tests = {
+    tests: dict[str, float | int | bool] = {
         "year": int(year),
-        "test_before_nonempty": bool(before.size > 0),
-        "test_after_nonempty": bool(after.size > 0),
-        "test_before_finite": bool(np.isfinite(before).all()),
-        "test_after_finite": bool(np.isfinite(after).all()),
-        "test_before_nonnegative": bool((before >= 0).all()),
-        "test_after_nonnegative": bool((after >= 0).all()),
-        "test_count_monotonic": bool(after.size <= before.size),
-        "test_cutoff_finite_positive": bool(np.isfinite(cutoff) and cutoff >= 0),
+        "input_n_nan": int(np.isnan(raw_income).sum()),
+        "input_n_inf": int(np.isinf(raw_income).sum()),
+        "input_n_negative": int(
+            np.sum(raw_income[np.isfinite(raw_income)] < 0)
+        ),
+        "n_invalid_structural": int(n_invalid),
+        "n_statistical_outlier": int(n_statistical_outlier),
+        "test_raw_nonempty": bool(raw_income.size > 0),
+        "test_valid_input_nonempty": bool(valid_income.size > 0),
+        "test_trusted_nonempty": bool(trusted_income.size > 0),
+        "test_valid_input_finite": bool(np.isfinite(valid_income).all()),
+        "test_valid_input_nonnegative": bool((valid_income >= 0).all()),
+        "test_trusted_finite": bool(np.isfinite(trusted_income).all()),
+        "test_trusted_nonnegative": bool((trusted_income >= 0).all()),
+        "test_count_monotonic": bool(
+            trusted_income.size <= valid_income.size <= raw_income.size
+        ),
+        "test_count_identity": bool(
+            raw_income.size
+            == trusted_income.size + n_invalid + n_statistical_outlier
+        ),
+        "test_cutoff_finite_nonnegative": bool(
+            np.isfinite(cutoff) and cutoff >= 0
+        ),
         "test_max_after_le_cutoff": bool(
-            after.size > 0 and float(np.max(after)) <= cutoff + np.finfo(float).eps * max(1.0, abs(cutoff))
+            trusted_income.size > 0
+            and float(np.max(trusted_income))
+            <= cutoff
+            + np.finfo(float).eps * max(1.0, abs(cutoff))
         ),
     }
 
-    n_removed = int(before.size - after.size)
-    tests["n_removed"] = n_removed
-    tests["test_count_identity"] = bool(before.size == after.size + n_removed)
-
-    if before.size and after.size:
-        before_median = float(np.median(before))
-        after_median = float(np.median(after))
-        before_mean = float(np.mean(before))
-        after_mean = float(np.mean(after))
+    if valid_income.size and trusted_income.size:
+        before_median = float(np.median(valid_income))
+        after_median = float(np.median(trusted_income))
+        before_mean = float(np.mean(valid_income))
+        after_mean = float(np.mean(trusted_income))
 
         tests["median_relative_change"] = (
-            np.nan if np.isclose(before_median, 0)
+            np.nan
+            if np.isclose(before_median, 0)
             else float((after_median - before_median) / before_median)
         )
         tests["mean_relative_change"] = (
-            np.nan if np.isclose(before_mean, 0)
+            np.nan
+            if np.isclose(before_mean, 0)
             else float((after_mean - before_mean) / before_mean)
         )
-        tests["removal_rate"] = float(n_removed / before.size)
+        tests["structural_invalid_rate"] = float(n_invalid / raw_income.size)
+        tests["statistical_removal_rate"] = float(
+            n_statistical_outlier / raw_income.size
+        )
+        tests["total_removal_rate"] = float(
+            (n_invalid + n_statistical_outlier) / raw_income.size
+        )
     else:
         tests["median_relative_change"] = np.nan
         tests["mean_relative_change"] = np.nan
-        tests["removal_rate"] = np.nan
+        tests["structural_invalid_rate"] = np.nan
+        tests["statistical_removal_rate"] = np.nan
+        tests["total_removal_rate"] = np.nan
 
-    invariant_columns = [key for key in tests if key.startswith("test_")]
-    tests["all_tests_pass"] = bool(all(bool(tests[key]) for key in invariant_columns))
+    invariant_columns = [
+        key for key in tests
+        if key.startswith("test_")
+    ]
+    tests["all_tests_pass"] = bool(
+        all(bool(tests[key]) for key in invariant_columns)
+    )
     return tests
 
 
@@ -225,51 +272,85 @@ def trim_refined_year(
     threshold: float = MAD_THRESHOLD,
     consistency: float = MAD_CONSISTENCY,
 ) -> tuple[pd.DataFrame, dict, dict]:
-    """Return trusted data, trimming audit, and distribution tests for one year."""
+    """Return trusted data, trimming audit, and tests for one year."""
     raw_income = _income_array(df, year)
 
-    if np.isnan(raw_income).any() or np.isinf(raw_income).any():
-        raise ValueError(f"{year}: refined dataset contains NaN or infinite income values.")
-    if (raw_income < 0).any():
-        raise ValueError(f"{year}: refined dataset contains negative income values.")
+    finite_mask = np.isfinite(raw_income)
+    nonnegative_mask = finite_mask & (raw_income >= 0)
+    valid_income = raw_income[nonnegative_mask]
+
+    n_nan = int(np.isnan(raw_income).sum())
+    n_inf = int(np.isinf(raw_income).sum())
+    n_negative = int(
+        np.sum(raw_income[finite_mask] < 0)
+    )
+    n_invalid = int(raw_income.size - valid_income.size)
+
+    if valid_income.size == 0:
+        raise ValueError(f"{year}: no finite non-negative income values.")
 
     threshold_info = compute_log_mad_threshold(
-        raw_income,
+        valid_income,
         threshold=threshold,
         consistency=consistency,
     )
     cutoff = float(threshold_info["statistical_cutoff"])
-    keep = raw_income <= cutoff
 
-    trusted = df.loc[keep].copy()
-    trusted_income = raw_income[keep]
+    statistical_keep_valid = valid_income <= cutoff
+    n_statistical_outlier = int(np.count_nonzero(~statistical_keep_valid))
 
-    before_stats = distribution_statistics(raw_income, "before")
-    after_stats = distribution_statistics(trusted_income, "after")
+    keep_mask = nonnegative_mask & (raw_income <= cutoff)
+    trusted = df.loc[keep_mask].copy()
+    trusted_income = raw_income[keep_mask]
+
+    raw_stats = distribution_statistics(raw_income, "raw")
+    valid_stats = distribution_statistics(valid_income, "valid")
+    trusted_stats = distribution_statistics(trusted_income, "trusted")
 
     audit = {
         "year": int(year),
         **threshold_info,
         "n_refined": int(raw_income.size),
-        "n_statistical_outlier": int(np.count_nonzero(~keep)),
+        "n_invalid_nan": n_nan,
+        "n_invalid_inf": n_inf,
+        "n_invalid_negative": n_negative,
+        "n_invalid_structural": n_invalid,
+        "n_valid_before_trim": int(valid_income.size),
+        "n_statistical_outlier": n_statistical_outlier,
+        "n_removed_total": int(n_invalid + n_statistical_outlier),
         "n_trusted": int(trusted_income.size),
-        "removal_rate": float(np.count_nonzero(~keep) / raw_income.size),
-        "maximum_before": float(np.max(raw_income)),
+        "structural_invalid_rate": float(n_invalid / raw_income.size),
+        "statistical_removal_rate": float(
+            n_statistical_outlier / raw_income.size
+        ),
+        "total_removal_rate": float(
+            (n_invalid + n_statistical_outlier) / raw_income.size
+        ),
+        "maximum_valid_before_trim": float(np.max(valid_income)),
         "maximum_after": float(np.max(trusted_income)),
-        **before_stats,
-        **after_stats,
+        **raw_stats,
+        **valid_stats,
+        **trusted_stats,
     }
 
     tests = validate_distribution(
         year=year,
-        before=raw_income,
-        after=trusted_income,
+        raw_income=raw_income,
+        valid_income=valid_income,
+        trusted_income=trusted_income,
         cutoff=cutoff,
+        n_invalid=n_invalid,
+        n_statistical_outlier=n_statistical_outlier,
     )
 
     if not tests["all_tests_pass"]:
-        failed = [k for k, v in tests.items() if k.startswith("test_") and not bool(v)]
-        raise RuntimeError(f"{year}: distribution tests failed: {', '.join(failed)}")
+        failed = [
+            key for key, value in tests.items()
+            if key.startswith("test_") and not bool(value)
+        ]
+        raise RuntimeError(
+            f"{year}: distribution tests failed: {', '.join(failed)}"
+        )
 
     return trusted, audit, tests
 
@@ -301,7 +382,10 @@ def build_trusted_datasets(
         progress.set_postfix_str(str(year))
         t0 = perf_counter()
 
-        df_refined = pd.read_parquet(input_path, engine=PARQUET_ENGINE)
+        df_refined = pd.read_parquet(
+            input_path,
+            engine=PARQUET_ENGINE,
+        )
         t_read = perf_counter()
 
         df_trusted, audit, tests = trim_refined_year(
@@ -333,14 +417,30 @@ def build_trusted_datasets(
         audit_rows.append(audit)
         test_rows.append(tests)
 
-    df_audit = pd.DataFrame(audit_rows).sort_values("year").reset_index(drop=True)
-    df_tests = pd.DataFrame(test_rows).sort_values("year").reset_index(drop=True)
+    df_audit = (
+        pd.DataFrame(audit_rows)
+        .sort_values("year")
+        .reset_index(drop=True)
+    )
+    df_tests = (
+        pd.DataFrame(test_rows)
+        .sort_values("year")
+        .reset_index(drop=True)
+    )
 
     if not df_tests["all_tests_pass"].all():
-        raise RuntimeError("At least one annual trusted distribution failed validation.")
+        raise RuntimeError(
+            "At least one annual trusted distribution failed validation."
+        )
 
-    df_audit.to_csv(tables_path / AUDIT_FILE.name, index=False)
-    df_tests.to_csv(tables_path / TESTS_FILE.name, index=False)
+    df_audit.to_csv(
+        tables_path / AUDIT_FILE.name,
+        index=False,
+    )
+    df_tests.to_csv(
+        tables_path / TESTS_FILE.name,
+        index=False,
+    )
 
     return df_audit, df_tests
 
@@ -352,15 +452,20 @@ def main() -> tuple[pd.DataFrame, pd.DataFrame]:
 
 if __name__ == "__main__":
     audit, tests = main()
-    print(audit[[
-        "year",
-        "n_refined",
-        "n_statistical_outlier",
-        "removal_rate",
-        "n_trusted",
-        "maximum_before",
-        "statistical_cutoff",
-        "maximum_after",
-    ]].to_string(index=False))
+    print(
+        audit[[
+            "year",
+            "n_refined",
+            "n_invalid_structural",
+            "n_statistical_outlier",
+            "n_removed_total",
+            "n_trusted",
+            "statistical_cutoff",
+            "maximum_after",
+        ]].to_string(index=False)
+    )
     print()
-    print(f"Validated annual distributions: {int(tests['all_tests_pass'].sum())}/{len(tests)}")
+    print(
+        "Validated annual distributions: "
+        f"{int(tests['all_tests_pass'].sum())}/{len(tests)}"
+    )

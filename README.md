@@ -21,7 +21,7 @@
 
 ## Assets
 
-<p align="justify">Generated research outputs are stored under <code>assets</code> and are separated according to scientific purpose. Complete diagnostics, validation material and intermediate numerical results belong to the analysis directories, whereas only results explicitly selected for manuscripts belong to the paper directories. Trusted-analysis figures and tables use the <code>trusted_analysis_</code> prefix, while trusted-data audit tables use the <code>trusted_</code> prefix; for example <code>trusted_analysis_gini_validation.svg</code> or <code>pereira_ribeiro_estimator_comparison.csv</code>. This convention provides a direct provenance link between code and output without requiring a workflow framework.</p>
+<p align="justify">Generated research outputs are stored under <code>assets</code> and are separated according to scientific purpose. Complete diagnostics, validation material and intermediate numerical results belong to the analysis directories, whereas only results explicitly selected for manuscripts belong to the paper directories. Trusted-analysis figures and tables use the <code>trusted_analysis_</code> prefix, while trusted-data audit tables use the <code>trusted_</code> prefix. Tables consolidated to exactly one record per survey year additionally use the <code>_annual</code> suffix; for example <code>trusted_analysis_gini_validation.svg</code> or <code>pereira_ribeiro_estimator_comparison.csv</code>. This convention provides a direct provenance link between code and output without requiring a workflow framework.</p>
 
 | Directory | Content |
 | --- | --- |

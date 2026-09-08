@@ -21,7 +21,7 @@
 
 ## Assets
 
-<p align="justify">Generated research outputs are stored under <code>assets</code> and are separated according to scientific purpose. Complete diagnostics, validation material and intermediate numerical results belong to the analysis directories, whereas only results explicitly selected for manuscripts belong to the paper directories. Filenames begin with the source-module identifier, for example <code>03_pnad_analysis__gini_validation.svg</code> or <code>04_pereira_ribeiro__estimator_comparison.csv</code>. This convention provides a direct provenance link between code and output without requiring a workflow framework.</p>
+<p align="justify">Generated research outputs are stored under <code>assets</code> and are separated according to scientific purpose. Complete diagnostics, validation material and intermediate numerical results belong to the analysis directories, whereas only results explicitly selected for manuscripts belong to the paper directories. Analytical figure filenames use the <code>trusted_analysis_</code> prefix, while stage-specific tables retain their source-module identifier; for example <code>trusted_analysis_gini_validation.svg</code> or <code>04_pereira_ribeiro__estimator_comparison.csv</code>. This convention provides a direct provenance link between code and output without requiring a workflow framework.</p>
 
 | Directory | Content |
 | --- | --- |

@@ -1050,58 +1050,58 @@ def run_analysis():
 
     plot_histograms(
         df_histograms, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__histograms.pdf",
+        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__histograms.svg",
         ncols=4,
     )
     plot_income_mean_median(
         df_stats_year,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__income_mean_median.pdf",
+        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__income_mean_median.svg",
     )
     plot_ccdf_loglog(
         df_ccdf, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__ccdf_loglog.pdf",
+        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__ccdf_loglog.svg",
         ncols=4,
     )
     plot_ccdf_lnln(
         df_ccdf, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__ccdf_lnln.pdf",
+        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__ccdf_lnln.svg",
         ncols=4,
     )
     plot_lorenz_indices(
         df_lorenz, df_stats_year, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__lorenz_indices.pdf",
+        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__lorenz_indices.svg",
         ncols=3,
     )
     plot_lorenz_indices_pretty(
         df_lorenz, df_stats_year, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__lorenz_geometry.pdf",
+        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__lorenz_geometry.svg",
         ncols=3,
     )
     plot_top_shares(
         df_stats_year,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__top_income_shares.pdf",
+        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__top_income_shares.svg",
     )
     plot_inequality_indices(
         df_stats_year,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__inequality_indices.pdf",
+        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__inequality_indices.svg",
     )
     plot_inequality_indices_grid(
         df_stats_year,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__inequality_indices_2x2.pdf",
+        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__inequality_indices_2x2.svg",
     )
     plot_gini_validation(
         df_gini_validation,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__gini_validation.pdf",
+        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__gini_validation.svg",
     )
     plot_gompertz_regime_fits(
         df_regime_curves, df_regime_fits, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__gompertz_regime_fits.pdf",
+        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__gompertz_regime_fits.svg",
         ncols=4,
         figsize=(20, 60),
     )
     plot_pareto_regime_fits(
         df_regime_curves, df_regime_fits, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__pareto_regime_fits.pdf",
+        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__pareto_regime_fits.svg",
         ncols=4,
         figsize=(20, 60),
     )

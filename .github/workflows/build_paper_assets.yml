@@ -5,8 +5,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "src/04_pereira_ribeiro.py"
-      - "src/05_moura_ribeiro.py"
+      - "src/stage_04_pereira_ribeiro.py"
+      - "src/stage_05_moura_ribeiro.py"
       - "data/data_trusted/**"
       - "requirements.txt"
       - ".github/workflows/build_paper_assets.yml"
@@ -31,16 +31,16 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Generate Pereira-Ribeiro paper assets
-        if: ${{ hashFiles('src/04_pereira_ribeiro.py') != '' }}
+        if: ${{ hashFiles('src/stage_04_pereira_ribeiro.py') != '' }}
         env:
           MPLBACKEND: Agg
-        run: python src/04_pereira_ribeiro.py
+        run: python src/stage_04_pereira_ribeiro.py
 
       - name: Generate Moura-Ribeiro paper assets
-        if: ${{ hashFiles('src/05_moura_ribeiro.py') != '' }}
+        if: ${{ hashFiles('src/stage_05_moura_ribeiro.py') != '' }}
         env:
           MPLBACKEND: Agg
-        run: python src/05_moura_ribeiro.py
+        run: python src/stage_05_moura_ribeiro.py
 
       - name: Commit paper assets
         run: |

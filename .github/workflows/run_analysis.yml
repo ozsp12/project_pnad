@@ -41,6 +41,9 @@ jobs:
             python src/02_build_trusted_pnad.py
           fi
 
+      - name: Remove obsolete analysis PDFs
+        run: find assets/figures_analysis -maxdepth 1 -type f -name "*.pdf" -delete
+
       - name: Run complete PNAD analysis
         env:
           MPLBACKEND: Agg

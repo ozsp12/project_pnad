@@ -41,8 +41,8 @@ MAD_THRESHOLD = 6.0
 PARQUET_ENGINE = "pyarrow"
 PARQUET_COMPRESSION = "snappy"
 
-AUDIT_FILE = TABLES_ANALYSIS_PATH / "trusted_trim_audit.csv"
-TESTS_FILE = TABLES_ANALYSIS_PATH / "trusted_distribution_tests.csv"
+AUDIT_FILE = TABLES_ANALYSIS_PATH / "trusted_trim_audit_annual.csv"
+TESTS_FILE = TABLES_ANALYSIS_PATH / "trusted_distribution_tests_annual.csv"
 
 
 def year_from_filename(path: Path) -> int:

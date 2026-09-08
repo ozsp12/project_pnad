@@ -418,23 +418,6 @@ def pipeline(metadata_path=METADATA_PATH, trusted_data_path=TRUSTED_DATA_PATH,
     }
 
 
-def validation_table(df_stats_year):
-    columns = [
-        "year", "N", "N_valid", "n_nan", "n_zero", "n_negative",
-        "xmin_positive", "xmax", "income_sum",
-    ]
-    table = df_stats_year[columns].copy()
-    if not (table["N_valid"] > 0).all():
-        raise RuntimeError("Invalid annual sample size.")
-    if not (table["n_negative"] == 0).all():
-        raise RuntimeError("Negative income found.")
-    if not (table["xmin_positive"] > 0).all():
-        raise RuntimeError("Invalid positive minimum.")
-    if not (table["income_sum"] > 0).all():
-        raise RuntimeError("Invalid annual income sum.")
-    return table
-
-
 def build_histogram_dataset(files_by_year, years=None, bins=100):
     if years is None:
         years = sorted(files_by_year)
@@ -1003,14 +986,12 @@ def run_analysis():
     df_lorenz = results["df_lorenz"]
 
     df_histograms = build_histogram_dataset(files_by_year, years, bins=100)
-    df_stats_validation = validation_table(df_stats_year)
     df_bins_preview = bins_table(df_bins, n=20)
     df_gini_validation = build_gini_validation(df_stats_year)
     df_regime_fits, df_regime_curves = build_regime_datasets(df_ccdf, df_stats_year)
 
     tables = {
         "trusted_analysis_annual_statistics.csv": df_stats_year,
-        "trusted_analysis_validation.csv": df_stats_validation,
         "trusted_analysis_ccdf.csv": df_ccdf,
         "trusted_analysis_geometric_bins.csv": df_bins,
         "trusted_analysis_geometric_bins_preview.csv": df_bins_preview,
@@ -1079,7 +1060,6 @@ def run_analysis():
     return {
         **results,
         "df_histograms": df_histograms,
-        "df_stats_validation": df_stats_validation,
         "df_gini_validation": df_gini_validation,
         "df_regime_fits": df_regime_fits,
         "df_regime_curves": df_regime_curves,

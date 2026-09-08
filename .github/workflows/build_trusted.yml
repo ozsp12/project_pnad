@@ -1,0 +1,45 @@
+name: Build trusted PNAD
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/02_build_trusted_pnad.py"
+      - "data/refined/**"
+      - "requirements.txt"
+      - ".github/workflows/build_trusted.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build-trusted:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build trusted datasets
+        run: python src/02_build_trusted_pnad.py
+
+      - name: Commit trusted datasets and audits
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/data_trusted assets/tables_analysis/02_build_trusted_pnad__*.csv
+          if git diff --cached --quiet; then
+            echo "No trusted-data changes to commit."
+          else
+            git commit -m "build trusted PNAD datasets"
+            git push
+          fi

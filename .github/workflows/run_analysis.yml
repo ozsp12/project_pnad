@@ -15,6 +15,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: pnad-analysis-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analysis:
     runs-on: ubuntu-latest
@@ -64,7 +68,8 @@ jobs:
             echo "No analysis changes to commit."
           else
             git commit -m "generate PNAD analysis assets"
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi
 
 # trigger: trusted datasets available

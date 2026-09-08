@@ -513,7 +513,17 @@ def plot_income_mean_median(df_stats_year, output_path, figsize=(14, 5)):
     indexed = df_stats_year.set_index("year").reindex(full_years)
 
     for ax, (column, title) in zip(axes.ravel(), metrics):
-        ax.plot(full_years, indexed[column], marker="o", markersize=3, linewidth=1.5)
+        interpolated = indexed[column].interpolate(
+            method="linear",
+            limit_direction="both",
+        )
+        ax.plot(
+            full_years,
+            interpolated,
+            marker="o",
+            markersize=3,
+            linewidth=1.5,
+        )
         ax.set_title(title)
         ax.set_xlabel("Year")
         ax.set_ylabel("Adjusted income (2025 US$)")
@@ -555,41 +565,6 @@ def plot_ccdf_lnln(df_ccdf, years, output_path, ncols=4, figsize=None):
     finish_grid(
         fig, axes, len(years),
         "ln[ln(100 x CCDF)] transform - PNAD 1976-2025",
-        output_path,
-    )
-
-
-def plot_lorenz_indices(df_lorenz, df_stats_year, years, output_path,
-                        ncols=3, figsize=None):
-    stats_index = df_stats_year.set_index("year")
-    fig, axes = make_grid(
-        len(years), cols=ncols, figsize=figsize,
-        width_per_col=4.2, height_per_row=3.8, sharex=True, sharey=True,
-    )
-
-    for i, year in enumerate(years):
-        temp = df_lorenz[df_lorenz["year"] == year]
-        row = stats_index.loc[year]
-        ax = axes.ravel()[i]
-        ax.plot(temp["population_share"], temp["income_share"], linewidth=2)
-        ax.plot([0, 1], [0, 1], linestyle="--", linewidth=1.2)
-        k = float(row["Kolkata"])
-        ax.scatter([k], [1 - k], s=22, zorder=5)
-        ax.text(
-            0.05, 0.95,
-            f"G = {row['Gini']:.3f}\nP = {row['Pietra']:.3f}\n"
-            f"k = {row['Kolkata']:.3f}\nZ = {row['Zanardi']:.3f}",
-            transform=ax.transAxes, ha="left", va="top", fontsize=9,
-            bbox=dict(boxstyle="round,pad=0.25", facecolor="white", alpha=0.85, edgecolor="gray"),
-        )
-        ax.set_title(str(year))
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
-        ax.grid(True, alpha=0.25)
-
-    finish_grid(
-        fig, axes, len(years),
-        "Lorenz curves and inequality indices - PNAD 1976-2025",
         output_path,
     )
 
@@ -697,7 +672,17 @@ def plot_inequality_indices_grid(df_stats_year, output_path, ncols=2, figsize=(1
     indexed = df_stats_year.set_index("year").reindex(full_years)
 
     for ax, (column, title, scale, ylabel) in zip(axes.ravel(), series):
-        ax.plot(full_years, scale * indexed[column], marker="o", markersize=4, linewidth=1.7)
+        interpolated = indexed[column].interpolate(
+            method="linear",
+            limit_direction="both",
+        )
+        ax.plot(
+            full_years,
+            scale * interpolated,
+            marker="o",
+            markersize=4,
+            linewidth=1.7,
+        )
         ax.set_title(f"Evolution of the {title} - Brazil ({first_year}-{last_year})")
         ax.set_xlabel("Year")
         ax.set_ylabel(ylabel)
@@ -1050,58 +1035,53 @@ def run_analysis():
 
     plot_histograms(
         df_histograms, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__histograms.svg",
+        FIGURES_ANALYSIS_PATH / "trusted_analysis_histograms.svg",
         ncols=4,
     )
     plot_income_mean_median(
         df_stats_year,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__income_mean_median.svg",
+        FIGURES_ANALYSIS_PATH / "trusted_analysis_income_mean_median.svg",
     )
     plot_ccdf_loglog(
         df_ccdf, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__ccdf_loglog.svg",
+        FIGURES_ANALYSIS_PATH / "trusted_analysis_ccdf_loglog.svg",
         ncols=4,
     )
     plot_ccdf_lnln(
         df_ccdf, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__ccdf_lnln.svg",
+        FIGURES_ANALYSIS_PATH / "trusted_analysis_ccdf_lnln.svg",
         ncols=4,
-    )
-    plot_lorenz_indices(
-        df_lorenz, df_stats_year, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__lorenz_indices.svg",
-        ncols=3,
     )
     plot_lorenz_indices_pretty(
         df_lorenz, df_stats_year, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__lorenz_geometry.svg",
+        FIGURES_ANALYSIS_PATH / "trusted_analysis_lorenz_geometry.svg",
         ncols=3,
     )
     plot_top_shares(
         df_stats_year,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__top_income_shares.svg",
+        FIGURES_ANALYSIS_PATH / "trusted_analysis_top_income_shares.svg",
     )
     plot_inequality_indices(
         df_stats_year,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__inequality_indices.svg",
+        FIGURES_ANALYSIS_PATH / "trusted_analysis_inequality_indices.svg",
     )
     plot_inequality_indices_grid(
         df_stats_year,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__inequality_indices_2x2.svg",
+        FIGURES_ANALYSIS_PATH / "trusted_analysis_inequality_indices_2x2.svg",
     )
     plot_gini_validation(
         df_gini_validation,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__gini_validation.svg",
+        FIGURES_ANALYSIS_PATH / "trusted_analysis_gini_validation.svg",
     )
     plot_gompertz_regime_fits(
         df_regime_curves, df_regime_fits, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__gompertz_regime_fits.svg",
+        FIGURES_ANALYSIS_PATH / "trusted_analysis_regime_fits_gompertz.svg",
         ncols=4,
         figsize=(20, 60),
     )
     plot_pareto_regime_fits(
         df_regime_curves, df_regime_fits, years,
-        FIGURES_ANALYSIS_PATH / "03_pnad_analysis__pareto_regime_fits.svg",
+        FIGURES_ANALYSIS_PATH / "trusted_analysis_regime_fits_pareto.svg",
         ncols=4,
         figsize=(20, 60),
     )

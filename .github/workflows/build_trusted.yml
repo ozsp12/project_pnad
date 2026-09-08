@@ -34,7 +34,10 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Remove obsolete trusted table names
-        run: rm -f assets/tables_analysis/02_build_trusted_pnad__*.csv
+        run: |
+          rm -f assets/tables_analysis/02_build_trusted_pnad__*.csv
+          rm -f assets/tables_analysis/trusted_trim_audit.csv
+          rm -f assets/tables_analysis/trusted_distribution_tests.csv
 
       - name: Build trusted datasets
         run: python src/stage_02_build_trusted_pnad.py

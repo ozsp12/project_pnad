@@ -1,13 +1,13 @@
 # Data
 
-<p align="justify">The <code>data</code> directory contains the empirical material used by the PNAD longitudinal research pipeline. The data are organized by scientific processing stage rather than by software abstraction. Historical metadata specify the survey-dependent income variables and extraction rules; refined datasets are the harmonized annual samples produced from the original PNAD and PNAD Contínua microdata; trusted datasets are the final annual analytical samples obtained after deterministic upper-tail quality control; and external reference series are kept separate so that comparisons do not obscure the provenance of the PNAD-derived quantities.</p>
+<p align="justify">The <code>data</code> directory contains the empirical material used by the PNAD longitudinal research pipeline. Data are organized by scientific processing stage. The refined and trusted directories represent two distinct versions of the same annual income samples, while auxiliary external series remain isolated from PNAD-derived data.</p>
 
 | Directory | Content | Produced or consumed by |
 | --- | --- | --- |
-| <code>metadata/</code> | Annual extraction specifications, monetary metadata and processing summaries | <code>stage_00_build_metadata.py</code>, <code>stage_01_build_refined_pnad.py</code> |
-| <code>refined/</code> | Harmonized annual PNAD/PNAD Contínua datasets | produced by <code>stage_01_build_refined_pnad.py</code> |
-| <code>data_trusted/</code> | Annual datasets after deterministic log-MAD upper-tail treatment | produced by <code>stage_02_build_trusted_pnad.py</code>; consumed by <code>stage_03_pnad_analysis.py</code> |
-| <code>trusted/</code> | Independent external reference series used for validation | consumed by <code>stage_03_pnad_analysis.py</code> |
+| <code>metadata/</code> | Annual extraction specifications, monetary metadata and processing summaries | stages 00, 01 and 03 |
+| <code>refined/</code> | Harmonized annual PNAD/PNAD Contínua datasets before trusted-stage trimming | produced by stage 01; consumed by stages 02 and 03 |
+| <code>trusted/</code> | Annual datasets after structural cleaning, log-MAD upper-tail treatment and validation | produced by stage 02; consumed by stage 03 and paper-specific stages |
+| <code>auxiliary/</code> | Independent external reference series, currently including IPEA and World Bank Gini data | consumed by stage 03 |
 | <code>raw/</code> | Local original microdata when the extraction pipeline is rerun | not versioned |
 
-<p align="justify">The distinction between <code>refined</code> and <code>data_trusted</code> is substantive. The refined stage performs survey-specific harmonization and removal of structurally invalid or metadata-defined missing values. The trusted stage applies the explicitly documented annual statistical rule and verifies distribution-level invariants before a dataset is accepted for downstream analysis. This separation allows every empirical transformation to be audited independently.</p>
+<p align="justify">The distinction between <code>refined</code> and <code>trusted</code> is substantive. The refined layer preserves the harmonized annual samples before the trusted-stage statistical treatment. The trusted layer excludes structural invalids, applies the documented log-MAD upper cutoff and verifies distribution-level invariants. Stage 03 analyzes both layers using identical analytical functions, allowing direct before/after comparison without changing the methodology.</p>

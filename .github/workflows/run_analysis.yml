@@ -7,8 +7,9 @@ on:
     paths:
       - "src/stage_03_pnad_analysis.py"
       - "data/metadata/**"
+      - "data/auxiliary/**"
+      - "data/refined/**"
       - "data/trusted/**"
-      - "data/data_trusted/**"
       - "requirements.txt"
       - ".github/workflows/run_analysis.yml"
 
@@ -38,23 +39,21 @@ jobs:
       - name: Ensure trusted datasets exist
         shell: bash
         run: |
-          if compgen -G "data/data_trusted/pnad_trusted_*.parquet" > /dev/null; then
+          if compgen -G "data/trusted/pnad_trusted_*.parquet" > /dev/null; then
             echo "Trusted datasets already present."
           else
             echo "Trusted datasets are absent; rebuilding them from refined data."
             python src/stage_02_build_trusted_pnad.py
           fi
 
-      - name: Remove obsolete analysis assets
+      - name: Prepare analysis asset directories
         run: |
-          find assets/figures_analysis -maxdepth 1 -type f -name "*.pdf" -delete
-          find assets/figures_analysis -maxdepth 1 -type f -name "03_pnad_analysis__*.svg" -delete
-          rm -f assets/figures_analysis/trusted_analysis_lorenz_indices.svg
-          rm -f assets/tables_analysis/03_pnad_analysis__*.csv
-          rm -f assets/tables_analysis/trusted_analysis_descriptive_statistics.csv
-          rm -f assets/tables_analysis/trusted_analysis_annual_statistics.csv
-          rm -f assets/tables_analysis/trusted_analysis_gini_validation.csv
-          rm -f assets/tables_analysis/trusted_analysis_regime_fits.csv
+          mkdir -p assets/figures_analysis_trusted assets/figures_analysis_refined
+          mkdir -p assets/tables_analysis_trusted assets/tables_analysis_refined
+          find assets/figures_analysis_trusted -maxdepth 1 -type f -name "*.pdf" -delete
+          find assets/figures_analysis_refined -maxdepth 1 -type f -name "*.pdf" -delete
+          rm -f assets/figures_analysis_trusted/trusted_analysis_lorenz_indices.svg
+          rm -f assets/figures_analysis_refined/refined_analysis_lorenz_indices.svg
 
       - name: Run complete PNAD analysis
         env:
@@ -65,9 +64,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/figures_analysis assets/tables_analysis
-          if [ -d data/data_trusted ]; then
-            git add data/data_trusted
+          git add -A assets/figures_analysis_trusted assets/figures_analysis_refined
+          git add -A assets/tables_analysis_trusted assets/tables_analysis_refined
+          if [ -d data/trusted ]; then
+            git add data/trusted
           fi
           if git diff --cached --quiet; then
             echo "No analysis changes to commit."

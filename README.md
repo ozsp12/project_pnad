@@ -4,6 +4,8 @@
 
 ## Data and analyses
 
+<p align="justify">The original PNAD microdata are local fixed-width text files totaling approximately 20 GB and are deliberately not versioned under <code>data/raw</code>. The current <code>data/refined</code> layer was materialized outside the GitHub environment from those local microdata and is treated as the persistent input for subsequent stages. <code>src/stage_01_build_refined_pnad.py</code> documents and implements the raw-to-refined transformation when that extraction must be reproduced locally.</p>
+
 <p align="justify">Survey definitions are not assumed to be constant through time. Historical PNAD and PNAD Contínua use different variables, layouts and survey regimes, and these differences remain explicit in the metadata. The refined layer preserves the harmonized pre-trimming distributions, while the trusted layer applies the documented log-MAD upper-tail treatment and distribution-level validation. Stage 03 reproduces the same analysis on both layers so that the consequences of the trusted-data treatment remain directly auditable.</p>
 
 The analytical workflow includes:

@@ -1,15 +1,16 @@
 """Run the complete PNAD analysis contained in notebook 04.
 
-Stage 03 consumes only the trusted annual PNAD/PNAD Continua datasets and
-persists every analytical object produced by the original notebook:
+Stage 03 applies the same analytical pipeline independently to the refined
+and trusted annual PNAD/PNAD Continua datasets and persists every analytical
+object produced by the original notebook:
 descriptive statistics, histogram data, geometric bins, empirical CCDF,
 Gompertz transform, Lorenz curves, Gini/Pietra/Kolkata/Zanardi indices,
 top-income shares, temporal diagnostics, external Gini validation, and the
 notebook's Gompertz-Pareto least-squares regime analysis.
 
-General analytical outputs are written to assets/tables_analysis and
-assets/figures_analysis. Paper-specific assets are intentionally reserved
-for stages 04 and 05.
+General analytical outputs are separated into refined and trusted asset
+directories. Paper-specific assets are intentionally reserved for stages
+04 and 05.
 """
 
 from __future__ import annotations
@@ -26,11 +27,14 @@ from tqdm.auto import tqdm
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 METADATA_PATH = REPO_ROOT / "data" / "metadata" / "df_metadata.xlsx"
-TRUSTED_DATA_PATH = REPO_ROOT / "data" / "data_trusted"
-GINI_REFERENCE_PATH = REPO_ROOT / "data" / "trusted" / "series_gini_ipea_banco_mundial.csv"
+REFINED_DATA_PATH = REPO_ROOT / "data" / "refined"
+TRUSTED_DATA_PATH = REPO_ROOT / "data" / "trusted"
+GINI_REFERENCE_PATH = REPO_ROOT / "data" / "auxiliary" / "series_gini_ipea_banco_mundial.csv"
 
-TABLES_ANALYSIS_PATH = REPO_ROOT / "assets" / "tables_analysis"
-FIGURES_ANALYSIS_PATH = REPO_ROOT / "assets" / "figures_analysis"
+TABLES_ANALYSIS_REFINED_PATH = REPO_ROOT / "assets" / "tables_analysis_refined"
+TABLES_ANALYSIS_TRUSTED_PATH = REPO_ROOT / "assets" / "tables_analysis_trusted"
+FIGURES_ANALYSIS_REFINED_PATH = REPO_ROOT / "assets" / "figures_analysis_refined"
+FIGURES_ANALYSIS_TRUSTED_PATH = REPO_ROOT / "assets" / "figures_analysis_trusted"
 
 BIN_RATIO = 1.05
 LORENZ_GRID_SIZE = 1001
@@ -226,7 +230,12 @@ def year_from_filename(path):
     return int(match.group(1))
 
 
-def load_inputs(metadata_path=METADATA_PATH, trusted_data_path=TRUSTED_DATA_PATH):
+def load_inputs(
+    metadata_path=METADATA_PATH,
+    data_path=TRUSTED_DATA_PATH,
+    file_pattern="pnad_trusted_*.parquet",
+    layer="trusted",
+):
     df_metadata = pd.read_excel(metadata_path)
     required = {"ano", "Exchange", "Inflation"}
     missing = required - set(df_metadata.columns)
@@ -238,12 +247,14 @@ def load_inputs(metadata_path=METADATA_PATH, trusted_data_path=TRUSTED_DATA_PATH
 
     files_by_year = {
         year_from_filename(path): path
-        for path in trusted_data_path.glob("pnad_trusted_*.parquet")
+        for path in data_path.glob(file_pattern)
     }
     years = sorted(files_by_year)
 
     if not years:
-        raise RuntimeError(f"No trusted Parquet files found in {trusted_data_path}")
+        raise RuntimeError(
+            f"No {layer} Parquet files matching '{file_pattern}' found in {data_path}"
+        )
 
     metadata_years = set(df_metadata["ano"])
     missing_years = [year for year in years if year not in metadata_years]
@@ -251,7 +262,6 @@ def load_inputs(metadata_path=METADATA_PATH, trusted_data_path=TRUSTED_DATA_PATH
         raise ValueError(f"Years without metadata: {missing_years}")
 
     return df_metadata, files_by_year, years
-
 
 def analyze_year(year, parquet_path, metadata_row, bin_ratio=BIN_RATIO,
                  lorenz_grid_size=LORENZ_GRID_SIZE):
@@ -384,9 +394,20 @@ def analyze_year(year, parquet_path, metadata_row, bin_ratio=BIN_RATIO,
     return stats_record, ccdf_records, bins_records, lorenz_records
 
 
-def pipeline(metadata_path=METADATA_PATH, trusted_data_path=TRUSTED_DATA_PATH,
-             bin_ratio=BIN_RATIO, lorenz_grid_size=LORENZ_GRID_SIZE):
-    df_metadata, files_by_year, years = load_inputs(metadata_path, trusted_data_path)
+def pipeline(
+    metadata_path=METADATA_PATH,
+    data_path=TRUSTED_DATA_PATH,
+    file_pattern="pnad_trusted_*.parquet",
+    layer="trusted",
+    bin_ratio=BIN_RATIO,
+    lorenz_grid_size=LORENZ_GRID_SIZE,
+):
+    df_metadata, files_by_year, years = load_inputs(
+        metadata_path=metadata_path,
+        data_path=data_path,
+        file_pattern=file_pattern,
+        layer=layer,
+    )
     metadata_index = df_metadata.set_index("ano")
 
     stats_records = []
@@ -394,7 +415,7 @@ def pipeline(metadata_path=METADATA_PATH, trusted_data_path=TRUSTED_DATA_PATH,
     bins_records = []
     lorenz_records = []
 
-    for year in tqdm(years, desc="Analyzing PNAD", unit="year"):
+    for year in tqdm(years, desc=f"Analyzing PNAD {layer}", unit="year"):
         stats, ccdf, bins, lorenz = analyze_year(
             year,
             files_by_year[year],
@@ -416,7 +437,6 @@ def pipeline(metadata_path=METADATA_PATH, trusted_data_path=TRUSTED_DATA_PATH,
         "df_bins": pd.DataFrame(bins_records).sort_values(["year", "bin_left"]).reset_index(drop=True),
         "df_lorenz": pd.DataFrame(lorenz_records).sort_values(["year", "population_share"]).reset_index(drop=True),
     }
-
 
 def build_histogram_dataset(files_by_year, years=None, bins=100):
     if years is None:
@@ -967,17 +987,26 @@ def plot_pareto_regime_fits(df_regime_curves, df_regime_fits, years,
     )
 
 
-def save_table(df, filename):
-    path = TABLES_ANALYSIS_PATH / filename
+def save_table(df, filename, tables_path):
+    path = tables_path / filename
     df.to_csv(path, index=False)
     return path
 
+def run_analysis_layer(
+    layer,
+    data_path,
+    file_pattern,
+    tables_path,
+    figures_path,
+):
+    tables_path.mkdir(parents=True, exist_ok=True)
+    figures_path.mkdir(parents=True, exist_ok=True)
 
-def run_analysis():
-    TABLES_ANALYSIS_PATH.mkdir(parents=True, exist_ok=True)
-    FIGURES_ANALYSIS_PATH.mkdir(parents=True, exist_ok=True)
-
-    results = pipeline()
+    results = pipeline(
+        data_path=data_path,
+        file_pattern=file_pattern,
+        layer=layer,
+    )
     years = results["years"]
     files_by_year = results["files_by_year"]
     df_stats_year = results["df_stats_year"]
@@ -990,69 +1019,70 @@ def run_analysis():
     df_gini_validation = build_gini_validation(df_stats_year)
     df_regime_fits, df_regime_curves = build_regime_datasets(df_ccdf, df_stats_year)
 
+    prefix = f"{layer}_analysis"
     tables = {
-        "trusted_analysis_statistics_annual.csv": df_stats_year,
-        "trusted_analysis_ccdf.csv": df_ccdf,
-        "trusted_analysis_geometric_bins.csv": df_bins,
-        "trusted_analysis_geometric_bins_preview.csv": df_bins_preview,
-        "trusted_analysis_lorenz.csv": df_lorenz,
-        "trusted_analysis_histograms.csv": df_histograms,
-        "trusted_analysis_gini_validation_annual.csv": df_gini_validation,
-        "trusted_analysis_regime_fits_annual.csv": df_regime_fits,
-        "trusted_analysis_regime_curves.csv": df_regime_curves,
+        f"{prefix}_statistics_annual.csv": df_stats_year,
+        f"{prefix}_ccdf.csv": df_ccdf,
+        f"{prefix}_geometric_bins.csv": df_bins,
+        f"{prefix}_geometric_bins_preview.csv": df_bins_preview,
+        f"{prefix}_lorenz.csv": df_lorenz,
+        f"{prefix}_histograms.csv": df_histograms,
+        f"{prefix}_gini_validation_annual.csv": df_gini_validation,
+        f"{prefix}_regime_fits_annual.csv": df_regime_fits,
+        f"{prefix}_regime_curves.csv": df_regime_curves,
     }
     for filename, frame in tables.items():
-        save_table(frame, filename)
+        save_table(frame, filename, tables_path)
 
     plot_histograms(
         df_histograms, years,
-        FIGURES_ANALYSIS_PATH / "trusted_analysis_histograms.svg",
+        figures_path / f"{prefix}_histograms.svg",
         ncols=4,
     )
     plot_income_mean_median(
         df_stats_year,
-        FIGURES_ANALYSIS_PATH / "trusted_analysis_income_mean_median.svg",
+        figures_path / f"{prefix}_income_mean_median.svg",
     )
     plot_ccdf_loglog(
         df_ccdf, years,
-        FIGURES_ANALYSIS_PATH / "trusted_analysis_ccdf_loglog.svg",
+        figures_path / f"{prefix}_ccdf_loglog.svg",
         ncols=4,
     )
     plot_ccdf_lnln(
         df_ccdf, years,
-        FIGURES_ANALYSIS_PATH / "trusted_analysis_ccdf_lnln.svg",
+        figures_path / f"{prefix}_ccdf_lnln.svg",
         ncols=4,
     )
     plot_lorenz_indices_pretty(
         df_lorenz, df_stats_year, years,
-        FIGURES_ANALYSIS_PATH / "trusted_analysis_lorenz_geometry.svg",
+        figures_path / f"{prefix}_lorenz_geometry.svg",
         ncols=3,
     )
     plot_top_shares(
         df_stats_year,
-        FIGURES_ANALYSIS_PATH / "trusted_analysis_top_income_shares.svg",
+        figures_path / f"{prefix}_top_income_shares.svg",
     )
     plot_inequality_indices(
         df_stats_year,
-        FIGURES_ANALYSIS_PATH / "trusted_analysis_inequality_indices.svg",
+        figures_path / f"{prefix}_inequality_indices.svg",
     )
     plot_inequality_indices_grid(
         df_stats_year,
-        FIGURES_ANALYSIS_PATH / "trusted_analysis_inequality_indices_2x2.svg",
+        figures_path / f"{prefix}_inequality_indices_2x2.svg",
     )
     plot_gini_validation(
         df_gini_validation,
-        FIGURES_ANALYSIS_PATH / "trusted_analysis_gini_validation.svg",
+        figures_path / f"{prefix}_gini_validation.svg",
     )
     plot_gompertz_regime_fits(
         df_regime_curves, df_regime_fits, years,
-        FIGURES_ANALYSIS_PATH / "trusted_analysis_regime_fits_gompertz.svg",
+        figures_path / f"{prefix}_regime_fits_gompertz.svg",
         ncols=4,
         figsize=(20, 60),
     )
     plot_pareto_regime_fits(
         df_regime_curves, df_regime_fits, years,
-        FIGURES_ANALYSIS_PATH / "trusted_analysis_regime_fits_pareto.svg",
+        figures_path / f"{prefix}_regime_fits_pareto.svg",
         ncols=4,
         figsize=(20, 60),
     )
@@ -1066,11 +1096,30 @@ def run_analysis():
     }
 
 
+def run_analysis():
+    trusted = run_analysis_layer(
+        layer="trusted",
+        data_path=TRUSTED_DATA_PATH,
+        file_pattern="pnad_trusted_*.parquet",
+        tables_path=TABLES_ANALYSIS_TRUSTED_PATH,
+        figures_path=FIGURES_ANALYSIS_TRUSTED_PATH,
+    )
+    refined = run_analysis_layer(
+        layer="refined",
+        data_path=REFINED_DATA_PATH,
+        file_pattern="pnad_refined_*.parquet",
+        tables_path=TABLES_ANALYSIS_REFINED_PATH,
+        figures_path=FIGURES_ANALYSIS_REFINED_PATH,
+    )
+    return {"trusted": trusted, "refined": refined}
+
 def main():
     results = run_analysis()
-    print(f"Processed years: {len(results['years'])}")
-    print(results["df_stats_year"].to_string(index=False))
-
+    for layer in ("trusted", "refined"):
+        layer_results = results[layer]
+        print(f"{layer.capitalize()} processed years: {len(layer_results['years'])}")
+        print(layer_results["df_stats_year"].to_string(index=False))
+        print()
 
 if __name__ == "__main__":
     main()

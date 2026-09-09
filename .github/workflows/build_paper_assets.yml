@@ -7,7 +7,7 @@ on:
     paths:
       - "src/stage_04_pereira_ribeiro.py"
       - "src/stage_05_moura_ribeiro.py"
-      - "data/data_trusted/**"
+      - "data/trusted/**"
       - "requirements.txt"
       - ".github/workflows/build_paper_assets.yml"
 

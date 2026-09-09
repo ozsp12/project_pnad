@@ -1,50 +1,53 @@
 # Source modules
 
-<p align="justify">The <code>src</code> directory contains the canonical scientific workflow of the project. Modules are numbered according to the order of the empirical procedure rather than organized as a reusable software package. Each stage has a narrow scientific responsibility and communicates with the next stage through explicit files under <code>data</code> or <code>assets</code>. The first three stages construct and validate the longitudinal dataset, stage 03 performs the complete general PNAD analysis, and later stages are reserved for manuscript-specific experiments. This organization deliberately keeps the computational structure close to the methodology that would be described in an academic paper.</p>
+<p align="justify">The <code>src</code> directory contains the canonical scientific workflow of the project. Modules are numbered according to the empirical procedure. Stages 00–02 construct the metadata, refined and trusted data layers; stage 03 applies the complete analytical pipeline independently to both refined and trusted distributions; later stages are reserved for manuscript-specific experiments.</p>
 
-| Stage | Module | Input | Main operation | Output |
-| ---: | --- | --- | --- | --- |
-| 00 | <code>stage_00_build_metadata.py</code> | historical survey specifications | builds annual extraction and monetary metadata | <code>data/metadata/df_metadata.xlsx</code> |
-| 01 | <code>stage_01_build_refined_pnad.py</code> | local PNAD/PNAD Contínua microdata + metadata | extracts and harmonizes annual income samples | <code>data/refined/pnad_refined_YYYY.parquet</code> |
-| 02 | <code>stage_02_build_trusted_pnad.py</code> | refined annual datasets | log-MAD upper-tail treatment and quality-control tests | trusted Parquet files + audit/test CSVs |
-| 03 | <code>stage_03_pnad_analysis.py</code> | trusted annual datasets + metadata + external Gini series | complete exploratory, inequality, concentration and Gompertz–Pareto analyses | analysis tables and figures |
-| 04 | <code>stage_04_pereira_ribeiro.py</code> | synthetic experiment specification | LS–MLE manuscript experiments | paper tables and figures |
-| 05 | <code>stage_05_moura_ribeiro.py</code> | trusted PNAD datasets | replication of Moura–Ribeiro and longitudinal extension | paper tables and figures |
+## Scientific pipeline
+
+| Stage | Module | Scientific role | Main output |
+| ---: | --- | --- | --- |
+| 00 | <code>src/stage_00_build_metadata.py</code> | Consolidates historical PNAD/PNAD Contínua extraction specifications and monetary metadata | <code>data/metadata/df_metadata.xlsx</code> |
+| 01 | <code>src/stage_01_build_refined_pnad.py</code> | Harmonizes original survey records into annual income datasets | <code>data/refined/pnad_refined_YYYY.parquet</code> |
+| 02 | <code>src/stage_02_build_trusted_pnad.py</code> | Applies deterministic upper-tail treatment and distribution-level validation | <code>data/trusted/pnad_trusted_YYYY.parquet</code> and trusted audit tables |
+| 03 | <code>src/stage_03_pnad_analysis.py</code> | Reproduces the complete general analysis independently for refined and trusted datasets | refined and trusted analytical figures and tables |
+| 04 | <code>src/stage_04_pereira_ribeiro.py</code> | Reserved for the synthetic LS–MLE manuscript experiments | paper assets |
+| 05 | <code>src/stage_05_moura_ribeiro.py</code> | Reserved for the Moura–Ribeiro replication and 1976–2025 extension | paper assets |
 
 ## Stage 02: trusted distributions
 
-<p align="justify"><code>stage_02_build_trusted_pnad.py</code> converts the refined annual samples into the final analytical datasets. For each year it evaluates the transformation (z_i=\log(1+x_i)), estimates the robust center (m=\operatorname{median}(z_i)) and scaled median absolute deviation (s=1.4826\operatorname{median}|z_i-m|), and defines the deterministic upper cutoff (x_c=\exp(m+ks)-1), with (k=6) by default. Only observations above this upper cutoff are removed. The module then verifies structural and numerical invariants for each distribution before it is accepted as trusted.</p>
+<p align="justify"><code>stage_02_build_trusted_pnad.py</code> converts the refined annual samples into the trusted analytical datasets. For each year it evaluates <code>z_i = log(1+x_i)</code>, estimates the robust center <code>m = median(z_i)</code> and scaled median absolute deviation <code>s = 1.4826 median|z_i-m|</code>, and defines the upper cutoff <code>x_c = exp(m+ks)-1</code>, with <code>k=6</code> by default. Non-finite and negative values are treated as structural invalids before statistical trimming. The resulting annual distributions must pass deterministic structural and numerical invariants before acceptance.</p>
 
-The annual tests include:
+The annual validation includes:
 
-- non-empty input and output distributions;
-- finite income values and absence of negative values;
-- consistency of the <code>ano</code> field;
-- conservation of observation counts, (N_{refined}=N_{trusted}+N_{removed});
+- non-empty refined, valid and trusted distributions;
+- finite and non-negative valid/trusted income;
+- consistency of the survey-year field;
+- conservation of observation counts;
 - finite and non-negative cutoff;
-- verification that the largest retained observation does not exceed the cutoff;
-- before/after counts of zeros and positive observations;
-- minima, maxima, means, medians, standard deviations, sums and selected quantiles;
-- removal rate and relative changes in mean and median.
+- maximum retained observation not exceeding the cutoff;
+- structural-invalid and statistical-outlier counts;
+- removal rates;
+- before/after mean and median changes;
+- detailed raw, valid and trusted distribution summaries.
 
-<p align="justify">Two explicit analytical tables are generated by this stage: <code>trusted_trim_audit_annual.csv</code> contains the cutoff, removal counts, distribution statistics and execution diagnostics, while <code>trusted_distribution_tests_annual.csv</code> records the Boolean invariants and comparative changes for every annual distribution. Both files are written to <code>assets/tables_analysis</code>.</p>
+<p align="justify">The stage writes <code>trusted_trim_audit_annual.csv</code> and <code>trusted_distribution_tests_annual.csv</code> to <code>assets/tables_analysis_trusted</code>.</p>
 
-## Stage 03: complete PNAD analysis
+## Stage 03: refined and trusted analyses
 
-<p align="justify"><code>stage_03_pnad_analysis.py</code> is the script representation of the complete analytical content of <code>notebook/04_analise_pnad_refined.ipynb</code>. No analytical family from that notebook is intentionally discarded, including the exploratory Gompertz–Pareto least-squares block. The module reads only trusted annual datasets and generates persistent tables and figures rather than relying on notebook display state. Paper-specific modules may later repeat or reformulate these calculations without changing the role of stage 03 as the complete general analysis.</p>
+<p align="justify"><code>stage_03_pnad_analysis.py</code> is the script representation of the analytical content derived from <code>notebook/04_analise_pnad_refined.ipynb</code>. The same functions are executed independently on <code>data/refined</code> and <code>data/trusted</code>. This avoids methodological drift between the pre-trimming and post-trimming analyses and makes every difference attributable to the data layer rather than to different analytical code.</p>
 
 | Analysis family | Contents |
 | --- | --- |
-| Data validation | annual counts, missing/zero/negative diagnostics and positive support |
+| Sample diagnostics | annual counts, missing/zero/negative diagnostics and positive support |
 | Descriptive statistics | nominal and adjusted mean, median, standard deviation, minima, maxima and sums |
 | Histograms | reusable annual histogram datasets and log-frequency panels |
 | Geometric binning | geometric edges, counts, arithmetic/geometric means, medians, standard deviations and CCDF |
-| Distribution functions | empirical CCDF, log-log representation and <code>ln[ln(100 × CCDF)]</code> transformation |
-| Lorenz geometry | Lorenz curves, compact index panels and detailed geometric construction |
+| Distribution functions | empirical CCDF, log-log representation and <code>ln[ln(100 F(x))]</code> transformation |
+| Lorenz geometry | Lorenz curves and detailed geometric construction |
 | Inequality | Gini, Pietra, Kolkata and Zanardi indices |
 | Concentration | top 10%, top 1% and top 0.1% income shares |
 | Longitudinal series | annual mean/median and combined/separate inequality-index panels |
-| External validation | calculated PNAD Gini versus IPEA and World Bank series |
-| Gompertz–Pareto | Gompertz LS body fit, Pareto LS tail fit, admissible-cutoff search and annual fitted curves |
+| External validation | calculated Gini versus IPEA and World Bank series |
+| Gompertz–Pareto | Gompertz LS body fit, Pareto LS tail fit, cutoff search and annual fitted curves |
 
-<p align="justify">Stage 03 writes all complete numerical objects to <code>assets/tables_analysis</code> and all general figures to <code>assets/figures_analysis</code>. Analytical figures and complete numerical CSV outputs use the <code>trusted_analysis_</code> prefix. Trusted-data audit CSVs use the <code>trusted_</code> prefix. CSV tables consolidated to one record per survey year use the <code>_annual</code> suffix. The directories <code>assets/tables_paper</code> and <code>assets/figures_paper</code> are intentionally not populated by this module; those directories are reserved for the reduced publication assets generated by stages 04 and 05.</p>
+<p align="justify">Refined outputs use the <code>refined_analysis_</code> prefix and are written to <code>assets/figures_analysis_refined</code> and <code>assets/tables_analysis_refined</code>. Trusted outputs use the <code>trusted_analysis_</code> prefix and are written to <code>assets/figures_analysis_trusted</code> and <code>assets/tables_analysis_trusted</code>. Tables with exactly one record per survey year use the <code>_annual</code> suffix.</p>

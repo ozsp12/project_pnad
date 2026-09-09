@@ -6,7 +6,8 @@ on:
     branches: [main]
     paths:
       - "src/stage_03_pnad_analysis.py"
-      - "data/metadata/**"
+      - "data/metadata/df_metadata.xlsx"
+      - ".cancel-analysis-run"
       - "data/auxiliary/**"
       - "data/refined/**"
       - "data/trusted/**"
@@ -21,6 +22,7 @@ concurrency:
 
 jobs:
   analysis:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.head_commit.message != 'cancel stale analysis run' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

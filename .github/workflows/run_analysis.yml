@@ -22,22 +22,29 @@ concurrency:
 
 jobs:
   analysis:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.head_commit.message != 'cancel stale analysis run' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Cancellation sentinel
+        if: ${{ github.event_name == 'push' && github.event.head_commit.message == 'cancel stale analysis run' }}
+        run: echo "Cancelling stale analysis run without executing scientific stages."
+
       - name: Checkout repository
+        if: ${{ github.event_name != 'push' || github.event.head_commit.message != 'cancel stale analysis run' }}
         uses: actions/checkout@v4
 
       - name: Set up Python
+        if: ${{ github.event_name != 'push' || github.event.head_commit.message != 'cancel stale analysis run' }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install dependencies
+        if: ${{ github.event_name != 'push' || github.event.head_commit.message != 'cancel stale analysis run' }}
         run: pip install -r requirements.txt
 
       - name: Ensure trusted datasets exist
+        if: ${{ github.event_name != 'push' || github.event.head_commit.message != 'cancel stale analysis run' }}
         shell: bash
         run: |
           if ! compgen -G "data/trusted/pnad_trusted_*.parquet" > /dev/null; then
@@ -48,6 +55,7 @@ jobs:
           echo "Trusted datasets are present."
 
       - name: Prepare analysis asset directories
+        if: ${{ github.event_name != 'push' || github.event.head_commit.message != 'cancel stale analysis run' }}
         run: |
           mkdir -p assets/figures_analysis_trusted assets/figures_analysis_refined
           mkdir -p assets/tables_analysis_trusted assets/tables_analysis_refined
@@ -57,11 +65,13 @@ jobs:
           rm -f assets/figures_analysis_refined/refined_analysis_lorenz_indices.svg
 
       - name: Run complete PNAD analysis
+        if: ${{ github.event_name != 'push' || github.event.head_commit.message != 'cancel stale analysis run' }}
         env:
           MPLBACKEND: Agg
         run: python src/stage_03_pnad_analysis.py
 
       - name: Commit analytical assets
+        if: ${{ github.event_name != 'push' || github.event.head_commit.message != 'cancel stale analysis run' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

@@ -32,8 +32,8 @@ from tqdm.auto import tqdm
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REFINED_PATH = REPO_ROOT / "data" / "refined"
-TRUSTED_PATH = REPO_ROOT / "data" / "data_trusted"
-TABLES_ANALYSIS_PATH = REPO_ROOT / "assets" / "tables_analysis"
+TRUSTED_PATH = REPO_ROOT / "data" / "trusted"
+TABLES_ANALYSIS_PATH = REPO_ROOT / "assets" / "tables_analysis_trusted"
 
 REFINED_PATTERN = "pnad_refined_*.parquet"
 MAD_CONSISTENCY = 1.4826

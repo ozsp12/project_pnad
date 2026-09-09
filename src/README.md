@@ -51,3 +51,7 @@ The annual validation includes:
 | Gompertz–Pareto | Gompertz LS body fit and Pareto LS tail fit evaluated from the empirical CCDF, cutoff search and annual fitted curves |
 
 <p align="justify">Refined outputs use the <code>refined_analysis_</code> prefix and are written to <code>assets/figures_analysis_refined</code> and <code>assets/tables_analysis_refined</code>. Trusted outputs use the <code>trusted_analysis_</code> prefix and are written to <code>assets/figures_analysis_trusted</code> and <code>assets/tables_analysis_trusted</code>. Tables with exactly one record per survey year use the <code>_annual</code> suffix.</p>
+
+## Synthetic LS–MLE experiment
+
+<p align="justify"><code>synthetic.py</code> is independent of the numbered PNAD stages and contains only the manuscript's synthetic LS-versus-MLE experiment migrated from <code>project_ls_vs_mle</code>. It generates one fixed <code>U(0,1)</code> stream with seed <code>20260902</code>, constructs the deterministic power-law design and its Pareto transform, validates the mathematical identities and nested samples, and writes <code>assets/tables_synthetic/table_1.csv</code> and <code>assets/tables_synthetic/table_2.csv</code>. The experiment uses <code>beta=10</code>, <code>alpha0=2.5</code>, <code>x_t=1</code> and sample sizes 50, 100, 200, 500 and 1000. It does not read PNAD data and does not execute Gompertz–Pareto analyses.</p>

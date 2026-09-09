@@ -53,6 +53,10 @@ jobs:
           find assets/figures_analysis_refined -maxdepth 1 -type f -name "*.pdf" -delete
           rm -f assets/figures_analysis_trusted/trusted_analysis_lorenz_indices.svg
           rm -f assets/figures_analysis_refined/refined_analysis_lorenz_indices.svg
+          rm -f assets/figures_analysis_trusted/trusted_analysis_regime_fits_gompertz.svg
+          rm -f assets/figures_analysis_trusted/trusted_analysis_regime_fits_pareto.svg
+          rm -f assets/figures_analysis_refined/refined_analysis_regime_fits_gompertz.svg
+          rm -f assets/figures_analysis_refined/refined_analysis_regime_fits_pareto.svg
 
       - name: Run complete PNAD analysis
         env:

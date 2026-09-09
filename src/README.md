@@ -45,9 +45,9 @@ The annual validation includes:
 | Distribution functions | empirical CCDF, log-log representation and <code>ln[ln(100 F(x))]</code> transformation |
 | Lorenz geometry | Lorenz curves and detailed geometric construction |
 | Inequality | Gini, Pietra, Kolkata and Zanardi indices |
-| Concentration | top 10%, top 1% and top 0.1% income shares |
+| Concentration | top 10%, top 1% and top 0.1% income shares, plus a combined mean/median and top-share two-panel figure |
 | Longitudinal series | annual mean/median and combined/separate inequality-index panels |
 | External validation | calculated Gini versus IPEA and World Bank series |
-| Gompertz–Pareto | Gompertz LS body fit, Pareto LS tail fit, cutoff search and annual fitted curves |
+| Gompertz–Pareto | Gompertz LS body fit and Pareto LS tail fit evaluated from the empirical CCDF, cutoff search and annual fitted curves |
 
 <p align="justify">Refined outputs use the <code>refined_analysis_</code> prefix and are written to <code>assets/figures_analysis_refined</code> and <code>assets/tables_analysis_refined</code>. Trusted outputs use the <code>trusted_analysis_</code> prefix and are written to <code>assets/figures_analysis_trusted</code> and <code>assets/tables_analysis_trusted</code>. Tables with exactly one record per survey year use the <code>_annual</code> suffix.</p>

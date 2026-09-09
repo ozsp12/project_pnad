@@ -1,6 +1,6 @@
 # Source modules
 
-<p align="justify">The <code>src</code> directory contains the canonical scientific workflow of the project. Modules are numbered according to the empirical procedure. Stages 00–02 construct the metadata, refined and trusted data layers; stage 03 applies the complete analytical pipeline independently to both refined and trusted distributions; later stages are reserved for manuscript-specific experiments.</p>
+<p align="justify">The <code>src</code> directory contains the canonical scientific workflow of the project. Modules are numbered by empirical procedure. Stages 00–02 build the metadata and refined, trusted data layers; stage 03 applies the full analytical pipeline independently to both refined and trusted distributions; later stages are reserved for manuscript-specific experiments.</p>
 
 ## Scientific pipeline
 
@@ -13,9 +13,9 @@
 | 04 | <code>src/stage_04_pereira_ribeiro.py</code> | Reserved for the synthetic LS–MLE manuscript experiments | paper assets |
 | 05 | <code>src/stage_05_moura_ribeiro.py</code> | Reserved for the Moura–Ribeiro replication and 1976–2025 extension | paper assets |
 
-## Stage 02: trusted distributions
+# Stage 02: trusted distributions
 
-<p align="justify"><code>stage_02_build_trusted_pnad.py</code> converts the refined annual samples into the trusted analytical datasets. For each year it evaluates <code>z_i = log(1+x_i)</code>, estimates the robust center <code>m = median(z_i)</code> and scaled median absolute deviation <code>s = 1.4826 median|z_i-m|</code>, and defines the upper cutoff <code>x_c = exp(m+ks)-1</code>, with <code>k=6</code> by default. Non-finite and negative values are treated as structural invalids before statistical trimming. The resulting annual distributions must pass deterministic structural and numerical invariants before acceptance.</p>
+<p align="justify"><code>stage_02_build_trusted_pnad.py</code> converts the refined annual samples into the trusted analytical datasets. For each year it evaluates <code>z_i = log(1+x_i)</code>, estimates the robust center <code>m = median(z_i)</code> and scaled median absolute deviation <code>s = 1.4826 median|z_i-m|</code>, and defines the upper cutoff <code>x_c = exp(m+ks)-1</code>, with <code>k=6</code> by default. Non-finite and negative values are treated as structural invalids before statistical trimming. The resulting annual distributions must pass deterministic structural and numerical invariants to be accepted.</p>
 
 The annual validation includes:
 
@@ -32,7 +32,7 @@ The annual validation includes:
 
 <p align="justify">The stage writes <code>trusted_trim_audit_annual.csv</code> and <code>trusted_distribution_tests_annual.csv</code> to <code>assets/tables_analysis_trusted</code>.</p>
 
-## Stage 03: refined and trusted analyses
+# Stage 03: refined and trusted analyses
 
 <p align="justify"><code>stage_03_pnad_analysis.py</code> is the script representation of the analytical content derived from <code>notebook/04_analise_pnad_refined.ipynb</code>. The same functions are executed independently on <code>data/refined</code> and <code>data/trusted</code>. This avoids methodological drift between the pre-trimming and post-trimming analyses and makes every difference attributable to the data layer rather than to different analytical code.</p>
 
@@ -52,16 +52,12 @@ The annual validation includes:
 
 <p align="justify">Refined outputs use the <code>refined_analysis_</code> prefix and are written to <code>assets/figures_analysis_refined</code> and <code>assets/tables_analysis_refined</code>. Trusted outputs use the <code>trusted_analysis_</code> prefix and are written to <code>assets/figures_analysis_trusted</code> and <code>assets/tables_analysis_trusted</code>. Tables with exactly one record per survey year use the <code>_annual</code> suffix.</p>
 
-## Synthetic LS–MLE experiment
+# Synthetic LS–MLE experiment
 
-<p align="justify"><code>synthetic.py</code> implements a controlled comparison between a deterministic power-law relation and a probabilistic Pareto model. The experiment is independent of the numbered PNAD stages. A single pseudo-random stream <code>U_i ~ U(0,1)</code> is generated with seed <code>20260902</code>, and all reported sample sizes are nested prefixes of this same stream. The design uses <code>beta = 10</code>, <code>alpha_0 = 2.5</code> and <code>x_t = 1</code>.</p>
-
-The deterministic design is constructed as
+<p align="justify"><code>synthetic.py</code> implements a controlled comparison between a deterministic power-law relation and a probabilistic Pareto model. The experiment is independent of the numbered PNAD stages. A single pseudo-random stream <code>U_i ~ U(0,1)</code> is generated with seed <code>20260902</code>, and all reported sample sizes are nested prefixes of this same stream. The design uses <code>beta = 10</code>, <code>alpha_0 = 2.5</code> and <code>x_t = 1</code>. The deterministic design is constructed as</p> 
 
 $$
-x_i = 1 + 19U_i,
-\qquad
-y_i = \beta x_i^{-\alpha_0},
+x_i = 1 + 19U_i, \qquad y_i = \beta x_i^{-\alpha_0},
 $$
 
 so that
@@ -79,33 +75,22 @@ $$
 whose complementary cumulative distribution is
 
 $$
-P(X\ge x)=\left(\frac{x}{x_t}\right)^{-\alpha_0},
-\qquad x\ge x_t.
+P(X\ge x)=\left(\frac{x}{x_t}\right)^{-\alpha_0}, \qquad x\ge x_t.
 $$
 
 The finite-sample corrected Pareto estimator used in the synthetic comparison is
 
 $$
-\widetilde{\alpha}_{\mathrm{MLE}}
-=
-\frac{n-1}
-{\displaystyle\sum_{i=1}^{n}\ln(X_i/x_t)},
+\widetilde{\alpha}_{\mathrm{MLE}} = \frac{n-1}{\displaystyle\sum_{i=1}^{n}\ln(X_i/x_t)},
 $$
 
 while the same Pareto-form statistic applied directly to the deterministic design coordinates is
 
 $$
-\widetilde{\alpha}_{\mathrm{design}}
-=
-\frac{n-1}
-{\displaystyle\sum_{i=1}^{n}\ln(x_i/x_t)}.
+\widetilde{\alpha}_{\mathrm{design}} = \frac{n-1}{\displaystyle\sum_{i=1}^{n}\ln(x_i/x_t)}.
 $$
 
-This distinction is essential: the first estimator is applied to observations generated from a Pareto probability law; the second applies the same likelihood-derived formula to deterministic design coordinates that do not follow that sampling model.
-
-### Pareto and exponential distributions
-
-The exponential distribution provides a useful contrast because both models have simple CCDFs but different tail behavior and different linearizing transformations. For
+This distinction is essential: the first estimator is applied to observations generated from a Pareto probability law; the second applies the same likelihood-derived formula to deterministic design coordinates that do not follow that sampling model. The exponential distribution provides a useful contrast because both models have simple CCDFs but differ in tail behavior and linearizing transformations. For
 
 $$
 X\sim\mathrm{Exp}(\lambda),
@@ -114,10 +99,7 @@ $$
 the probability density and CCDF are
 
 $$
-p(x)=\lambda e^{-\lambda x},
-\qquad
-P(X\ge x)=e^{-\lambda x},
-\qquad x\ge0,
+p(x)=\lambda e^{-\lambda x}, \qquad P(X\ge x)=e^{-\lambda x}, \qquad x\ge0,
 $$
 
 and therefore
@@ -129,9 +111,7 @@ $$
 Thus, the exponential distribution is linear in a semi-log representation, whereas the Pareto distribution is linear in log-log coordinates:
 
 $$
-\ln P(X\ge x)
-=
--\alpha\ln\left(\frac{x}{x_t}\right).
+\ln P(X\ge x) = -\alpha\ln\left(\frac{x}{x_t}\right).
 $$
 
 | Aspect | Pareto | Exponential |
@@ -155,6 +135,4 @@ $$
 Z=\ln\left(\frac{X}{x_t}\right).
 $$
 
-If $X\sim\mathrm{Pareto}(\alpha,x_t)$, then $Z\sim\mathrm{Exp}(\alpha)$. This relation explains why the logarithmic Pareto sufficient statistic is naturally connected to sums of exponential random variables.
-
-<p align="justify">The script writes <code>assets/tables_synthetic/table_1.csv</code> for the fixed <code>n=50</code> realization and <code>assets/tables_synthetic/table_2.csv</code> for the nested samples <code>n = 50, 100, 200, 500, 1000</code>. It does not read PNAD data and does not execute the Gompertz–Pareto analyses of stage 03.</p>
+<p align="justify">If $X\sim\mathrm{Pareto}(\alpha,x_t)$, then $Z\sim\mathrm{Exp}(\alpha)$. This relation explains why the logarithmic Pareto sufficient statistic is naturally connected to sums of exponential random variables. The script writes <code>assets/tables_synthetic/table_1.csv</code> for the fixed <code>n=50</code> realization and <code>assets/tables_synthetic/table_2.csv</code> for the nested samples <code>n = 50, 100, 200, 500, 1000</code>. It does not read PNAD data and does not execute the Gompertz–Pareto analyses of stage 03.</p>

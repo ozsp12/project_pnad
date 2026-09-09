@@ -54,4 +54,107 @@ The annual validation includes:
 
 ## Synthetic LS–MLE experiment
 
-<p align="justify"><code>synthetic.py</code> is independent of the numbered PNAD stages and contains only the manuscript's synthetic LS-versus-MLE experiment migrated from <code>project_ls_vs_mle</code>. It generates one fixed <code>U(0,1)</code> stream with seed <code>20260902</code>, constructs the deterministic power-law design and its Pareto transform, validates the mathematical identities and nested samples, and writes <code>assets/tables_synthetic/table_1.csv</code> and <code>assets/tables_synthetic/table_2.csv</code>. The experiment uses <code>beta=10</code>, <code>alpha0=2.5</code>, <code>x_t=1</code> and sample sizes 50, 100, 200, 500 and 1000. It does not read PNAD data and does not execute Gompertz–Pareto analyses.</p>
+<p align="justify"><code>synthetic.py</code> implements a controlled comparison between a deterministic power-law relation and a probabilistic Pareto model. The experiment is independent of the numbered PNAD stages. A single pseudo-random stream <code>U_i ~ U(0,1)</code> is generated with seed <code>20260902</code>, and all reported sample sizes are nested prefixes of this same stream. The design uses <code>beta = 10</code>, <code>alpha_0 = 2.5</code> and <code>x_t = 1</code>.</p>
+
+The deterministic design is constructed as
+
+$$
+x_i = 1 + 19U_i,
+\qquad
+y_i = \beta x_i^{-\alpha_0},
+$$
+
+so that
+
+$$
+\ln y_i = \ln \beta - \alpha_0 \ln x_i.
+$$
+
+Consequently, ordinary least squares in log-log coordinates recovers the exact deterministic parameters, up to floating-point precision. The same uniform draws are also mapped into a Pareto random variable,
+
+$$
+X_i = x_t(1-U_i)^{-1/\alpha_0},
+$$
+
+whose complementary cumulative distribution is
+
+$$
+P(X\ge x)=\left(\frac{x}{x_t}\right)^{-\alpha_0},
+\qquad x\ge x_t.
+$$
+
+The finite-sample corrected Pareto estimator used in the synthetic comparison is
+
+$$
+\widetilde{\alpha}_{\mathrm{MLE}}
+=
+\frac{n-1}
+{\displaystyle\sum_{i=1}^{n}\ln(X_i/x_t)},
+$$
+
+while the same Pareto-form statistic applied directly to the deterministic design coordinates is
+
+$$
+\widetilde{\alpha}_{\mathrm{design}}
+=
+\frac{n-1}
+{\displaystyle\sum_{i=1}^{n}\ln(x_i/x_t)}.
+$$
+
+This distinction is essential: the first estimator is applied to observations generated from a Pareto probability law; the second applies the same likelihood-derived formula to deterministic design coordinates that do not follow that sampling model.
+
+### Pareto and exponential distributions
+
+The exponential distribution provides a useful contrast because both models have simple CCDFs but different tail behavior and different linearizing transformations. For
+
+$$
+X\sim\mathrm{Exp}(\lambda),
+$$
+
+the probability density and CCDF are
+
+$$
+p(x)=\lambda e^{-\lambda x},
+\qquad
+P(X\ge x)=e^{-\lambda x},
+\qquad x\ge0,
+$$
+
+and therefore
+
+$$
+\ln P(X\ge x)=-\lambda x.
+$$
+
+Thus, the exponential distribution is linear in a semi-log representation, whereas the Pareto distribution is linear in log-log coordinates:
+
+$$
+\ln P(X\ge x)
+=
+-\alpha\ln\left(\frac{x}{x_t}\right).
+$$
+
+| Aspect | Pareto | Exponential |
+| --- | --- | --- |
+| Random variable | $X\sim\mathrm{Pareto}(\alpha,x_t)$ | $X\sim\mathrm{Exp}(\lambda)$ |
+| Support | $x\ge x_t>0$ | $x\ge0$ |
+| PDF | $p(x)=\alpha x_t^\alpha x^{-(\alpha+1)}$ | $p(x)=\lambda e^{-\lambda x}$ |
+| CCDF | $P(X\ge x)=(x/x_t)^{-\alpha}$ | $P(X\ge x)=e^{-\lambda x}$ |
+| Tail type | Power law, heavy tail | Exponential, light tail |
+| Log-linear form | $\ln P(X\ge x)=-\alpha\ln(x/x_t)$ | $\ln P(X\ge x)=-\lambda x$ |
+| Linearization | log-log | semi-log |
+| Parameter | $\alpha>0$ | $\lambda>0$ |
+| Mean | $\alpha x_t/(\alpha-1)$, if $\alpha>1$ | $1/\lambda$ |
+| Variance | $\alpha x_t^2/[(\alpha-1)^2(\alpha-2)]$, if $\alpha>2$ | $1/\lambda^2$ |
+| Tail decay | Polynomial: $x^{-\alpha}$ | Exponential: $e^{-\lambda x}$ |
+| Large values | Relatively frequent | Much rarer |
+
+An exact connection between the models follows from the transformation
+
+$$
+Z=\ln\left(\frac{X}{x_t}\right).
+$$
+
+If $X\sim\mathrm{Pareto}(\alpha,x_t)$, then $Z\sim\mathrm{Exp}(\alpha)$. This relation explains why the logarithmic Pareto sufficient statistic is naturally connected to sums of exponential random variables.
+
+<p align="justify">The script writes <code>assets/tables_synthetic/table_1.csv</code> for the fixed <code>n=50</code> realization and <code>assets/tables_synthetic/table_2.csv</code> for the nested samples <code>n = 50, 100, 200, 500, 1000</code>. It does not read PNAD data and does not execute the Gompertz–Pareto analyses of stage 03.</p>

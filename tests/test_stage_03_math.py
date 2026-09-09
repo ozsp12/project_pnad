@@ -1,5 +1,10 @@
+from pathlib import Path
+import sys
+
 import numpy as np
 import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.stage_03_pnad_analysis import (
     empirical_ccdf,

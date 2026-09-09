@@ -635,6 +635,35 @@ def plot_top_shares(df_stats_year, output_path, figsize=(14, 6)):
     plt.close(fig)
 
 
+def plot_top_shares_mean_median(df_stats_year, output_path, figsize=(14, 10)):
+    fig, axes = plt.subplots(
+        2, 1, figsize=figsize, sharex=True,
+        gridspec_kw={"height_ratios": [1.0, 1.0]},
+    )
+
+    years = df_stats_year["year"]
+
+    axes[0].plot(years, df_stats_year["mean"], marker="o", label="Mean")
+    axes[0].plot(years, df_stats_year["median"], marker="s", label="Median")
+    axes[0].set_title("Mean and median adjusted income")
+    axes[0].set_ylabel("Adjusted income (2025 US$)")
+    axes[0].legend()
+    axes[0].grid(True, alpha=0.3)
+
+    axes[1].plot(years, 100 * df_stats_year["top_10"], marker="o", label="Top 10%")
+    axes[1].plot(years, 100 * df_stats_year["top_1"], marker="s", label="Top 1%")
+    axes[1].plot(years, 100 * df_stats_year["top_01"], marker="^", label="Top 0.1%")
+    axes[1].set_title("Income concentration")
+    axes[1].set_xlabel("Year")
+    axes[1].set_ylabel("% of total income")
+    axes[1].legend()
+    axes[1].grid(True, alpha=0.3)
+
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=250, bbox_inches="tight")
+    plt.close(fig)
+
+
 def plot_inequality_indices(df_stats_year, output_path, figsize=(14, 6)):
     fig, ax = plt.subplots(figsize=figsize)
     ax.plot(df_stats_year["year"], df_stats_year["Gini"], marker="o", label="Gini")
@@ -1062,6 +1091,10 @@ def run_analysis_layer(
         df_stats_year,
         figures_path / f"{prefix}_top_income_shares.svg",
     )
+    plot_top_shares_mean_median(
+        df_stats_year,
+        figures_path / f"{prefix}_top_income_shares_mean_median.svg",
+    )
     plot_inequality_indices(
         df_stats_year,
         figures_path / f"{prefix}_inequality_indices.svg",
@@ -1076,13 +1109,13 @@ def run_analysis_layer(
     )
     plot_gompertz_regime_fits(
         df_regime_curves, df_regime_fits, years,
-        figures_path / f"{prefix}_regime_fits_gompertz.svg",
+        figures_path / f"{prefix}_regime_fits_gompertz_ccdf_empirical.svg",
         ncols=4,
         figsize=(20, 60),
     )
     plot_pareto_regime_fits(
         df_regime_curves, df_regime_fits, years,
-        figures_path / f"{prefix}_regime_fits_pareto.svg",
+        figures_path / f"{prefix}_regime_fits_pareto_ccdf_empirical.svg",
         ncols=4,
         figsize=(20, 60),
     )

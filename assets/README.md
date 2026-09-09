@@ -22,12 +22,12 @@
 | CCDF log-log | <code>refined_analysis_ccdf_loglog.svg</code> | <code>trusted_analysis_ccdf_loglog.svg</code> | Empirical complementary cumulative distributions on logarithmic axes. |
 | Gompertz transform | <code>refined_analysis_ccdf_lnln.svg</code> | <code>trusted_analysis_ccdf_lnln.svg</code> | Annual <code>ln[ln(100 F(x))]</code> diagnostic representation. |
 | Lorenz geometry | <code>refined_analysis_lorenz_geometry.svg</code> | <code>trusted_analysis_lorenz_geometry.svg</code> | Lorenz curves with equality line, area, Pietra construction, Kolkata point, Gini and Zanardi information. |
-| Top-income shares | <code>refined_analysis_top_income_shares.svg</code> | <code>trusted_analysis_top_income_shares.svg</code> | Temporal evolution of top 10%, top 1% and top 0.1% income shares. |
+| Top-income shares | <code>refined_analysis_top_income_shares.svg</code> | <code>trusted_analysis_top_income_shares.svg</code> | Temporal evolution of top 10%, top 1% and top 0.1% income shares. |\n| Mean/median and top-income shares | <code>refined_analysis_top_income_shares_mean_median.svg</code> | <code>trusted_analysis_top_income_shares_mean_median.svg</code> | Two-panel annual view combining adjusted mean and median income with top 10%, top 1% and top 0.1% income shares. |
 | Inequality indices | <code>refined_analysis_inequality_indices.svg</code> | <code>trusted_analysis_inequality_indices.svg</code> | Joint temporal evolution of Gini, Pietra, Kolkata and Zanardi indices. |
 | Inequality indices 2×2 | <code>refined_analysis_inequality_indices_2x2.svg</code> | <code>trusted_analysis_inequality_indices_2x2.svg</code> | Separate four-panel representation of the four inequality indices. |
 | Gini validation | <code>refined_analysis_gini_validation.svg</code> | <code>trusted_analysis_gini_validation.svg</code> | Comparison with the external IPEA and World Bank Gini series. |
-| Gompertz regime fits | <code>refined_analysis_regime_fits_gompertz.svg</code> | <code>trusted_analysis_regime_fits_gompertz.svg</code> | Annual least-squares fits for the Gompertz body. |
-| Pareto regime fits | <code>refined_analysis_regime_fits_pareto.svg</code> | <code>trusted_analysis_regime_fits_pareto.svg</code> | Annual log-log least-squares fits for the Pareto upper tail. |
+| Gompertz regime fits | <code>refined_analysis_regime_fits_gompertz_ccdf_empirical.svg</code> | <code>trusted_analysis_regime_fits_gompertz_ccdf_empirical.svg</code> | Annual least-squares fits for the Gompertz body using the empirical CCDF representation. |
+| Pareto regime fits | <code>refined_analysis_regime_fits_pareto_ccdf_empirical.svg</code> | <code>trusted_analysis_regime_fits_pareto_ccdf_empirical.svg</code> | Annual log-log least-squares fits for the Pareto upper tail using the empirical CCDF. |
 
 # Analysis tables
 

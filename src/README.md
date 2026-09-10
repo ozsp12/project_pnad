@@ -9,9 +9,9 @@
 | 00 | <code>src/stage_00_build_metadata.py</code> | Consolidates historical PNAD/PNAD Contínua extraction specifications and monetary metadata | <code>data/metadata/df_metadata.xlsx</code> |
 | 01 | <code>src/stage_01_build_refined_pnad.py</code> | Harmonizes original survey records into annual income datasets | <code>data/refined/pnad_refined_YYYY.parquet</code> |
 | 02 | <code>src/stage_02_build_trusted_pnad.py</code> | Applies deterministic upper-tail treatment and distribution-level validation | <code>data/trusted/pnad_trusted_YYYY.parquet</code> and trusted audit tables |
-| 03 | <code>src/stage_03_pnad_analysis.py</code> | Reproduces the complete general analysis independently for refined and trusted datasets | refined and trusted analytical figures and tables |
+| 03 | <code>src/stage_03_pnad_analysis.py</code> | Reproduces the complete general analysis and the Moura–Ribeiro Gompertz–Pareto regime procedure independently for refined and trusted datasets | refined and trusted analytical figures and tables |
 | 04 | <code>src/stage_04_pereira_ribeiro.py</code> | Reserved for the synthetic LS–MLE manuscript experiments | paper assets |
-| 05 | <code>src/stage_05_moura_ribeiro.py</code> | Reserved for the Moura–Ribeiro replication and 1976–2025 extension | paper assets |
+| 05 | <code>src/stage_05_moura_ribeiro.py</code> | Reserved for manuscript-specific Moura–Ribeiro replication and 1976–2025 extension assets | paper assets |
 
 # Stage 02: trusted distributions
 
@@ -34,83 +34,81 @@ The annual validation includes:
 
 # Stage 03: refined and trusted analyses
 
-<p align="justify"><code>stage_03_pnad_analysis.py</code> is the script representation of the analytical content derived from <code>notebook/04_analise_pnad_refined.ipynb</code>. The same functions are executed independently on <code>data/refined</code> and <code>data/trusted</code>. This avoids methodological drift between the pre-trimming and post-trimming analyses and makes every difference attributable to the data layer rather than to different analytical code.</p>
+<p align="justify"><code>stage_03_pnad_analysis.py</code> is the executable stage for the complete refined/trusted analysis. General descriptive statistics, histograms, Lorenz geometry, inequality indices, top-income shares, external Gini validation and common plotting utilities are retained in <code>stage_03_pnad_analysis_core.py</code>; the main stage applies those routines and implements the Gompertz–Pareto regime analysis following the operational methodology of Moura Jr. and Ribeiro, <em>European Physical Journal B</em> 67, 101–120 (2009). The same procedure is run independently on <code>data/refined</code> and <code>data/trusted</code>.</p>
 
 | Analysis family | Contents |
 | --- | --- |
 | Sample diagnostics | annual counts, missing/zero/negative diagnostics and positive support |
 | Descriptive statistics | nominal and adjusted mean, median, standard deviation, minima, maxima and sums |
 | Histograms | reusable annual histogram datasets and log-frequency panels |
-| Geometric binning | geometric edges, counts, arithmetic/geometric means, medians, standard deviations and CCDF |
+| Geometric binning | logarithmic edges with ratio <code>r = 1.10</code>, counts, arithmetic/geometric means, medians, standard deviations and CCDF |
 | Distribution functions | empirical CCDF, log-log representation and <code>ln[ln(100 F(x))]</code> transformation |
 | Lorenz geometry | Lorenz curves and detailed geometric construction |
 | Inequality | Gini, Pietra, Kolkata and Zanardi indices |
 | Concentration | top 10%, top 1% and top 0.1% income shares, plus a combined mean/median and top-share two-panel figure |
 | Longitudinal series | annual mean/median and combined/separate inequality-index panels |
 | External validation | calculated Gini versus IPEA and World Bank series |
-| Gompertz–Pareto | Gompertz LS body fit and Pareto LS tail fit evaluated from the empirical CCDF, cutoff search and annual fitted curves |
+| Gompertz–Pareto | normalized individual income, free Gompertz LS fit, explicit regime boundaries, Pareto LS and direct MLE |
 
-<p align="justify">The Gompertz–Pareto fit in <code>stage_03_pnad_analysis.py</code> is performed directly from the empirical complementary cumulative distribution function (CCDF), not from bin means or histogram frequencies. For each survey year, positive adjusted incomes are normalized by their annual mean, so that the fitting coordinate is <code>u = x / mean(x)</code>. The empirical CCDF is evaluated on the geometric threshold grid used in stage 03; these geometrically spaced points define where the empirical curve is sampled and which transition points can be tested, but the fit itself does not average observations within logarithmic bins. For the Gompertz body, the empirical CCDF is expressed in percent and transformed as</p>
-
-$$
-Y(u) = \ln[\ln F(u)],
-$$
-
-with the normalization condition
+<p align="justify">For the regime analysis, each positive adjusted individual income <code>x'</code> is normalized by the corresponding annual positive-income mean, so the fitting variable is the dimensionless normalized individual income</p>
 
 $$
-A=\ln(\ln 100).
+x=\frac{x'}{\langle x'\rangle}.
 $$
 
-The linearized Gompertz model is therefore
+<p align="justify">The empirical CCDF is evaluated on logarithmically spaced thresholds with the ratio used in the original paper,</p>
 
 $$
-Y(u)=A-Bu.
+x_j = x_{\min}(1.10)^j.
 $$
 
-<p align="justify">The intercept <code>A</code> is fixed by the 100% normalization and is not fitted. For every admissible candidate transition point <code>x_t</code>, ordinary least squares is applied only to the body <code>u &lt; x_t</code> to estimate <code>B</code>. With <code>A</code> fixed, the estimator used by the code is</p>
+<p align="justify">The Gompertz region is analyzed through the linearization</p>
 
 $$
-\widehat B = \frac{\displaystyle\sum_i u_i(A-Y_i)}{\displaystyle\sum_i u_i^2}.
+\ln[\ln F(x)] = A-Bx.
 $$
 
-<p align="justify">After <code>B</code> is obtained, the fitted Gompertz curve is evaluated at the candidate transition point. This value is not a maximum of the Gompertz distribution; it is the fitted CCDF value at the junction between the body and the tail. The benchmark passed to the Pareto fit is</p>
+<p align="justify">Both <code>A</code> and <code>B</code> are estimated by ordinary least squares rather than fixing <code>A</code> in advance. Candidate prefixes of the normalized empirical curve are fitted successively, and <code>x_G,max</code> is defined as the largest endpoint whose fitted intercept remains in the paper's operational neighborhood of the boundary value, <code>1.4 ≤ A ≤ 1.6</code>, with <code>B &gt; 0</code>. The theoretical normalization value <code>ln(ln 100)</code> is used only as a deterministic fallback reference if no candidate satisfies that interval.</p>
+
+<p align="justify">The Pareto region is identified independently in log-log coordinates. Starting from <code>x_G,max</code>, candidate upper-tail suffixes are fitted to</p>
 
 $$
-F_t = F_G(x_t) = \exp \left[ \exp\left(A-\widehat B x_t \right) \right].
+\ln F(x)=\ln\beta-\alpha\ln x.
 $$
 
-<p align="justify">The Pareto tail is then constrained to join the Gompertz body continuously at <code>x_t</code>. For <code>u \ge x_t</code>, the model is written as</p>
+<p align="justify"><code>x_P,min</code> is the earliest admissible start of a positive-slope-exponent Pareto tail with at least five logarithmic points and <code>R² ≥ 0.98</code>; if no suffix satisfies this deterministic operational criterion, the highest-<code>R²</code> tail is retained and explicitly flagged as a fallback. When the two empirical regime boundaries coincide, the transition income is <code>x_t = x_G,max = x_P,min</code>. When they differ, the transition and its half-width follow the boundary prescription used in the paper,</p>
 
 $$
-F_P(u) = F_t \left(\frac{u}{x_t}\right)^{-\alpha}, 
+x_t=\frac{x_{P,\min}+x_{G,\max}}{2},
+\qquad
+\delta x_t=\frac{|x_{P,\min}-x_{G,\max}|}{2}.
 $$
 
-or, equivalently,
+<p align="justify">For comparison with the original least-squares treatment, <code>alpha</code> and <code>beta</code> are obtained from the log-binned Pareto CCDF. The primary direct Pareto maximum-likelihood estimate is calculated from the individual normalized observations satisfying <code>x_i ≥ x_t</code>, without replacing them by bin representatives,</p>
 
 $$
-\ln F_P(u) = \ln F_t - \alpha\ln\left(\frac{u}{x_t}\right).
+\widehat\alpha_{\mathrm{MLE}}
+=
+\frac{n_t}{\displaystyle\sum_{i=1}^{n_t}\ln(x_i/x_t)}.
 $$
 
-<p align="justify">Because <code>F_t</code> is fixed by the fitted Gompertz body, the Pareto least-squares step estimates only <code>alpha</code>. Defining <code>z_i = ln(u_i/x_t)</code> and <code>w_i = ln(F_t)-ln(F_i)</code>, the fitted exponent is</p>
+<p align="justify">For the MLE branch, the Pareto normalization is fixed by continuity with the fitted Gompertz curve at the transition,</p>
 
 $$
-\widehat\alpha = \frac{\displaystyle\sum_i z_i w_i}{\displaystyle\sum_i z_i^2}.
+F_t=\exp\!\left[\exp(A-Bx_t)\right],
+\qquad
+\beta_{\mathrm{MLE}}=F_t x_t^{\widehat\alpha_{\mathrm{MLE}}}.
 $$
 
-<p align="justify">The transition point is therefore not imposed a priori. Every empirical-CCDF threshold satisfying the admissibility conditions is tested as a candidate: the body and tail must each contain at least 100 observations, the tail fraction must be at least 0.5%, the implied cutoff quantile must lie between 0.20 and 0.995, and each fitted regime must contain at least five curve points. For each candidate, stage 03 computes the Gompertz error in log-CCDF space and the Pareto error in the same space, then forms</p>
+<p align="justify">Population membership is evaluated directly from the individual normalized observations using the final transition <code>x_t</code>. Observations with <code>x &lt; x_t</code> form the Gompertz population and observations with <code>x ≥ x_t</code> form the Pareto population. The reported percentages are complementary by construction,</p>
 
 $$
-SSE_{\mathrm{joint}} = SSE_G+SSE_P.
+p_G=100-p_P,
+\qquad
+p_P=100\frac{n(x\ge x_t)}{n_{\mathrm{positive}}},
 $$
 
-The selected transition is
-
-$$
-x_t^{\ast} = \underset{x_t}{\mathrm{arg\,min}}\; \mathrm{SSE}_{\mathrm{joint}}(x_t).
-$$
-
-<p align="justify">Accordingly, the annual procedure has a strict sequence: fit the linearized Gompertz body by least squares, evaluate that fitted model at each candidate junction to obtain <code>F_t</code>, use <code>F_t</code> as the continuity benchmark for the Pareto tail, estimate <code>alpha</code> by least squares, and finally select the candidate <code>x_t</code> that minimizes the combined fitting error. The resulting annual outputs report the selected normalized and adjusted-income cutoffs together with <code>gompertz_B</code>, <code>pareto_alpha</code>, the corresponding coefficients of determination, and the joint sum of squared errors.</p>
+<p align="justify">so <code>p_G + p_P = 100%</code> to numerical precision. The annual CSV <code>*_analysis_gompertz_pareto_annual.csv</code> contains the logarithmic ratio, normalization mean, <code>A</code>, <code>B</code>, Gompertz <code>R²</code>, <code>x_G,max</code>, <code>x_P,min</code>, <code>x_t</code>, <code>delta x_t</code>, Gompertz/Pareto population counts and percentages, Pareto LS parameters and <code>R²</code>, direct MLE <code>alpha</code>, its Fisher standard error, the continuity-normalized <code>beta</code>, and the fitted Gompertz CCDF at <code>x_t</code>. The legacy <code>*_analysis_regime_fits_annual.csv</code> name is retained as an equivalent compatibility output.</p>
 
 <p align="justify">Refined outputs use the <code>refined_analysis_</code> prefix and are written to <code>assets/figures_analysis_refined</code> and <code>assets/tables_analysis_refined</code>. Trusted outputs use the <code>trusted_analysis_</code> prefix and are written to <code>assets/figures_analysis_trusted</code> and <code>assets/tables_analysis_trusted</code>. Tables with exactly one record per survey year use the <code>_annual</code> suffix.</p>
 

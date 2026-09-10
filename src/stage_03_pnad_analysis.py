@@ -467,7 +467,6 @@ def run_analysis_layer(layer, data_path, file_pattern, tables_path, figures_path
     df_lorenz = results["df_lorenz"]
 
     df_histograms = core.build_histogram_dataset(files_by_year, years, bins=100)
-    df_bins_preview = core.bins_table(df_bins, n=20)
     df_gini_validation = core.build_gini_validation(df_stats_year)
     df_regime_fits, df_regime_curves = build_regime_datasets(
         files_by_year, results["df_metadata"]
@@ -476,13 +475,11 @@ def run_analysis_layer(layer, data_path, file_pattern, tables_path, figures_path
     prefix = f"{layer}_analysis"
     tables = {
         f"{prefix}_statistics_annual.csv": df_stats_year,
-        f"{prefix}_ccdf.csv": df_ccdf,
+        f"{prefix}_ccdf_empirical.csv": df_ccdf,
         f"{prefix}_geometric_bins.csv": df_bins,
-        f"{prefix}_geometric_bins_preview.csv": df_bins_preview,
         f"{prefix}_lorenz.csv": df_lorenz,
         f"{prefix}_histograms.csv": df_histograms,
-        f"{prefix}_gini_validation_annual.csv": df_gini_validation,
-        f"{prefix}_regime_fits_annual.csv": df_regime_fits,
+        f"{prefix}_gini_validation_vs_ipea_wb_annual.csv": df_gini_validation,
         f"{prefix}_gompertz_pareto_annual.csv": df_regime_fits,
         f"{prefix}_regime_curves.csv": df_regime_curves,
     }

@@ -9,9 +9,7 @@ No upstream data-cleaning or regime-selection logic is duplicated here.
 
 from __future__ import annotations
 
-import json
 import math
-import urllib.request
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -24,7 +22,8 @@ TABLES_ANALYSIS = REPO_ROOT / "assets" / "tables_analysis_refined"
 TABLES_PAPER = REPO_ROOT / "assets" / "tables_paper"
 FIGURES_PAPER = REPO_ROOT / "assets" / "figures_paper"
 REFINED_DATA = REPO_ROOT / "data" / "refined"
-METADATA_OLD = REPO_ROOT / "data" / "metadata" / "pnad_metadata_old.csv"
+METADATA_PATH = REPO_ROOT / "data" / "metadata" / "df_metadata.xlsx"
+GDP_GROWTH_PATH = REPO_ROOT / "data" / "auxiliary" / "gdp_growth_brazil_1978_2025.csv"
 
 START_YEAR = 1978
 END_YEAR = 2025
@@ -49,8 +48,7 @@ def _split_years(years):
 def _save_figure(fig, stem: str):
     FIGURES_PAPER.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
-    for suffix in ("svg", "pdf"):
-        fig.savefig(FIGURES_PAPER / f"{stem}.{suffix}", bbox_inches="tight", dpi=250)
+    fig.savefig(FIGURES_PAPER / f"{stem}.svg", bbox_inches="tight", dpi=250)
     plt.close(fig)
 
 
@@ -75,7 +73,16 @@ def _load_tables():
     lorenz = pd.read_csv(LORENZ_PATH)
     annual = pd.read_csv(REGIME_ANNUAL_PATH)
     curves = pd.read_csv(REGIME_CURVES_PATH)
-    metadata = pd.read_csv(METADATA_OLD)
+    metadata = pd.read_excel(METADATA_PATH).rename(
+        columns={"ano": "year", "Currency": "currency", "Exchange": "exchange"}
+    )
+    required_metadata = {"year", "currency", "exchange"}
+    missing_metadata = required_metadata.difference(metadata.columns)
+    if missing_metadata:
+        raise ValueError(
+            "Canonical metadata is missing required stage-05 fields: "
+            + ", ".join(sorted(missing_metadata))
+        )
     for frame in (stats, ccdf, lorenz, annual, curves, metadata):
         if "year" in frame.columns:
             frame["year"] = pd.to_numeric(frame["year"], errors="coerce").astype("Int64")
@@ -256,17 +263,18 @@ def plot_pareto_share(table04):
     _save_figure(fig, "moura_ribeiro_2009_figure_14_pareto_income_share_1978_2025")
 
 
-def fetch_world_bank_gdp_growth():
-    url = "https://api.worldbank.org/v2/country/BRA/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100"
-    try:
-        with urllib.request.urlopen(url, timeout=30) as response:
-            payload = json.load(response)
-        records = [{"year": int(item["date"]), "gdp_growth_pct": float(item["value"])} for item in payload[1] if item["value"] is not None and START_YEAR <= int(item["date"]) <= END_YEAR]
-        out = pd.DataFrame(records).sort_values("year")
-    except Exception as exc:
-        print(f"World Bank GDP request failed: {exc}")
-        out = pd.DataFrame(columns=["year", "gdp_growth_pct"])
-    out.to_csv(TABLES_PAPER / "moura_ribeiro_2009_figure_15_gdp_growth_1978_2025.csv", index=False)
+def load_world_bank_gdp_growth():
+    gdp = pd.read_csv(GDP_GROWTH_PATH)
+    required = {"year", "gdp_growth_pct", "indicator", "source"}
+    missing = required.difference(gdp.columns)
+    if missing:
+        raise ValueError("GDP auxiliary series is missing required fields: " + ", ".join(sorted(missing)))
+    gdp["year"] = pd.to_numeric(gdp["year"], errors="raise").astype(int)
+    gdp["gdp_growth_pct"] = pd.to_numeric(gdp["gdp_growth_pct"], errors="raise")
+    if not (gdp["indicator"] == "NY.GDP.MKTP.KD.ZG").all():
+        raise ValueError("Unexpected GDP indicator in local auxiliary series.")
+    out = gdp[(gdp["year"] >= START_YEAR) & (gdp["year"] <= END_YEAR)].sort_values("year").reset_index(drop=True)
+    out[["year", "gdp_growth_pct"]].to_csv(TABLES_PAPER / "moura_ribeiro_2009_figure_15_gdp_growth_1978_2025.csv", index=False)
     return out
 
 
@@ -315,29 +323,29 @@ def main():
     plot_pareto(curves, annual, late, "moura_ribeiro_2009_figure_13_pareto_mle_1992_2025", ncols=5, method="mle")
 
     table04 = build_table_04(stats, annual); plot_pareto_share(table04)
-    gdp = fetch_world_bank_gdp_growth(); plot_gdp_growth(gdp)
+    gdp = load_world_bank_gdp_growth(); plot_gdp_growth(gdp)
     validate(table02, table03, table04)
 
     manifest = pd.DataFrame([
         (1, "table", "moura_ribeiro_2009_table_01_currency_mean_income_1978_2025.csv"),
-        (1, "figure", "moura_ribeiro_2009_figure_01_ccdf_1978_1990.pdf"),
-        (2, "figure", "moura_ribeiro_2009_figure_02_ccdf_1992_2025.pdf"),
-        (3, "figure", "moura_ribeiro_2009_figure_03_lorenz_1978_1990.pdf"),
-        (4, "figure", "moura_ribeiro_2009_figure_04_lorenz_1992_2025.pdf"),
-        (5, "figure", "moura_ribeiro_2009_figure_05_gini_1978_2025.pdf"),
-        (6, "figure", "moura_ribeiro_2009_figure_06_exponential_1978_1990.pdf"),
-        (7, "figure", "moura_ribeiro_2009_figure_07_exponential_1992_2025.pdf"),
+        (1, "figure", "moura_ribeiro_2009_figure_01_ccdf_1978_1990.svg"),
+        (2, "figure", "moura_ribeiro_2009_figure_02_ccdf_1992_2025.svg"),
+        (3, "figure", "moura_ribeiro_2009_figure_03_lorenz_1978_1990.svg"),
+        (4, "figure", "moura_ribeiro_2009_figure_04_lorenz_1992_2025.svg"),
+        (5, "figure", "moura_ribeiro_2009_figure_05_gini_1978_2025.svg"),
+        (6, "figure", "moura_ribeiro_2009_figure_06_exponential_1978_1990.svg"),
+        (7, "figure", "moura_ribeiro_2009_figure_07_exponential_1992_2025.svg"),
         (2, "table", "moura_ribeiro_2009_table_02_gompertz_parameters_1978_2025.csv"),
-        (8, "figure", "moura_ribeiro_2009_figure_08_gompertz_1978_1990.pdf"),
-        (9, "figure", "moura_ribeiro_2009_figure_09_gompertz_1992_2025.pdf"),
+        (8, "figure", "moura_ribeiro_2009_figure_08_gompertz_1978_1990.svg"),
+        (9, "figure", "moura_ribeiro_2009_figure_09_gompertz_1992_2025.svg"),
         (3, "table", "moura_ribeiro_2009_table_03_pareto_parameters_1978_2025.csv"),
-        (10, "figure", "moura_ribeiro_2009_figure_10_pareto_ls_1978_1990.pdf"),
-        (11, "figure", "moura_ribeiro_2009_figure_11_pareto_ls_1992_2025.pdf"),
-        (12, "figure", "moura_ribeiro_2009_figure_12_pareto_mle_1978_1990.pdf"),
-        (13, "figure", "moura_ribeiro_2009_figure_13_pareto_mle_1992_2025.pdf"),
+        (10, "figure", "moura_ribeiro_2009_figure_10_pareto_ls_1978_1990.svg"),
+        (11, "figure", "moura_ribeiro_2009_figure_11_pareto_ls_1992_2025.svg"),
+        (12, "figure", "moura_ribeiro_2009_figure_12_pareto_mle_1978_1990.svg"),
+        (13, "figure", "moura_ribeiro_2009_figure_13_pareto_mle_1992_2025.svg"),
         (4, "table", "moura_ribeiro_2009_table_04_income_shares_gini_1978_2025.csv"),
-        (14, "figure", "moura_ribeiro_2009_figure_14_pareto_income_share_1978_2025.pdf"),
-        (15, "figure", "moura_ribeiro_2009_figure_15_gdp_growth_1978_2025.pdf"),
+        (14, "figure", "moura_ribeiro_2009_figure_14_pareto_income_share_1978_2025.svg"),
+        (15, "figure", "moura_ribeiro_2009_figure_15_gdp_growth_1978_2025.svg"),
     ], columns=["original_number", "asset_type", "filename"])
     manifest.to_csv(TABLES_PAPER / "moura_ribeiro_2009_replication_manifest.csv", index=False)
     print(f"Generated Moura-Ribeiro replication assets for {len(years)} survey years ({years[0]}-{years[-1]}).")

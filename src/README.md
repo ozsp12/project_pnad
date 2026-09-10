@@ -1,6 +1,6 @@
 # Source modules
 
-<p align="justify">The <code>src</code> directory contains the canonical scientific workflow of the project. Modules are numbered by empirical procedure. Stages 00–02 build the metadata and refined, trusted data layers; stage 03 applies the full analytical pipeline independently to both refined and trusted distributions; later stages are reserved for manuscript-specific experiments.</p>
+<p align="justify">The <code>src</code> directory contains the canonical scientific workflow of the project. Stages 00–02 build the metadata and refined/trusted data layers; stage 03 applies the full analytical pipeline independently to both refined and trusted distributions; stage 05 produces the implemented Moura–Ribeiro replication/extension assets. <code>synthetic.py</code> is a standalone LS–MLE experiment independent of the numbered PNAD stages.</p>
 
 # Scientific pipeline
 
@@ -10,8 +10,8 @@
 | 01 | <code>src/stage_01_build_refined_pnad.py</code> | Harmonizes original survey records into annual income datasets | <code>data/refined/pnad_refined_YYYY.parquet</code> |
 | 02 | <code>src/stage_02_build_trusted_pnad.py</code> | Applies deterministic upper-tail treatment and distribution-level validation | <code>data/trusted/pnad_trusted_YYYY.parquet</code> and trusted audit tables |
 | 03 | <code>src/stage_03_pnad_analysis.py</code> | Reproduces the complete general analysis and the Moura–Ribeiro Gompertz–Pareto regime procedure independently for refined and trusted datasets | refined and trusted analytical figures and tables |
-| 04 | <code>src/stage_04_pereira_ribeiro.py</code> | Reserved for the synthetic LS–MLE manuscript experiments | paper assets |
-| 05 | <code>src/stage_05_moura_ribeiro.py</code> | Reserved for manuscript-specific Moura–Ribeiro replication and 1976–2025 extension assets | paper assets |
+| 05 | <code>src/stage_05_moura_ribeiro.py</code> | Produces the Moura–Ribeiro (2009) replication and extension through 2025 | <code>assets/figures_paper/</code> and <code>assets/tables_paper/</code> |
+| — | <code>src/synthetic.py</code> | Standalone synthetic LS–MLE manuscript experiment | <code>assets/tables_synthetic/table_1.csv</code> and <code>table_2.csv</code> |
 
 # Stage 02: trusted distributions
 
@@ -104,7 +104,7 @@ $$
 
 <p align="justify">Refined outputs use the <code>refined_analysis_</code> prefix and are written to <code>assets/figures_analysis_refined</code> and <code>assets/tables_analysis_refined</code>. Trusted outputs use the <code>trusted_analysis_</code> prefix and are written to <code>assets/figures_analysis_trusted</code> and <code>assets/tables_analysis_trusted</code>. The empirical CCDF tables use the explicit <code>_ccdf_empirical.csv</code> suffix, and external Gini validation tables use <code>_gini_validation_vs_ipea_wb_annual.csv</code>. Tables with exactly one record per survey year use the <code>_annual</code> suffix.</p>
 
-# Stage 04: Synthetic LS–MLE experiment
+# Standalone synthetic LS–MLE experiment
 
 <p align="justify"><code>synthetic.py</code> implements a controlled comparison between a deterministic power-law relation and a probabilistic Pareto model. The experiment is independent of the numbered PNAD stages. A single pseudo-random stream <code>U_i ~ U(0,1)</code> is generated with seed <code>20260902</code>, and all reported sample sizes are nested prefixes of this same stream. The design uses <code>beta = 10</code>, <code>alpha_0 = 2.5</code> and <code>x_t = 1</code>. The deterministic design is constructed as</p> 
 
@@ -187,4 +187,14 @@ $$
 Z=\ln\left(\frac{X}{x_t}\right).
 $$
 
-<p align="justify">If $X\sim\mathrm{Pareto}(\alpha,x_t)$, then $Z\sim\mathrm{Exp}(\alpha)$. This relation explains why the logarithmic Pareto sufficient statistic is naturally connected to sums of exponential random variables. The script writes <code>assets/tables_synthetic/table_1.csv</code> for the fixed <code>n=50</code> realization and <code>assets/tables_synthetic/table_2.csv</code> for the nested samples <code>n = 50, 100, 200, 500, 1000</code>. It does not read PNAD data and does not execute the Gompertz–Pareto analyses of stage 03.</p>
+<p align="justify">If $X\sim\mathrm{Pareto}(\alpha,x_t)$, then $Z\sim\mathrm{Exp}(\alpha)$. This relation explains why the logarithmic Pareto sufficient statistic is naturally connected to sums of exponential random variables. The script writes <code>assets/tables_synthetic/table_1.csv</code> for the fixed <code>n=50</code> realization and <code>assets/tables_synthetic/table_2.csv</code> for the nested samples <code>n = 50, 100, 200, 500, 1000</code>. Table 1 is sorted by <code>x_i</code> and its display index <code>i</code> is then reset to <code>1,...,50</code>. <code>assets/figures_synthetic/</code> is reserved for future synthetic figures. The experiment does not read PNAD data and does not execute the Gompertz–Pareto analyses of stage 03.</p>
+
+# Stage 05: Moura–Ribeiro replication and extension
+
+<p align="justify"><code>stage_05_moura_ribeiro.py</code> is implemented and generates the paper-specific replication and extension of Moura Jr. and Ribeiro (2009) over the available 1978–2025 refined series. It reuses the refined analytical outputs from stage 03 and reads refined annual Parquet files only for the income-share decomposition. It does not modify the stage-03 methodology or the refined/trusted datasets.</p>
+
+<p align="justify">The stage uses <code>data/metadata/df_metadata.xlsx</code> as the canonical metadata source, with <code>ano</code>, <code>Currency</code> and <code>Exchange</code> supplying the equivalent fields required for the paper's currency/mean-income table. Fig. 15 uses <code>data/auxiliary/gdp_growth_brazil_1978_2025.csv</code>, a persisted snapshot of World Bank/World Development Indicators series <code>NY.GDP.MKTP.KD.ZG</code>. No World Bank request is performed during execution. Figures are persisted in SVG format only, and the replication manifest references those SVG files.</p>
+
+# Dependency reproducibility
+
+<p align="justify"><code>requirements.txt</code> remains the normal installation specification. <code>requirements-lock.txt</code> is a pinned snapshot of the runtime dependencies resolved on CPython 3.12.14 under Ubuntu 24.04 in GitHub Actions on 2026-09-10. Existing workflows are not required to install from the lock file.</p>

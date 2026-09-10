@@ -8,6 +8,8 @@ on:
       - "src/stage_04_pereira_ribeiro.py"
       - "src/stage_05_moura_ribeiro.py"
       - "data/trusted/**"
+      - "data/refined/**"
+      - "assets/tables_analysis_refined/**"
       - "requirements.txt"
       - ".github/workflows/build_paper_assets.yml"
 
@@ -41,6 +43,15 @@ jobs:
         env:
           MPLBACKEND: Agg
         run: python src/stage_05_moura_ribeiro.py
+
+      - name: Upload paper assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper-assets
+          path: |
+            assets/figures_paper/**
+            assets/tables_paper/**
+          if-no-files-found: error
 
       - name: Commit paper assets
         run: |

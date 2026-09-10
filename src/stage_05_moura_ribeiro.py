@@ -4,8 +4,8 @@ This publication stage uses only the trusted PNAD layer. It preserves the
 scientific order of the four tables and fifteen figure families in the 2009
 paper, extends the annual series through 2025, attaches bootstrap uncertainties
 to the fitted parameters, and produces publication figures in a monochrome
-style. Multi-year figure families are split into groups of at most 12 panels
-(3 x 4) per page.
+style. Multi-year figure families are split into groups of at most 9 panels
+(3 x 3) per page.
 """
 from __future__ import annotations
 
@@ -30,9 +30,9 @@ START_YEAR = 1978
 END_YEAR = 2025
 BOOTSTRAP_REPS = int(os.environ.get("PNAD_BOOTSTRAP_REPS", "1000"))
 BOOTSTRAP_SEED = 20090101
-MAX_PANELS = 12
+MAX_PANELS = 9
 GRID_ROWS = 3
-GRID_COLS = 4
+GRID_COLS = 3
 
 STATS_PATH = TABLES_ANALYSIS / "trusted_analysis_statistics_annual.csv"
 CCDF_PATH = TABLES_ANALYSIS / "trusted_analysis_ccdf_empirical.csv"
@@ -47,13 +47,15 @@ mpl.rcParams.update({
     "axes.labelsize": 9,
     "xtick.labelsize": 7,
     "ytick.labelsize": 7,
-    "legend.fontsize": 7,
+    "legend.fontsize": 6.5,
     "axes.edgecolor": "0.20",
     "axes.linewidth": 0.7,
     "xtick.color": "0.15",
     "ytick.color": "0.15",
     "text.color": "0.10",
     "axes.labelcolor": "0.10",
+    "xtick.direction": "out",
+    "ytick.direction": "out",
     "figure.facecolor": "white",
     "axes.facecolor": "white",
     "savefig.facecolor": "white",
@@ -70,18 +72,41 @@ def _year_groups(years, size=MAX_PANELS):
 
 
 def _save_figure(fig, stem: str):
+    """Save one canonical paper-figure format: SVG."""
     FIGURES_PAPER.mkdir(parents=True, exist_ok=True)
     fig.tight_layout(rect=(0.025, 0.025, 0.995, 0.995))
-    for ext in ("pdf", "svg"):
-        fig.savefig(FIGURES_PAPER / f"{stem}.{ext}", bbox_inches="tight", dpi=300)
+    fig.savefig(FIGURES_PAPER / f"{stem}.svg", bbox_inches="tight", dpi=300)
     plt.close(fig)
 
 
-def _grid(n, width=3.0, height=2.45):
+def _grid(n, width=3.15, height=2.55):
     if n > MAX_PANELS:
-        raise ValueError(f"At most {MAX_PANELS} panels are allowed per page.")
+        raise ValueError(f"At most {MAX_PANELS} panels are allowed per image.")
     nrows = min(GRID_ROWS, int(math.ceil(n / GRID_COLS)))
-    return plt.subplots(nrows, GRID_COLS, figsize=(width * GRID_COLS, height * nrows), squeeze=False)
+    return plt.subplots(
+        nrows,
+        GRID_COLS,
+        figsize=(width * GRID_COLS, height * nrows),
+        squeeze=False,
+    )
+
+
+def _style_axis(ax, *, log_grid=False):
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    for side in ("bottom", "left"):
+        ax.spines[side].set_color("0.25")
+        ax.spines[side].set_linewidth(0.7)
+    ax.tick_params(axis="both", which="major", length=3.0, width=0.65, pad=2.5)
+    ax.tick_params(axis="both", which="minor", length=1.8, width=0.45)
+    ax.grid(
+        True,
+        which="both" if log_grid else "major",
+        color="0.90",
+        linewidth=0.42,
+        linestyle="-",
+        zorder=0,
+    )
 
 
 def _finish_grid(fig, axes, used, stem, xlabel=None, ylabel=None):
@@ -94,11 +119,44 @@ def _finish_grid(fig, axes, used, stem, xlabel=None, ylabel=None):
     _save_figure(fig, stem)
 
 
-def _annotation(ax, text, loc=(0.04, 0.96)):
+def _annotation(ax, text, loc=(0.04, 0.96), *, ha="left", va="top"):
     ax.text(
-        loc[0], loc[1], text, transform=ax.transAxes, ha="left", va="top",
-        fontsize=6.5, linespacing=1.18,
-        bbox=dict(boxstyle="round,pad=0.25", facecolor="white", edgecolor="0.45", linewidth=0.55, alpha=0.92),
+        loc[0],
+        loc[1],
+        text,
+        transform=ax.transAxes,
+        ha=ha,
+        va=va,
+        fontsize=6.7,
+        linespacing=1.22,
+        zorder=10,
+        bbox=dict(
+            boxstyle="round,pad=0.26",
+            facecolor="white",
+            edgecolor="0.45",
+            linewidth=0.55,
+            alpha=0.94,
+        ),
+    )
+
+
+def _compact_legend(ax, loc="lower right"):
+    handles, labels = ax.get_legend_handles_labels()
+    if not handles:
+        return
+    ax.legend(
+        handles,
+        labels,
+        loc=loc,
+        frameon=True,
+        facecolor="white",
+        edgecolor="0.65",
+        framealpha=0.92,
+        fancybox=False,
+        borderpad=0.28,
+        labelspacing=0.25,
+        handlelength=2.2,
+        handletextpad=0.45,
     )
 
 
@@ -336,133 +394,368 @@ def _plot_grouped(years, prefix, plot_group):
 
 def plot_ccdf(curves, annual, years):
     annual_i = annual.set_index("year")
+
     def group_plot(group, stem):
-        fig, axes = _grid(len(group), width=3.0, height=2.45)
+        fig, axes = _grid(len(group))
         for ax, year in zip(axes.ravel(), group):
-            fit = annual_i.loc[year]; xt = float(fit["transition_x_t"])
-            d = curves[(curves["year"] == year) & (curves["income_normalized"] > 0) & (curves["empirical_ccdf_percent"] > 0)]
-            ax.plot(d["income_normalized"], d["empirical_ccdf_percent"], color="0.08", linewidth=1.05)
+            fit = annual_i.loc[year]
+            xt = float(fit["transition_x_t"])
+            d = curves[
+                (curves["year"] == year)
+                & (curves["income_normalized"] > 0)
+                & (curves["empirical_ccdf_percent"] > 0)
+            ]
+            ax.plot(
+                d["income_normalized"],
+                d["empirical_ccdf_percent"],
+                color="0.08",
+                linewidth=1.05,
+            )
             ax.axvline(xt, color="0.40", linestyle="--", linewidth=0.9)
-            ax.set_xscale("log"); ax.set_yscale("log")
+            ax.set_xscale("log")
+            ax.set_yscale("log")
             ax.set_title(str(year), fontweight="semibold")
-            ax.grid(True, which="both", color="0.88", linewidth=0.45)
-            _annotation(ax, rf"$x_t={xt:.3f}$", loc=(0.05, 0.10))
-        _finish_grid(fig, axes, len(group), stem, "Normalized individual income, $x$", "CCDF, $F(x)$ (%)")
+            _style_axis(ax, log_grid=True)
+            _annotation(ax, rf"$x_t = {xt:.3f}$", loc=(0.05, 0.10), va="bottom")
+        _finish_grid(
+            fig,
+            axes,
+            len(group),
+            stem,
+            "Normalized individual income, $x$",
+            "CCDF, $F(x)$ (%)",
+        )
+
     return _plot_grouped(years, "moura_ribeiro_2009_ccdf_trusted", group_plot)
 
 
 def plot_lorenz_geometry(lorenz, stats, years):
     stats_i = stats.set_index("year")
+
     def group_plot(group, stem):
-        fig, axes = _grid(len(group), width=3.0, height=2.75)
+        fig, axes = _grid(len(group), width=3.15, height=2.95)
         for ax, year in zip(axes.ravel(), group):
             d = lorenz[lorenz["year"] == year]
             row = stats_i.loc[year]
             p = 100.0 * d["population_share"].to_numpy(float)
             L = 100.0 * d["income_share"].to_numpy(float)
-            ax.fill_between(p, 0, L, facecolor="0.94", edgecolor="none")
-            ax.plot(p, L, color="0.10", linewidth=1.35, label="Lorenz")
-            ax.plot([0, 100], [0, 100], color="0.45", linestyle="--", linewidth=0.9, label="Equality")
-            k = 100.0 * float(row["Kolkata"]); q = 100.0 - k
+            ax.fill_between(p, 0, L, facecolor="0.94", edgecolor="none", zorder=1)
+            ax.plot(p, L, color="0.10", linewidth=1.35, label="Lorenz curve", zorder=3)
+            ax.plot(
+                [0, 100],
+                [0, 100],
+                color="0.45",
+                linestyle="--",
+                linewidth=0.9,
+                label="Equality line",
+                zorder=2,
+            )
+            k = 100.0 * float(row["Kolkata"])
+            q = 100.0 - k
             ax.plot([k, k], [0, q], color="0.35", linestyle=":", linewidth=0.85)
             ax.plot([0, k], [q, q], color="0.35", linestyle=":", linewidth=0.85)
-            ax.scatter([k], [q], marker="o", facecolors="white", edgecolors="0.10", s=20, linewidths=0.8, zorder=4)
-            diff = p - L; ip = int(np.argmax(diff)); px = p[ip]; py = L[ip]
+            ax.scatter(
+                [k],
+                [q],
+                marker="o",
+                facecolors="white",
+                edgecolors="0.10",
+                s=20,
+                linewidths=0.8,
+                zorder=4,
+            )
+            diff = p - L
+            ip = int(np.argmax(diff))
+            px = p[ip]
+            py = L[ip]
             ax.plot([px, px], [py, px], color="0.25", linestyle="-.", linewidth=0.85)
-            ax.scatter([px], [py], marker="s", facecolors="white", edgecolors="0.10", s=16, linewidths=0.8, zorder=4)
+            ax.scatter(
+                [px],
+                [py],
+                marker="s",
+                facecolors="white",
+                edgecolors="0.10",
+                s=16,
+                linewidths=0.8,
+                zorder=4,
+            )
             ax.set_title(str(year), fontweight="semibold")
-            ax.set_xlim(0, 100); ax.set_ylim(0, 100); ax.set_aspect("equal", adjustable="box")
-            ax.grid(True, color="0.91", linewidth=0.45)
-            _annotation(ax, "\n".join([
-                rf"$G={float(row['Gini']):.3f}$",
-                rf"$k={k:.2f}\%$",
-                rf"$Z={float(row['Zanardi']):.3f}$",
-                rf"$p={100.0*float(row['Pietra']):.2f}\%$",
-            ]))
-        _finish_grid(fig, axes, len(group), stem, "Cumulative population (%)", "Cumulative income (%)")
+            ax.set_xlim(0, 100)
+            ax.set_ylim(0, 100)
+            ax.set_aspect("equal", adjustable="box")
+            _style_axis(ax)
+            _annotation(
+                ax,
+                "\n".join([
+                    rf"Gini: $G = {float(row['Gini']):.3f}$",
+                    rf"Kolkata: $k = {k:.2f}\%$",
+                    rf"Zanardi: $Z = {float(row['Zanardi']):.3f}$",
+                    rf"Pietra: $P = {100.0 * float(row['Pietra']):.2f}\%$",
+                ]),
+            )
+            _compact_legend(ax, loc="lower right")
+        _finish_grid(
+            fig,
+            axes,
+            len(group),
+            stem,
+            "Cumulative population (%)",
+            "Cumulative income (%)",
+        )
+
     return _plot_grouped(years, "moura_ribeiro_2009_lorenz_geometry_trusted", group_plot)
 
 
 def plot_gini(stats):
     d = stats.sort_values("year")
     fig, ax = plt.subplots(figsize=(8.2, 4.4))
-    ax.plot(d["year"], d["Gini"], color="0.08", marker="o", markerfacecolor="white", markeredgecolor="0.08", markersize=4, linewidth=1.2)
-    ax.set_xlabel("Year"); ax.set_ylabel("Gini coefficient")
-    ax.grid(True, color="0.88", linewidth=0.5)
+    ax.plot(
+        d["year"],
+        d["Gini"],
+        color="0.08",
+        marker="o",
+        markerfacecolor="white",
+        markeredgecolor="0.08",
+        markersize=4,
+        linewidth=1.2,
+    )
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Gini coefficient")
+    _style_axis(ax)
     _save_figure(fig, "moura_ribeiro_2009_figure_05_gini_trusted_1978_2025")
 
 
 def plot_exponential(curves, expfits, years):
     fit_i = expfits.set_index("year")
+
     def group_plot(group, stem):
-        fig, axes = _grid(len(group), width=3.0, height=2.45)
+        fig, axes = _grid(len(group))
         for ax, year in zip(axes.ravel(), group):
             fit = fit_i.loc[year]
-            d = curves[(curves["year"] == year) & (curves["income_normalized"] <= fit["x_max"]) & (curves["empirical_ccdf_percent"] > 0)]
-            x = d["income_normalized"].to_numpy(float); y = np.log(d["empirical_ccdf_percent"].to_numpy(float))
-            ax.scatter(x, y, marker="o", facecolors="white", edgecolors="0.15", s=12, linewidths=0.6)
-            order = np.argsort(x); x = x[order]
-            ax.plot(x, float(fit["exp_intercept"]) - float(fit["exp_lambda"]) * x, color="0.10", linewidth=1.05)
-            ax.set_title(str(year), fontweight="semibold"); ax.grid(True, color="0.90", linewidth=0.45)
-            _annotation(ax, rf"$\lambda={float(fit['exp_lambda']):.3f}$\n$R^2={float(fit['exp_r2']):.3f}$")
-        _finish_grid(fig, axes, len(group), stem, "Normalized individual income, $x$", r"$\ln F(x)$")
+            d = curves[
+                (curves["year"] == year)
+                & (curves["income_normalized"] <= fit["x_max"])
+                & (curves["empirical_ccdf_percent"] > 0)
+            ]
+            x = d["income_normalized"].to_numpy(float)
+            y = np.log(d["empirical_ccdf_percent"].to_numpy(float))
+            ax.scatter(
+                x,
+                y,
+                marker="o",
+                facecolors="white",
+                edgecolors="0.15",
+                s=12,
+                linewidths=0.6,
+                label="Empirical",
+            )
+            order = np.argsort(x)
+            x = x[order]
+            ax.plot(
+                x,
+                float(fit["exp_intercept"]) - float(fit["exp_lambda"]) * x,
+                color="0.10",
+                linewidth=1.05,
+                label="Exponential fit",
+            )
+            ax.set_title(str(year), fontweight="semibold")
+            _style_axis(ax)
+            _annotation(
+                ax,
+                "\n".join([
+                    rf"$\lambda = {float(fit['exp_lambda']):.3f}$",
+                    rf"$R^2 = {float(fit['exp_r2']):.3f}$",
+                ]),
+            )
+            _compact_legend(ax, loc="lower left")
+        _finish_grid(
+            fig,
+            axes,
+            len(group),
+            stem,
+            "Normalized individual income, $x$",
+            r"$\ln F(x)$",
+        )
+
     return _plot_grouped(years, "moura_ribeiro_2009_exponential_trusted", group_plot)
 
 
 def plot_gompertz(curves, annual, boot, years):
-    fit_i = annual.set_index("year"); boot_i = boot.set_index("year")
+    fit_i = annual.set_index("year")
+    boot_i = boot.set_index("year")
+
     def group_plot(group, stem):
-        fig, axes = _grid(len(group), width=3.0, height=2.45)
+        fig, axes = _grid(len(group))
         for ax, year in zip(axes.ravel(), group):
-            fit = fit_i.loc[year]; b = boot_i.loc[year]; xg = float(fit["gompertz_x_gmax"])
-            d = curves[(curves["year"] == year) & (curves["income_normalized"] <= xg) & curves["gompertz_transform"].notna()]
-            x = d["income_normalized"].to_numpy(float); y = d["gompertz_transform"].to_numpy(float)
-            ax.scatter(x, y, marker="o", facecolors="white", edgecolors="0.15", s=12, linewidths=0.6)
-            order = np.argsort(x); xline = x[order]
-            ax.plot(xline, float(fit["gompertz_A"]) - float(fit["gompertz_B"]) * xline, color="0.08", linewidth=1.15)
-            ax.axvline(xg, color="0.45", linestyle="--", linewidth=0.8)
-            ax.set_title(str(year), fontweight="semibold"); ax.grid(True, color="0.90", linewidth=0.45)
-            _annotation(ax, "\n".join([
-                rf"$A={float(fit['gompertz_A']):.3f}\pm{float(b['gompertz_A_bootstrap_se']):.3f}$",
-                rf"$B={float(fit['gompertz_B']):.3f}\pm{float(b['gompertz_B_bootstrap_se']):.3f}$",
-                rf"$R^2={float(fit['gompertz_r2']):.3f}$",
-                rf"$x_{{G,\max}}={xg:.3f}$",
-            ]))
-        _finish_grid(fig, axes, len(group), stem, "Normalized individual income, $x$", r"$\ln[\ln F(x)]$")
+            fit = fit_i.loc[year]
+            b = boot_i.loc[year]
+            xg = float(fit["gompertz_x_gmax"])
+            d = curves[
+                (curves["year"] == year)
+                & (curves["income_normalized"] <= xg)
+                & curves["gompertz_transform"].notna()
+            ]
+            x = d["income_normalized"].to_numpy(float)
+            y = d["gompertz_transform"].to_numpy(float)
+            ax.scatter(
+                x,
+                y,
+                marker="o",
+                facecolors="white",
+                edgecolors="0.15",
+                s=12,
+                linewidths=0.6,
+                label="Empirical",
+            )
+            order = np.argsort(x)
+            xline = x[order]
+            ax.plot(
+                xline,
+                float(fit["gompertz_A"]) - float(fit["gompertz_B"]) * xline,
+                color="0.08",
+                linewidth=1.15,
+                label="Gompertz LS",
+            )
+            ax.axvline(
+                xg,
+                color="0.45",
+                linestyle="--",
+                linewidth=0.8,
+                label=r"$x_{G,\max}$",
+            )
+            ax.set_title(str(year), fontweight="semibold")
+            _style_axis(ax)
+            _annotation(
+                ax,
+                "\n".join([
+                    rf"$A = {float(fit['gompertz_A']):.3f} \pm {float(b['gompertz_A_bootstrap_se']):.3f}$",
+                    rf"$B = {float(fit['gompertz_B']):.3f} \pm {float(b['gompertz_B_bootstrap_se']):.3f}$",
+                    rf"$R^2 = {float(fit['gompertz_r2']):.3f}$",
+                    rf"$x_{{G,\max}} = {xg:.3f}$",
+                ]),
+            )
+            _compact_legend(ax, loc="lower left")
+        _finish_grid(
+            fig,
+            axes,
+            len(group),
+            stem,
+            "Normalized individual income, $x$",
+            r"$\ln[\ln F(x)]$",
+        )
+
     return _plot_grouped(years, "moura_ribeiro_2009_gompertz_trusted", group_plot)
 
 
 def plot_pareto(curves, annual, boot, years, method):
-    fit_i = annual.set_index("year"); boot_i = boot.set_index("year")
+    fit_i = annual.set_index("year")
+    boot_i = boot.set_index("year")
+
     def group_plot(group, stem):
-        fig, axes = _grid(len(group), width=3.0, height=2.45)
+        fig, axes = _grid(len(group))
         for ax, year in zip(axes.ravel(), group):
-            fit = fit_i.loc[year]; b = boot_i.loc[year]; xt = float(fit["transition_x_t"])
+            fit = fit_i.loc[year]
+            b = boot_i.loc[year]
+            xt = float(fit["transition_x_t"])
+            xp = float(fit["pareto_x_pmin"])
             if method == "ls":
-                xmin = float(fit["pareto_x_pmin"]); fitted_col = "pareto_fitted_ccdf_percent_ls"
-                alpha = float(fit["pareto_alpha_ls"]); ase = float(b["pareto_alpha_ls_bootstrap_se"])
-                beta = float(fit["pareto_beta_ls"]); r2 = float(fit["pareto_ls_r2"])
+                xmin = xp
+                fitted_col = "pareto_fitted_ccdf_percent_ls"
+                alpha = float(fit["pareto_alpha_ls"])
+                ase = float(b["pareto_alpha_ls_bootstrap_se"])
+                beta = float(fit["pareto_beta_ls"])
+                r2 = float(fit["pareto_ls_r2"])
                 linestyle = "-"
+                fit_label = "Pareto LS"
+                alpha_symbol = r"\alpha_{\mathrm{LS}}"
+                beta_symbol = r"\beta_{\mathrm{LS}}"
+                r2_symbol = r"R^2_{\mathrm{LS}}"
             else:
-                xmin = xt; fitted_col = "pareto_fitted_ccdf_percent_mle"
-                alpha = float(fit["pareto_alpha_mle"]); ase = float(b["pareto_alpha_mle_bootstrap_se"])
-                beta = float(fit["pareto_beta_mle_continuity"]); linestyle = "--"
-                d0 = curves[(curves["year"] == year) & (curves["income_normalized"] >= xmin) & (curves["empirical_ccdf_percent"] > 0)]
-                r2 = _r2_log_observed_fitted(d0["empirical_ccdf_percent"], d0[fitted_col])
-            d = curves[(curves["year"] == year) & (curves["income_normalized"] >= xmin) & (curves["empirical_ccdf_percent"] > 0)]
-            ax.scatter(d["income_normalized"], d["empirical_ccdf_percent"], marker="o", facecolors="white", edgecolors="0.15", s=12, linewidths=0.6)
-            ax.plot(d["income_normalized"], d[fitted_col], color="0.08", linestyle=linestyle, linewidth=1.15)
-            ax.axvline(xt, color="0.45", linestyle=":", linewidth=0.85)
-            ax.set_xscale("log"); ax.set_yscale("log")
-            ax.set_title(str(year), fontweight="semibold"); ax.grid(True, which="both", color="0.90", linewidth=0.45)
-            _annotation(ax, "\n".join([
-                rf"$\alpha={alpha:.3f}\pm{ase:.3f}$",
-                rf"$\beta={beta:.2e}$",
-                rf"$R^2={r2:.3f}$",
-                rf"$x_t={xt:.3f}$",
-            ]))
-        _finish_grid(fig, axes, len(group), stem, "Normalized individual income, $x$", "CCDF, $F(x)$ (%)")
-    prefix = "moura_ribeiro_2009_pareto_ls_trusted" if method == "ls" else "moura_ribeiro_2009_pareto_mle_trusted"
+                xmin = xt
+                fitted_col = "pareto_fitted_ccdf_percent_mle"
+                alpha = float(fit["pareto_alpha_mle"])
+                ase = float(b["pareto_alpha_mle_bootstrap_se"])
+                beta = float(fit["pareto_beta_mle_continuity"])
+                linestyle = "--"
+                fit_label = "Pareto MLE"
+                alpha_symbol = r"\alpha_{\mathrm{MLE}}"
+                beta_symbol = r"\beta_{\mathrm{MLE}}"
+                r2_symbol = r"R^2_{\mathrm{MLE}}"
+                d0 = curves[
+                    (curves["year"] == year)
+                    & (curves["income_normalized"] >= xmin)
+                    & (curves["empirical_ccdf_percent"] > 0)
+                ]
+                r2 = _r2_log_observed_fitted(
+                    d0["empirical_ccdf_percent"],
+                    d0[fitted_col],
+                )
+            d = curves[
+                (curves["year"] == year)
+                & (curves["income_normalized"] >= xmin)
+                & (curves["empirical_ccdf_percent"] > 0)
+            ]
+            ax.scatter(
+                d["income_normalized"],
+                d["empirical_ccdf_percent"],
+                marker="o",
+                facecolors="white",
+                edgecolors="0.15",
+                s=12,
+                linewidths=0.6,
+                label="Empirical",
+            )
+            ax.plot(
+                d["income_normalized"],
+                d[fitted_col],
+                color="0.08",
+                linestyle=linestyle,
+                linewidth=1.15,
+                label=fit_label,
+            )
+            ax.axvline(
+                xt,
+                color="0.45",
+                linestyle=":",
+                linewidth=0.85,
+                label=r"$x_t$",
+            )
+            if method == "ls" and not np.isclose(xp, xt):
+                ax.axvline(
+                    xp,
+                    color="0.60",
+                    linestyle="--",
+                    linewidth=0.75,
+                    label=r"$x_{P,\min}$",
+                )
+            ax.set_xscale("log")
+            ax.set_yscale("log")
+            ax.set_title(str(year), fontweight="semibold")
+            _style_axis(ax, log_grid=True)
+            annotation_lines = [
+                rf"${alpha_symbol} = {alpha:.3f} \pm {ase:.3f}$",
+                rf"${beta_symbol} = {beta:.2e}$",
+                rf"${r2_symbol} = {r2:.3f}$",
+            ]
+            if method == "ls":
+                annotation_lines.append(rf"$x_{{P,\min}} = {xp:.3f}$")
+            annotation_lines.append(rf"$x_t = {xt:.3f}$")
+            _annotation(ax, "\n".join(annotation_lines))
+            _compact_legend(ax, loc="lower left")
+        _finish_grid(
+            fig,
+            axes,
+            len(group),
+            stem,
+            "Normalized individual income, $x$",
+            "CCDF, $F(x)$ (%)",
+        )
+
+    prefix = (
+        "moura_ribeiro_2009_pareto_ls_trusted"
+        if method == "ls"
+        else "moura_ribeiro_2009_pareto_mle_trusted"
+    )
     return _plot_grouped(years, prefix, group_plot)
 
 
@@ -478,9 +771,23 @@ def plot_pareto_share(table04, annual):
         lo = min(s_at_xg, s_at_xp, center); hi = max(s_at_xg, s_at_xp, center)
         yerr_lo.append(center - lo); yerr_hi.append(hi - center)
     fig, ax = plt.subplots(figsize=(8.2, 4.4))
-    ax.errorbar(d["year"], d["pareto_income_share_pct"], yerr=np.vstack([yerr_lo, yerr_hi]), fmt="o-", color="0.08", ecolor="0.45", markerfacecolor="white", markeredgecolor="0.08", markersize=4, linewidth=1.15, elinewidth=0.8, capsize=2.0)
-    ax.set_xlabel("Year"); ax.set_ylabel("Pareto share of total income (%)")
-    ax.grid(True, color="0.88", linewidth=0.5)
+    ax.errorbar(
+        d["year"],
+        d["pareto_income_share_pct"],
+        yerr=np.vstack([yerr_lo, yerr_hi]),
+        fmt="o-",
+        color="0.08",
+        ecolor="0.45",
+        markerfacecolor="white",
+        markeredgecolor="0.08",
+        markersize=4,
+        linewidth=1.15,
+        elinewidth=0.8,
+        capsize=2.0,
+    )
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Pareto share of total income (%)")
+    _style_axis(ax)
     _save_figure(fig, "moura_ribeiro_2009_figure_14_pareto_income_share_trusted_1978_2025")
 
 
@@ -495,10 +802,20 @@ def load_world_bank_gdp_growth():
 
 def plot_gdp_growth(gdp):
     fig, ax = plt.subplots(figsize=(8.2, 4.4))
-    ax.plot(gdp["year"], gdp["gdp_growth_pct"], color="0.08", marker="s", markerfacecolor="white", markeredgecolor="0.08", markersize=3.5, linewidth=1.1)
+    ax.plot(
+        gdp["year"],
+        gdp["gdp_growth_pct"],
+        color="0.08",
+        marker="s",
+        markerfacecolor="white",
+        markeredgecolor="0.08",
+        markersize=3.5,
+        linewidth=1.1,
+    )
     ax.axhline(0.0, color="0.45", linewidth=0.8, linestyle="--")
-    ax.set_xlabel("Year"); ax.set_ylabel("Real GDP growth (%)")
-    ax.grid(True, color="0.88", linewidth=0.5)
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Real GDP growth (%)")
+    _style_axis(ax)
     _save_figure(fig, "moura_ribeiro_2009_figure_15_gdp_growth_1978_2025")
 
 
@@ -511,7 +828,7 @@ def validate(table02, table03, table04, groups):
         raise AssertionError("Income shares must sum to 100%")
     for g in groups:
         if len(g) > MAX_PANELS:
-            raise AssertionError("A multi-panel page exceeds 12 annual panels")
+            raise AssertionError("A multi-panel image exceeds 9 annual panels")
 
 
 def main():
@@ -541,7 +858,7 @@ def main():
 
     manifest_rows = []
     for stem in figure_stems:
-        manifest_rows.append({"asset_type": "figure", "stem": stem, "pdf": f"{stem}.pdf", "svg": f"{stem}.svg"})
+        manifest_rows.append({"asset_type": "figure", "stem": stem, "svg": f"{stem}.svg"})
     for name in [
         "moura_ribeiro_2009_table_01_currency_mean_income_trusted_1978_2025.csv",
         "moura_ribeiro_2009_table_02_gompertz_parameters_trusted_1978_2025.csv",
@@ -549,7 +866,7 @@ def main():
         "moura_ribeiro_2009_table_04_income_shares_gini_trusted_1978_2025.csv",
         "moura_ribeiro_2009_bootstrap_uncertainties_trusted_1978_2025.csv",
     ]:
-        manifest_rows.append({"asset_type": "table", "stem": Path(name).stem, "pdf": "", "svg": ""})
+        manifest_rows.append({"asset_type": "table", "stem": Path(name).stem, "svg": ""})
     pd.DataFrame(manifest_rows).to_csv(TABLES_PAPER / "moura_ribeiro_2009_replication_manifest_trusted.csv", index=False)
 
     print(f"Trusted Moura-Ribeiro assets: {len(years)} annual surveys, {len(groups)} pages per multi-year figure family.")

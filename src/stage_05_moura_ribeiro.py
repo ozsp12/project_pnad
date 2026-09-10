@@ -38,18 +38,12 @@ REGIME_ANNUAL_PATH = TABLES_ANALYSIS / "refined_analysis_gompertz_pareto_annual.
 REGIME_CURVES_PATH = TABLES_ANALYSIS / "refined_analysis_regime_curves.csv"
 
 
-def _year_from_path(path: Path) -> int:
-    return int(path.stem.rsplit("_", 1)[-1])
-
-
 def _filtered_years(values):
     return sorted(int(y) for y in values if START_YEAR <= int(y) <= END_YEAR)
 
 
 def _split_years(years):
-    early = [y for y in years if y <= EARLY_END_YEAR]
-    late = [y for y in years if y >= LATE_START_YEAR]
-    return early, late
+    return [y for y in years if y <= EARLY_END_YEAR], [y for y in years if y >= LATE_START_YEAR]
 
 
 def _save_figure(fig, stem: str):
@@ -62,13 +56,16 @@ def _save_figure(fig, stem: str):
 
 def _grid(n, ncols, width=2.7, height=2.1):
     nrows = int(math.ceil(n / ncols))
-    fig, axes = plt.subplots(nrows, ncols, figsize=(width * ncols, height * nrows), squeeze=False)
-    return fig, axes
+    return plt.subplots(nrows, ncols, figsize=(width * ncols, height * nrows), squeeze=False)
 
 
-def _finish_grid(fig, axes, used, stem):
+def _finish_grid(fig, axes, used, stem, xlabel=None, ylabel=None):
     for ax in axes.ravel()[used:]:
         ax.remove()
+    if xlabel:
+        fig.supxlabel(xlabel, fontsize=10)
+    if ylabel:
+        fig.supylabel(ylabel, fontsize=10)
     _save_figure(fig, stem)
 
 
@@ -79,30 +76,19 @@ def _load_tables():
     annual = pd.read_csv(REGIME_ANNUAL_PATH)
     curves = pd.read_csv(REGIME_CURVES_PATH)
     metadata = pd.read_csv(METADATA_OLD)
-
     for frame in (stats, ccdf, lorenz, annual, curves, metadata):
         if "year" in frame.columns:
             frame["year"] = pd.to_numeric(frame["year"], errors="coerce").astype("Int64")
-
-    stats = stats[(stats["year"] >= START_YEAR) & (stats["year"] <= END_YEAR)].copy()
-    ccdf = ccdf[(ccdf["year"] >= START_YEAR) & (ccdf["year"] <= END_YEAR)].copy()
-    lorenz = lorenz[(lorenz["year"] >= START_YEAR) & (lorenz["year"] <= END_YEAR)].copy()
-    annual = annual[(annual["year"] >= START_YEAR) & (annual["year"] <= END_YEAR)].copy()
-    curves = curves[(curves["year"] >= START_YEAR) & (curves["year"] <= END_YEAR)].copy()
-    metadata = metadata[(metadata["year"] >= START_YEAR) & (metadata["year"] <= END_YEAR)].copy()
-    return stats, ccdf, lorenz, annual, curves, metadata
+    filt = lambda d: d[(d["year"] >= START_YEAR) & (d["year"] <= END_YEAR)].copy()
+    return filt(stats), filt(ccdf), filt(lorenz), filt(annual), filt(curves), filt(metadata)
 
 
 def build_table_01(stats, metadata):
-    t = metadata[["year", "currency", "exchange"]].merge(
-        stats[["year", "mean_nominal"]], on="year", how="inner"
-    )
+    t = metadata[["year", "currency", "exchange"]].merge(stats[["year", "mean_nominal"]], on="year", how="inner")
     t["mean_income_current_usd"] = t["mean_nominal"] / t["exchange"]
-    t = t.rename(columns={
-        "currency": "currency_name_symbol",
-        "exchange": "local_currency_units_per_usd",
-    })
-    out = t[["year", "currency_name_symbol", "local_currency_units_per_usd", "mean_income_current_usd"]]
+    out = t.rename(columns={"currency": "currency_name_symbol", "exchange": "local_currency_units_per_usd"})[[
+        "year", "currency_name_symbol", "local_currency_units_per_usd", "mean_income_current_usd"
+    ]]
     out.to_csv(TABLES_PAPER / "moura_ribeiro_2009_table_01_currency_mean_income_1978_2025.csv", index=False)
     return out
 
@@ -110,10 +96,7 @@ def build_table_01(stats, metadata):
 def build_table_02(annual):
     t = annual.copy()
     t["correlation_coefficient"] = np.sqrt(np.clip(pd.to_numeric(t["gompertz_r2"], errors="coerce"), 0.0, 1.0))
-    out = t[[
-        "year", "gompertz_A", "gompertz_B", "gompertz_x_gmax",
-        "correlation_coefficient", "gompertz_population_pct",
-    ]].copy()
+    out = t[["year", "gompertz_A", "gompertz_B", "gompertz_x_gmax", "correlation_coefficient", "gompertz_population_pct"]].copy()
     out.to_csv(TABLES_PAPER / "moura_ribeiro_2009_table_02_gompertz_parameters_1978_2025.csv", index=False)
     return out
 
@@ -131,17 +114,13 @@ def build_table_03(annual):
     return out
 
 
-def _load_normalized_income(year, annual_row):
+def _load_normalized_income(year):
     path = REFINED_DATA / f"pnad_refined_{year}.parquet"
     frame = pd.read_parquet(path)
     x = pd.to_numeric(frame["renda"], errors="coerce").to_numpy(float)
     x = x[np.isfinite(x) & (x > 0)]
     if x.size == 0:
         raise ValueError(f"{year}: no positive income observations")
-    # The transition threshold stored in stage 03 is defined on income normalized
-    # by the positive annual mean. A positive multiplicative monetary conversion
-    # cancels from this normalization, so raw positive income can be normalized
-    # directly here.
     return x / float(np.mean(x))
 
 
@@ -152,36 +131,30 @@ def build_table_04(stats, annual):
     for year in _filtered_years(annual["year"].dropna().astype(int)):
         if year not in stats_i.index:
             continue
-        row = annual_i.loc[year]
-        x = _load_normalized_income(year, row)
-        xt = float(row["transition_x_t"])
+        xt = float(annual_i.loc[year, "transition_x_t"])
+        x = _load_normalized_income(year)
         total = float(np.sum(x))
         g = float(np.sum(x[x < xt])) / total
         p = float(np.sum(x[x >= xt])) / total
         if not np.isclose(g + p, 1.0, atol=1e-12):
             raise AssertionError(f"{year}: income shares do not sum to one")
-        records.append({
-            "year": year,
-            "gompertz_income_share_pct": 100.0 * g,
-            "pareto_income_share_pct": 100.0 * p,
-            "gini_coefficient": float(stats_i.loc[year, "Gini"]),
-        })
+        records.append({"year": year, "gompertz_income_share_pct": 100.0 * g, "pareto_income_share_pct": 100.0 * p, "gini_coefficient": float(stats_i.loc[year, "Gini"])})
     out = pd.DataFrame(records)
     out.to_csv(TABLES_PAPER / "moura_ribeiro_2009_table_04_income_shares_gini_1978_2025.csv", index=False)
     return out
 
 
-def plot_ccdf(ccdf, years, stem, ncols):
+def plot_ccdf(curves, years, stem, ncols):
     fig, axes = _grid(len(years), ncols)
     for ax, year in zip(axes.ravel(), years):
-        d = ccdf[(ccdf["year"] == year) & (ccdf["x"] > 0) & (ccdf["ccdf_pct"] > 0)]
-        ax.plot(d["x"], d["ccdf_pct"], linewidth=1.0)
+        d = curves[(curves["year"] == year) & (curves["income_normalized"] > 0) & (curves["empirical_ccdf_percent"] > 0)]
+        ax.plot(d["income_normalized"], d["empirical_ccdf_percent"], linewidth=1.0)
         ax.set_xscale("log")
         ax.set_yscale("log")
         ax.set_title(str(year), fontsize=8)
         ax.tick_params(labelsize=6)
         ax.grid(True, which="both", alpha=0.2)
-    _finish_grid(fig, axes, len(years), stem)
+    _finish_grid(fig, axes, len(years), stem, "Normalized individual income, $x$", "Complementary cumulative distribution, $F(x)$ (%)")
 
 
 def plot_lorenz(lorenz, years, stem, ncols):
@@ -195,7 +168,7 @@ def plot_lorenz(lorenz, years, stem, ncols):
         ax.set_ylim(0, 100)
         ax.tick_params(labelsize=6)
         ax.grid(True, alpha=0.15)
-    _finish_grid(fig, axes, len(years), stem)
+    _finish_grid(fig, axes, len(years), stem, "Cumulative population (%)", "Cumulative income (%)")
 
 
 def plot_gini(stats):
@@ -209,19 +182,14 @@ def plot_gini(stats):
 
 
 def _linear_fit(x, y):
-    x = np.asarray(x, float)
-    y = np.asarray(y, float)
-    mask = np.isfinite(x) & np.isfinite(y)
-    x = x[mask]
-    y = y[mask]
+    x = np.asarray(x, float); y = np.asarray(y, float)
+    mask = np.isfinite(x) & np.isfinite(y); x = x[mask]; y = y[mask]
     if len(x) < 2:
         return np.nan, np.nan, np.nan
     slope, intercept = np.polyfit(x, y, 1)
     fitted = intercept + slope * x
-    tss = np.sum((y - np.mean(y)) ** 2)
-    sse = np.sum((y - fitted) ** 2)
-    r2 = np.nan if tss == 0 else 1.0 - sse / tss
-    return float(intercept), float(slope), float(r2)
+    tss = np.sum((y - np.mean(y)) ** 2); sse = np.sum((y - fitted) ** 2)
+    return float(intercept), float(slope), float(np.nan if tss == 0 else 1.0 - sse / tss)
 
 
 def build_exponential_fits(curves, annual):
@@ -231,13 +199,7 @@ def build_exponential_fits(curves, annual):
         xg = float(annual_i.loc[year, "gompertz_x_gmax"])
         d = curves[(curves["year"] == year) & (curves["income_normalized"] <= xg) & (curves["empirical_ccdf_percent"] > 0)].copy()
         intercept, slope, r2 = _linear_fit(d["income_normalized"], np.log(d["empirical_ccdf_percent"]))
-        rows.append({
-            "year": year,
-            "exp_intercept": intercept,
-            "exp_lambda": -slope,
-            "exp_r2": r2,
-            "x_max": xg,
-        })
+        rows.append({"year": year, "exp_intercept": intercept, "exp_lambda": -slope, "exp_r2": r2, "x_max": xg})
     out = pd.DataFrame(rows)
     out.to_csv(TABLES_PAPER / "moura_ribeiro_2009_exponential_fit_diagnostics_1978_2025.csv", index=False)
     return out
@@ -249,30 +211,24 @@ def plot_exponential(curves, expfits, years, stem, ncols):
     for ax, year in zip(axes.ravel(), years):
         fit = fit_i.loc[year]
         d = curves[(curves["year"] == year) & (curves["income_normalized"] <= fit["x_max"]) & (curves["empirical_ccdf_percent"] > 0)].copy()
-        x = d["income_normalized"].to_numpy(float)
-        y = np.log(d["empirical_ccdf_percent"].to_numpy(float))
+        x = d["income_normalized"].to_numpy(float); y = np.log(d["empirical_ccdf_percent"].to_numpy(float))
         ax.scatter(x, y, s=7)
         ax.plot(x, fit["exp_intercept"] - fit["exp_lambda"] * x, linewidth=1.0)
-        ax.set_title(str(year), fontsize=8)
-        ax.tick_params(labelsize=6)
-        ax.grid(True, alpha=0.2)
-    _finish_grid(fig, axes, len(years), stem)
+        ax.set_title(str(year), fontsize=8); ax.tick_params(labelsize=6); ax.grid(True, alpha=0.2)
+    _finish_grid(fig, axes, len(years), stem, "Normalized individual income, $x$", "$\ln F(x)$")
 
 
 def plot_gompertz(curves, annual, years, stem, ncols):
     annual_i = annual.set_index("year")
     fig, axes = _grid(len(years), ncols)
     for ax, year in zip(axes.ravel(), years):
-        fit = annual_i.loc[year]
-        xg = float(fit["gompertz_x_gmax"])
+        fit = annual_i.loc[year]; xg = float(fit["gompertz_x_gmax"])
         d = curves[(curves["year"] == year) & (curves["income_normalized"] <= xg) & curves["gompertz_transform"].notna()].copy()
         x = d["income_normalized"].to_numpy(float)
         ax.scatter(x, d["gompertz_transform"], s=7)
         ax.plot(x, float(fit["gompertz_A"]) - float(fit["gompertz_B"]) * x, linewidth=1.0)
-        ax.set_title(str(year), fontsize=8)
-        ax.tick_params(labelsize=6)
-        ax.grid(True, alpha=0.2)
-    _finish_grid(fig, axes, len(years), stem)
+        ax.set_title(str(year), fontsize=8); ax.tick_params(labelsize=6); ax.grid(True, alpha=0.2)
+    _finish_grid(fig, axes, len(years), stem, "Normalized individual income, $x$", "$\ln[\ln F(x)]$")
 
 
 def plot_pareto(curves, annual, years, stem, ncols, method):
@@ -281,29 +237,22 @@ def plot_pareto(curves, annual, years, stem, ncols, method):
     for ax, year in zip(axes.ravel(), years):
         fit = annual_i.loc[year]
         if method == "ls":
-            xmin = float(fit["pareto_x_pmin"])
-            fitted_col = "pareto_fitted_ccdf_percent_ls"
+            xmin = float(fit["pareto_x_pmin"]); fitted_col = "pareto_fitted_ccdf_percent_ls"
         else:
-            xmin = float(fit["transition_x_t"])
-            fitted_col = "pareto_fitted_ccdf_percent_mle"
+            xmin = float(fit["transition_x_t"]); fitted_col = "pareto_fitted_ccdf_percent_mle"
         d = curves[(curves["year"] == year) & (curves["income_normalized"] >= xmin) & (curves["empirical_ccdf_percent"] > 0)].copy()
         ax.scatter(d["income_normalized"], d["empirical_ccdf_percent"], s=7)
         ax.plot(d["income_normalized"], d[fitted_col], linewidth=1.0)
-        ax.set_xscale("log")
-        ax.set_yscale("log")
-        ax.set_title(str(year), fontsize=8)
-        ax.tick_params(labelsize=6)
-        ax.grid(True, which="both", alpha=0.2)
-    _finish_grid(fig, axes, len(years), stem)
+        ax.set_xscale("log"); ax.set_yscale("log"); ax.set_title(str(year), fontsize=8)
+        ax.tick_params(labelsize=6); ax.grid(True, which="both", alpha=0.2)
+    _finish_grid(fig, axes, len(years), stem, "Normalized individual income, $x$", "Complementary cumulative distribution, $F(x)$ (%)")
 
 
 def plot_pareto_share(table04):
     d = table04.sort_values("year")
     fig, ax = plt.subplots(figsize=(8.0, 4.4))
     ax.plot(d["year"], d["pareto_income_share_pct"], marker="x", markersize=4, linewidth=1.0)
-    ax.set_xlabel("Year")
-    ax.set_ylabel("Pareto share of total income (%)")
-    ax.grid(True, alpha=0.25)
+    ax.set_xlabel("Year"); ax.set_ylabel("Pareto share of total income (%)"); ax.grid(True, alpha=0.25)
     _save_figure(fig, "moura_ribeiro_2009_figure_14_pareto_income_share_1978_2025")
 
 
@@ -312,12 +261,7 @@ def fetch_world_bank_gdp_growth():
     try:
         with urllib.request.urlopen(url, timeout=30) as response:
             payload = json.load(response)
-        records = []
-        for item in payload[1]:
-            year = int(item["date"])
-            value = item["value"]
-            if START_YEAR <= year <= END_YEAR and value is not None:
-                records.append({"year": year, "gdp_growth_pct": float(value)})
+        records = [{"year": int(item["date"]), "gdp_growth_pct": float(item["value"])} for item in payload[1] if item["value"] is not None and START_YEAR <= int(item["date"]) <= END_YEAR]
         out = pd.DataFrame(records).sort_values("year")
     except Exception as exc:
         print(f"World Bank GDP request failed: {exc}")
@@ -331,42 +275,27 @@ def plot_gdp_growth(gdp):
         return
     fig, ax = plt.subplots(figsize=(8.0, 4.4))
     ax.plot(gdp["year"], gdp["gdp_growth_pct"], marker="x", markersize=4, linewidth=1.0)
-    ax.axhline(0.0, linewidth=0.7)
-    ax.set_xlabel("Year")
-    ax.set_ylabel("GDP growth (%)")
-    ax.grid(True, alpha=0.25)
+    ax.axhline(0.0, linewidth=0.7); ax.set_xlabel("Year"); ax.set_ylabel("GDP growth (%)"); ax.grid(True, alpha=0.25)
     _save_figure(fig, "moura_ribeiro_2009_figure_15_gdp_growth_1978_2025")
 
 
 def validate(table02, table03, table04):
-    merged = table02[["year", "gompertz_x_gmax"]].merge(
-        table03[["year", "pareto_x_pmin", "transition_x_t"]], on="year", how="inner"
-    )
-    bad = merged[
-        (merged["transition_x_t"] < merged["gompertz_x_gmax"] - 1e-12)
-        | (merged["transition_x_t"] > merged["pareto_x_pmin"] + 1e-12)
-    ]
+    merged = table02[["year", "gompertz_x_gmax"]].merge(table03[["year", "pareto_x_pmin", "transition_x_t"]], on="year", how="inner")
+    bad = merged[(merged["transition_x_t"] < merged["gompertz_x_gmax"] - 1e-12) | (merged["transition_x_t"] > merged["pareto_x_pmin"] + 1e-12)]
     if not bad.empty:
         raise AssertionError("Threshold ordering failed for years: " + ", ".join(map(str, bad["year"].tolist())))
-    if not np.allclose(
-        table04["gompertz_income_share_pct"] + table04["pareto_income_share_pct"], 100.0, atol=1e-8
-    ):
+    if not np.allclose(table04["gompertz_income_share_pct"] + table04["pareto_income_share_pct"], 100.0, atol=1e-8):
         raise AssertionError("Income shares must sum to 100%")
 
 
 def main():
-    TABLES_PAPER.mkdir(parents=True, exist_ok=True)
-    FIGURES_PAPER.mkdir(parents=True, exist_ok=True)
-
+    TABLES_PAPER.mkdir(parents=True, exist_ok=True); FIGURES_PAPER.mkdir(parents=True, exist_ok=True)
     stats, ccdf, lorenz, annual, curves, metadata = _load_tables()
-    years = _filtered_years(annual["year"].dropna().astype(int))
-    early, late = _split_years(years)
+    years = _filtered_years(annual["year"].dropna().astype(int)); early, late = _split_years(years)
 
     table01 = build_table_01(stats, metadata)
-
-    plot_ccdf(ccdf, early, "moura_ribeiro_2009_figure_01_ccdf_1978_1990", ncols=3)
-    plot_ccdf(ccdf, late, "moura_ribeiro_2009_figure_02_ccdf_1992_2025", ncols=5)
-
+    plot_ccdf(curves, early, "moura_ribeiro_2009_figure_01_ccdf_1978_1990", ncols=3)
+    plot_ccdf(curves, late, "moura_ribeiro_2009_figure_02_ccdf_1992_2025", ncols=5)
     plot_lorenz(lorenz, early, "moura_ribeiro_2009_figure_03_lorenz_1978_1990", ncols=3)
     plot_lorenz(lorenz, late, "moura_ribeiro_2009_figure_04_lorenz_1992_2025", ncols=5)
     plot_gini(stats)
@@ -385,11 +314,8 @@ def main():
     plot_pareto(curves, annual, early, "moura_ribeiro_2009_figure_12_pareto_mle_1978_1990", ncols=3, method="mle")
     plot_pareto(curves, annual, late, "moura_ribeiro_2009_figure_13_pareto_mle_1992_2025", ncols=5, method="mle")
 
-    table04 = build_table_04(stats, annual)
-    plot_pareto_share(table04)
-    gdp = fetch_world_bank_gdp_growth()
-    plot_gdp_growth(gdp)
-
+    table04 = build_table_04(stats, annual); plot_pareto_share(table04)
+    gdp = fetch_world_bank_gdp_growth(); plot_gdp_growth(gdp)
     validate(table02, table03, table04)
 
     manifest = pd.DataFrame([
@@ -414,7 +340,6 @@ def main():
         (15, "figure", "moura_ribeiro_2009_figure_15_gdp_growth_1978_2025.pdf"),
     ], columns=["original_number", "asset_type", "filename"])
     manifest.to_csv(TABLES_PAPER / "moura_ribeiro_2009_replication_manifest.csv", index=False)
-
     print(f"Generated Moura-Ribeiro replication assets for {len(years)} survey years ({years[0]}-{years[-1]}).")
     print(f"Table 1 rows: {len(table01)}; Table 4 rows: {len(table04)}")
 

@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "src/stage_03_pnad_analysis.py"
+      - "src/stage_03_pnad_analysis_core.py"
       - "data/metadata/df_metadata.xlsx"
       - "data/auxiliary/**"
       - "data/refined/**"

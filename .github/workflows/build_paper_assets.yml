@@ -5,10 +5,11 @@ on:
   push:
     branches: [main]
     paths:
-      - "src/stage_04_pereira_ribeiro.py"
       - "src/stage_05_moura_ribeiro.py"
       - "data/trusted/**"
       - "data/refined/**"
+      - "data/auxiliary/gdp_growth_brazil_1978_2025.csv"
+      - "data/metadata/df_metadata.xlsx"
       - "assets/tables_analysis_refined/**"
       - "requirements.txt"
       - ".github/workflows/build_paper_assets.yml"
@@ -32,14 +33,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Generate Pereira-Ribeiro paper assets
-        if: ${{ hashFiles('src/stage_04_pereira_ribeiro.py') != '' }}
-        env:
-          MPLBACKEND: Agg
-        run: python src/stage_04_pereira_ribeiro.py
-
       - name: Generate Moura-Ribeiro paper assets
-        if: ${{ hashFiles('src/stage_05_moura_ribeiro.py') != '' }}
         env:
           MPLBACKEND: Agg
         run: python src/stage_05_moura_ribeiro.py

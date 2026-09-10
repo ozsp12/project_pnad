@@ -64,7 +64,7 @@ def corrected_mle_alpha(values: np.ndarray, x_t: float = X_T) -> float:
 
 
 def build_table_1(u_stream: np.ndarray) -> pd.DataFrame:
-    """Build the n=50 observation table from the first stream prefix."""
+    """Build the n=50 observation table sorted by x_i and numbered 1,...,50."""
     u = np.asarray(u_stream[:TABLE_1_SIZE], dtype=float)
     x, y, X = construct_variables(u)
 
@@ -79,7 +79,9 @@ def build_table_1(u_stream: np.ndarray) -> pd.DataFrame:
             "ln(x_i/x_t)": np.log(x / X_T),
         }
     )
-    return table.sort_values("x_i", kind="mergesort").reset_index(drop=True)
+    table = table.sort_values("x_i", kind="mergesort").reset_index(drop=True)
+    table["i"] = np.arange(1, TABLE_1_SIZE + 1, dtype=int)
+    return table
 
 
 def build_nested_samples(u_stream: np.ndarray) -> dict[int, np.ndarray]:
@@ -141,6 +143,10 @@ def validate_outputs(
         raise AssertionError("Table 1 must contain exactly 50 rows.")
     if not table_1["x_i"].is_monotonic_increasing:
         raise AssertionError("Table 1 must be sorted by x_i.")
+    np.testing.assert_array_equal(
+        table_1["i"].to_numpy(),
+        np.arange(1, TABLE_1_SIZE + 1, dtype=int),
+    )
     if table_1.isna().any().any() or table_2.isna().any().any():
         raise AssertionError("Synthetic tables must not contain NaN values.")
     if not np.isfinite(table_1.select_dtypes(include=[np.number]).to_numpy()).all():
@@ -148,8 +154,11 @@ def validate_outputs(
     if not np.isfinite(table_2.select_dtypes(include=[np.number]).to_numpy()).all():
         raise AssertionError("Table 2 contains non-finite values.")
 
-    restored = table_1.sort_values("i")
-    np.testing.assert_array_equal(restored["U_i"].to_numpy(), u_stream[:TABLE_1_SIZE])
+    # Sorting and display renumbering must preserve the same first 50 draws.
+    np.testing.assert_array_equal(
+        table_1["U_i"].to_numpy(),
+        np.sort(u_stream[:TABLE_1_SIZE]),
+    )
 
     nested = build_nested_samples(u_stream)
     previous_n = None
@@ -162,10 +171,9 @@ def validate_outputs(
     if len(row_50) != 1:
         raise AssertionError("Table 2 must contain exactly one n=50 row.")
 
-    u50 = restored["U_i"].to_numpy()
-    x50 = restored["x_i"].to_numpy()
-    y50 = restored["y_i"].to_numpy()
-    X50 = restored["X_i"].to_numpy()
+    x50 = table_1["x_i"].to_numpy()
+    y50 = table_1["y_i"].to_numpy()
+    X50 = table_1["X_i"].to_numpy()
     ls_alpha_50, ls_beta_50 = fit_log_log_ls(x50, y50)
 
     if not np.isclose(ls_alpha_50, ALPHA0, rtol=0.0, atol=1e-12):
@@ -188,7 +196,6 @@ def validate_outputs(
         rtol=0.0,
         atol=1e-14,
     )
-    np.testing.assert_array_equal(u50, u_stream[:TABLE_1_SIZE])
 
 
 def main() -> tuple[pd.DataFrame, pd.DataFrame]:

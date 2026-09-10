@@ -1,7 +1,7 @@
 """Run the complete PNAD analysis with Moura--Ribeiro Gompertz--Pareto fitting.
 
 The general descriptive, Lorenz, inequality and visualization routines remain in
-``stage_03_pnad_analysis_core.py``.  This module refactors the income-regime
+``stage_03_pnad_analysis_core.py``. This module refactors the income-regime
 analysis to follow Moura Jr. and Ribeiro (EPJ B 67, 101--120, 2009): normalized
 individual income, logarithmic spacing with ratio 1.10, free least-squares
 estimation of the Gompertz parameters A and B, explicit x_G,max and x_P,min
@@ -14,7 +14,6 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -47,7 +46,7 @@ def linear_fit(x, y):
     mask = np.isfinite(x) & np.isfinite(y)
     x = x[mask]
     y = y[mask]
-    if x.size < 2 or np.isclose(np.var(x), 0.0):
+    if x.size < 2 or np.unique(x).size < 2:
         raise ValueError("Linear fit requires at least two distinct finite abscissae.")
 
     slope, intercept = np.polyfit(x, y, 1)
@@ -55,7 +54,7 @@ def linear_fit(x, y):
     residual = y - fitted
     sse = float(np.sum(residual ** 2))
     tss = float(np.sum((y - y.mean()) ** 2))
-    r2 = np.nan if np.isclose(tss, 0.0) else float(1.0 - sse / tss)
+    r2 = np.nan if tss == 0.0 else float(1.0 - sse / tss)
     return {
         "intercept": float(intercept),
         "slope": float(slope),

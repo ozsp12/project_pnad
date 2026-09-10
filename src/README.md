@@ -79,7 +79,7 @@ $$
 <p align="justify">After <code>B</code> is obtained, the fitted Gompertz curve is evaluated at the candidate transition point. This value is not a maximum of the Gompertz distribution; it is the fitted CCDF value at the junction between the body and the tail. The benchmark passed to the Pareto fit is</p>
 
 $$
-F_t = F_G(x_t) = \exp\left\{\exp\left[A-\widehat B x_t\right]\right\}.
+F_t = F_G(x_t) = \exp \left[ \exp\left(A-\widehat B x_t \right) \right].
 $$
 
 <p align="justify">The Pareto tail is then constrained to join the Gompertz body continuously at <code>x_t</code>. For <code>u \ge x_t</code>, the model is written as</p>
@@ -109,7 +109,7 @@ $$
 The selected transition is
 
 $$
-x_t^{\ast} = \operatorname*{arg\,min}_{x_t} SSE_{\mathrm{joint}}(x_t).
+x_t^{\ast} = \underset{x_t}{\mathrm{arg\,min}}\; \mathrm{SSE}_{\mathrm{joint}}(x_t).
 $$
 
 <p align="justify">Accordingly, the annual procedure has a strict sequence: fit the linearized Gompertz body by least squares, evaluate that fitted model at each candidate junction to obtain <code>F_t</code>, use <code>F_t</code> as the continuity benchmark for the Pareto tail, estimate <code>alpha</code> by least squares, and finally select the candidate <code>x_t</code> that minimizes the combined fitting error. The resulting annual outputs report the selected normalized and adjusted-income cutoffs together with <code>gompertz_B</code>, <code>pareto_alpha</code>, the corresponding coefficients of determination, and the joint sum of squared errors.</p>

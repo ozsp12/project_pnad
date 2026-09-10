@@ -4,8 +4,8 @@ This publication stage uses only the trusted PNAD layer. It preserves the
 scientific order of the four tables and fifteen figure families in the 2009
 paper, extends the annual series through 2025, attaches bootstrap uncertainties
 to the fitted parameters, and produces publication figures in a monochrome
-style. Multi-year figure families are split into groups of at most 9 panels
-(3 x 3) per page.
+style. Multi-year figure families are split into groups of at most 12 panels
+(3 columns x 4 rows) per full-page LaTeX figure.
 """
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.ticker import LogFormatterMathtext, LogLocator, NullFormatter
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 TABLES_ANALYSIS = REPO_ROOT / "assets" / "tables_analysis_trusted"
@@ -30,9 +31,12 @@ START_YEAR = 1978
 END_YEAR = 2025
 BOOTSTRAP_REPS = int(os.environ.get("PNAD_BOOTSTRAP_REPS", "1000"))
 BOOTSTRAP_SEED = 20090101
-MAX_PANELS = 9
-GRID_ROWS = 3
+MAX_PANELS = 12
+GRID_ROWS = 4
 GRID_COLS = 3
+LATEX_PAGE_FIGSIZE = (7.0, 9.5)
+SINGLE_FIGSIZE = (7.0, 4.5)
+PNG_DPI = 300
 
 STATS_PATH = TABLES_ANALYSIS / "trusted_analysis_statistics_annual.csv"
 CCDF_PATH = TABLES_ANALYSIS / "trusted_analysis_ccdf_empirical.csv"
@@ -71,22 +75,35 @@ def _year_groups(years, size=MAX_PANELS):
     return [years[i:i + size] for i in range(0, len(years), size)]
 
 
+def _prepare_figure_directory():
+    """Remove obsolete generated formats before rebuilding canonical PNGs."""
+    FIGURES_PAPER.mkdir(parents=True, exist_ok=True)
+    for path in FIGURES_PAPER.iterdir():
+        if path.is_file() and path.suffix.lower() in {".png", ".svg", ".pdf"}:
+            path.unlink()
+
+
 def _save_figure(fig, stem: str):
-    """Save one canonical paper-figure format: SVG."""
+    """Save one canonical, print-resolution paper-figure format: PNG."""
     FIGURES_PAPER.mkdir(parents=True, exist_ok=True)
     fig.tight_layout(rect=(0.025, 0.025, 0.995, 0.995))
-    fig.savefig(FIGURES_PAPER / f"{stem}.svg", bbox_inches="tight", dpi=300)
+    fig.savefig(
+        FIGURES_PAPER / f"{stem}.png",
+        format="png",
+        dpi=PNG_DPI,
+        pil_kwargs={"compress_level": 9},
+    )
     plt.close(fig)
 
 
-def _grid(n, width=3.15, height=2.55):
+def _grid(n):
     if n > MAX_PANELS:
         raise ValueError(f"At most {MAX_PANELS} panels are allowed per image.")
     nrows = min(GRID_ROWS, int(math.ceil(n / GRID_COLS)))
     return plt.subplots(
         nrows,
         GRID_COLS,
-        figsize=(width * GRID_COLS, height * nrows),
+        figsize=LATEX_PAGE_FIGSIZE,
         squeeze=False,
     )
 
@@ -107,6 +124,14 @@ def _style_axis(ax, *, log_grid=False):
         linestyle="-",
         zorder=0,
     )
+    if log_grid:
+        for axis in (ax.xaxis, ax.yaxis):
+            axis.set_major_locator(LogLocator(base=10, numticks=6))
+            axis.set_major_formatter(LogFormatterMathtext(base=10, labelOnlyBase=True))
+            axis.set_minor_locator(
+                LogLocator(base=10, subs=np.arange(2, 10) * 0.1, numticks=100)
+            )
+            axis.set_minor_formatter(NullFormatter())
 
 
 def _finish_grid(fig, axes, used, stem, xlabel=None, ylabel=None):
@@ -433,7 +458,7 @@ def plot_lorenz_geometry(lorenz, stats, years):
     stats_i = stats.set_index("year")
 
     def group_plot(group, stem):
-        fig, axes = _grid(len(group), width=3.15, height=2.95)
+        fig, axes = _grid(len(group))
         for ax, year in zip(axes.ravel(), group):
             d = lorenz[lorenz["year"] == year]
             row = stats_i.loc[year]
@@ -508,7 +533,7 @@ def plot_lorenz_geometry(lorenz, stats, years):
 
 def plot_gini(stats):
     d = stats.sort_values("year")
-    fig, ax = plt.subplots(figsize=(8.2, 4.4))
+    fig, ax = plt.subplots(figsize=SINGLE_FIGSIZE)
     ax.plot(
         d["year"],
         d["Gini"],
@@ -770,7 +795,7 @@ def plot_pareto_share(table04, annual):
         center = float(row["pareto_income_share_pct"])
         lo = min(s_at_xg, s_at_xp, center); hi = max(s_at_xg, s_at_xp, center)
         yerr_lo.append(center - lo); yerr_hi.append(hi - center)
-    fig, ax = plt.subplots(figsize=(8.2, 4.4))
+    fig, ax = plt.subplots(figsize=SINGLE_FIGSIZE)
     ax.errorbar(
         d["year"],
         d["pareto_income_share_pct"],
@@ -801,7 +826,7 @@ def load_world_bank_gdp_growth():
 
 
 def plot_gdp_growth(gdp):
-    fig, ax = plt.subplots(figsize=(8.2, 4.4))
+    fig, ax = plt.subplots(figsize=SINGLE_FIGSIZE)
     ax.plot(
         gdp["year"],
         gdp["gdp_growth_pct"],
@@ -828,11 +853,12 @@ def validate(table02, table03, table04, groups):
         raise AssertionError("Income shares must sum to 100%")
     for g in groups:
         if len(g) > MAX_PANELS:
-            raise AssertionError("A multi-panel image exceeds 9 annual panels")
+            raise AssertionError("A multi-panel image exceeds 12 annual panels")
 
 
 def main():
-    TABLES_PAPER.mkdir(parents=True, exist_ok=True); FIGURES_PAPER.mkdir(parents=True, exist_ok=True)
+    TABLES_PAPER.mkdir(parents=True, exist_ok=True)
+    _prepare_figure_directory()
     stats, ccdf, lorenz, annual, curves, metadata = _load_tables()
     years = _filtered_years(annual["year"].dropna().astype(int)); groups = _year_groups(years)
 
@@ -858,7 +884,7 @@ def main():
 
     manifest_rows = []
     for stem in figure_stems:
-        manifest_rows.append({"asset_type": "figure", "stem": stem, "svg": f"{stem}.svg"})
+        manifest_rows.append({"asset_type": "figure", "stem": stem, "png": f"{stem}.png"})
     for name in [
         "moura_ribeiro_2009_table_01_currency_mean_income_trusted_1978_2025.csv",
         "moura_ribeiro_2009_table_02_gompertz_parameters_trusted_1978_2025.csv",
@@ -866,7 +892,7 @@ def main():
         "moura_ribeiro_2009_table_04_income_shares_gini_trusted_1978_2025.csv",
         "moura_ribeiro_2009_bootstrap_uncertainties_trusted_1978_2025.csv",
     ]:
-        manifest_rows.append({"asset_type": "table", "stem": Path(name).stem, "svg": ""})
+        manifest_rows.append({"asset_type": "table", "stem": Path(name).stem, "png": ""})
     pd.DataFrame(manifest_rows).to_csv(TABLES_PAPER / "moura_ribeiro_2009_replication_manifest_trusted.csv", index=False)
 
     print(f"Trusted Moura-Ribeiro assets: {len(years)} annual surveys, {len(groups)} pages per multi-year figure family.")

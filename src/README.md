@@ -50,6 +50,94 @@ The annual validation includes:
 | External validation | calculated Gini versus IPEA and World Bank series |
 | Gompertz–Pareto | Gompertz LS body fit and Pareto LS tail fit evaluated from the empirical CCDF, cutoff search and annual fitted curves |
 
+## Gompertz–Pareto regime fitting
+
+<p align="justify">The Gompertz–Pareto fit in <code>stage_03_pnad_analysis.py</code> is performed directly from the empirical complementary cumulative distribution function (CCDF), not from bin means or histogram frequencies. For each survey year, positive adjusted incomes are normalized by their annual mean, so that the fitting coordinate is <code>u = x / mean(x)</code>. The empirical CCDF is evaluated on the geometric threshold grid already used by stage 03; these geometrically spaced points define where the empirical curve is sampled and which transition points can be tested, but the fit itself does not average observations inside logarithmic bins.</p>
+
+For the Gompertz body, the empirical CCDF is expressed in percent and transformed as
+
+$
+Y(u)=\ln[\ln F(u)],
+$
+
+with the normalization condition
+
+$
+A=\ln(\ln 100).
+$
+
+The linearized Gompertz model is therefore
+
+$
+Y(u)=A-Bu.
+$
+
+<p align="justify">The intercept <code>A</code> is fixed by the 100% normalization and is not fitted. For every admissible candidate transition point <code>x_t</code>, ordinary least squares is applied only to the body <code>u &lt; x_t</code> to estimate <code>B</code>. With <code>A</code> fixed, the estimator used by the code is</p>
+
+$
+\widehat B
+=
+\frac{\displaystyle\sum_i u_i(A-Y_i)}
+{\displaystyle\sum_i u_i^2}.
+$
+
+<p align="justify">After <code>B</code> is obtained, the fitted Gompertz curve is evaluated at the candidate transition point. This value is not a maximum of the Gompertz distribution; it is the fitted CCDF value at the junction between the body and the tail. The benchmark passed to the Pareto fit is</p>
+
+$
+F_t
+=
+F_G(x_t)
+=
+\exp\left\{\exp\left[A-\widehat B x_t\right]\right\}.
+$
+
+<p align="justify">The Pareto tail is then constrained to join the Gompertz body continuously at <code>x_t</code>. For <code>u \ge x_t</code>, the model is written as</p>
+
+$
+F_P(u)
+=
+F_t
+\left(\frac{u}{x_t}\right)^{-\alpha},
+$
+
+or, equivalently,
+
+$
+\ln F_P(u)
+=
+\ln F_t
+-
+\alpha\ln\left(\frac{u}{x_t}\right).
+$
+
+<p align="justify">Because <code>F_t</code> is fixed by the fitted Gompertz body, the Pareto least-squares step estimates only <code>alpha</code>. Defining <code>z_i = ln(u_i/x_t)</code> and <code>w_i = ln(F_t)-ln(F_i)</code>, the fitted exponent is</p>
+
+$
+\widehat\alpha
+=
+\frac{\displaystyle\sum_i z_i w_i}
+{\displaystyle\sum_i z_i^2}.
+$
+
+<p align="justify">The transition point is therefore not imposed a priori. Every empirical-CCDF threshold satisfying the admissibility conditions is tested as a candidate: the body and tail must each contain at least 100 observations, the tail fraction must be at least 0.5%, the implied cutoff quantile must lie between 0.20 and 0.995, and each fitted regime must contain at least five curve points. For each candidate, stage 03 computes the Gompertz error in log-CCDF space and the Pareto error in the same space, then forms</p>
+
+$
+SSE_{\mathrm{joint}}
+=
+SSE_G+SSE_P.
+$
+
+The selected transition is
+
+$
+x_t^{\ast}
+=
+\operatorname*{arg\,min}_{x_t}
+SSE_{\mathrm{joint}}(x_t).
+$
+
+<p align="justify">Accordingly, the annual procedure has a strict sequence: fit the linearized Gompertz body by least squares, evaluate that fitted model at each candidate junction to obtain <code>F_t</code>, use <code>F_t</code> as the continuity benchmark for the Pareto tail, estimate <code>alpha</code> by least squares, and finally select the candidate <code>x_t</code> that minimizes the combined fitting error. The resulting annual outputs report the selected normalized and adjusted-income cutoffs together with <code>gompertz_B</code>, <code>pareto_alpha</code>, the corresponding coefficients of determination, and the joint sum of squared errors.</p>
+
 <p align="justify">Refined outputs use the <code>refined_analysis_</code> prefix and are written to <code>assets/figures_analysis_refined</code> and <code>assets/tables_analysis_refined</code>. Trusted outputs use the <code>trusted_analysis_</code> prefix and are written to <code>assets/figures_analysis_trusted</code> and <code>assets/tables_analysis_trusted</code>. Tables with exactly one record per survey year use the <code>_annual</code> suffix.</p>
 
 # Synthetic LS–MLE experiment

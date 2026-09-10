@@ -6,11 +6,13 @@ on:
     branches: [main]
     paths:
       - "src/stage_05_moura_ribeiro.py"
+      - "src/paper_figures.py"
       - "data/trusted/**"
       - "data/refined/**"
       - "data/auxiliary/gdp_growth_brazil_1978_2025.csv"
       - "data/metadata/df_metadata.xlsx"
       - "assets/tables_analysis_refined/**"
+      - "assets/tables_analysis_trusted/**"
       - "requirements.txt"
       - ".github/workflows/build_paper_assets.yml"
 
@@ -37,6 +39,11 @@ jobs:
         env:
           MPLBACKEND: Agg
         run: python src/stage_05_moura_ribeiro.py
+
+      - name: Finalize paper figures
+        env:
+          MPLBACKEND: Agg
+        run: python src/paper_figures.py
 
       - name: Enforce SVG-only paper figures
         run: |

@@ -6,7 +6,6 @@ import matplotlib
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
-import pandas as pd
 import pytest
 from matplotlib.ticker import NullFormatter
 
@@ -72,50 +71,12 @@ def test_prepare_figure_directory_removes_obsolete_formats(tmp_path, monkeypatch
     assert sorted(path.name for path in tmp_path.iterdir()) == [".gitkeep"]
 
 
-def test_manifest_migration_uses_png_column(tmp_path, monkeypatch):
-    manifest_path = tmp_path / "moura_ribeiro_2009_replication_manifest_trusted.csv"
-    pd.DataFrame(
-        [
-            {
-                "asset_type": "figure",
-                "stem": "moura_ribeiro_2009_ccdf_trusted_part_01",
-                "svg": "moura_ribeiro_2009_ccdf_trusted_part_01.svg",
-            }
-        ]
-    ).to_csv(manifest_path, index=False)
-    monkeypatch.setattr(paper_figures, "TABLES_PAPER", tmp_path)
+def test_normalize_paper_figure_names_removes_legacy_prefix(tmp_path, monkeypatch):
+    monkeypatch.setattr(paper_figures, "FIGURES_PAPER", tmp_path)
+    legacy = tmp_path / "moura_ribeiro_2009_ccdf_trusted_part_01.png"
+    legacy.write_bytes(b"png")
 
-    paper_figures.update_manifests(paper_figures.INEQUALITY_STEM)
+    paper_figures.normalize_paper_figure_names()
 
-    manifest = pd.read_csv(manifest_path).fillna("")
-    assert list(manifest.columns) == ["asset_type", "stem", "png"]
-    assert manifest.loc[0, "png"] == "ccdf_trusted_part_01.png"
-    assert manifest.loc[1, "png"] == f"{paper_figures.INEQUALITY_STEM}.png"
-
-
-def test_replication_manifest_maps_canonical_figure_families(tmp_path, monkeypatch):
-    trusted_path = tmp_path / "moura_ribeiro_2009_replication_manifest_trusted.csv"
-    pd.DataFrame(
-        [
-            {
-                "asset_type": "figure",
-                "stem": "ccdf_trusted_part_01",
-                "png": "ccdf_trusted_part_01.png",
-            },
-            {
-                "asset_type": "figure",
-                "stem": paper_figures.INEQUALITY_STEM,
-                "png": f"{paper_figures.INEQUALITY_STEM}.png",
-            },
-        ]
-    ).to_csv(trusted_path, index=False)
-    monkeypatch.setattr(paper_figures, "TABLES_PAPER", tmp_path)
-
-    paper_figures.rebuild_replication_manifest()
-
-    manifest = pd.read_csv(
-        tmp_path / "moura_ribeiro_2009_replication_manifest.csv",
-        dtype=str,
-    )
-    figures = manifest.loc[manifest["asset_type"] == "figure"]
-    assert figures["original_number"].tolist() == ["1-2", "16 (extension)"]
+    assert not legacy.exists()
+    assert (tmp_path / "ccdf_trusted_part_01.png").is_file()

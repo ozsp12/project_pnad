@@ -38,6 +38,21 @@ jobs:
           MPLBACKEND: Agg
         run: python src/stage_05_moura_ribeiro.py
 
+      - name: Enforce SVG-only paper figures
+        run: |
+          find assets/figures_paper -type f -name '*.pdf' -delete
+          python - <<'PY'
+          from pathlib import Path
+          import pandas as pd
+
+          path = Path("assets/tables_paper/moura_ribeiro_2009_replication_manifest_trusted.csv")
+          if path.exists():
+              manifest = pd.read_csv(path)
+              if "pdf" in manifest.columns:
+                  manifest = manifest.drop(columns=["pdf"])
+              manifest.to_csv(path, index=False)
+          PY
+
       - name: Upload paper assets
         uses: actions/upload-artifact@v4
         with:

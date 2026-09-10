@@ -13,7 +13,7 @@
 | <code>figures_paper/</code> | Figures explicitly selected for manuscripts |
 | <code>tables_paper/</code> | Tables explicitly selected for manuscripts |
 
-<p align="justify">The refined and trusted analysis directories are intentionally symmetric. Stage 03 uses the same analytical functions for both layers; only the input dataset, output directory and filename prefix change. When annual observations are unavailable, the temporal plots of mean/median income and the four-panel inequality-index evolution use linear interpolation for visualization only. The underlying CSV values are not interpolated.</p>
+<p align="justify">The refined and trusted analysis directories are intentionally symmetric. Stage 03 uses the same analytical procedure for both layers; only the input dataset, output directory and filename prefix change. Geometric analysis grids use the Moura–Ribeiro ratio <code>r = 1.10</code>. When annual observations are unavailable, temporal plots of mean/median income and the inequality-index evolution use linear interpolation for visualization only; underlying CSV values are not interpolated.</p>
 
 # Analysis figures
 
@@ -24,12 +24,13 @@
 | CCDF log-log | <code>refined_analysis_ccdf_loglog.svg</code> | <code>trusted_analysis_ccdf_loglog.svg</code> | Empirical complementary cumulative distributions on logarithmic axes. |
 | Gompertz transform | <code>refined_analysis_ccdf_lnln.svg</code> | <code>trusted_analysis_ccdf_lnln.svg</code> | Annual <code>ln[ln(100 F(x))]</code> diagnostic representation. |
 | Lorenz geometry | <code>refined_analysis_lorenz_geometry.svg</code> | <code>trusted_analysis_lorenz_geometry.svg</code> | Lorenz curves with equality line, area, Pietra construction, Kolkata point, Gini and Zanardi information. |
-| Top-income shares | <code>refined_analysis_top_income_shares.svg</code> | <code>trusted_analysis_top_income_shares.svg</code> | Temporal evolution of top 10%, top 1% and top 0.1% income shares. |\n| Mean/median and top-income shares | <code>refined_analysis_top_income_shares_mean_median.svg</code> | <code>trusted_analysis_top_income_shares_mean_median.svg</code> | Two-panel annual view combining adjusted mean and median income with top 10%, top 1% and top 0.1% income shares. |
+| Top-income shares | <code>refined_analysis_top_income_shares.svg</code> | <code>trusted_analysis_top_income_shares.svg</code> | Temporal evolution of top 10%, top 1% and top 0.1% income shares. |
+| Mean/median and top-income shares | <code>refined_analysis_top_income_shares_mean_median.svg</code> | <code>trusted_analysis_top_income_shares_mean_median.svg</code> | Two-panel annual view combining adjusted mean and median income with top 10%, top 1% and top 0.1% income shares. |
 | Inequality indices | <code>refined_analysis_inequality_indices.svg</code> | <code>trusted_analysis_inequality_indices.svg</code> | Joint temporal evolution of Gini, Pietra, Kolkata and Zanardi indices. |
 | Inequality indices 2×2 | <code>refined_analysis_inequality_indices_2x2.svg</code> | <code>trusted_analysis_inequality_indices_2x2.svg</code> | Separate four-panel representation of the four inequality indices. |
 | Gini validation | <code>refined_analysis_gini_validation.svg</code> | <code>trusted_analysis_gini_validation.svg</code> | Comparison with the external IPEA and World Bank Gini series. |
-| Gompertz regime fits | <code>refined_analysis_regime_fits_gompertz_ccdf_empirical.svg</code> | <code>trusted_analysis_regime_fits_gompertz_ccdf_empirical.svg</code> | Annual least-squares fits for the Gompertz body using the empirical CCDF representation. |
-| Pareto regime fits | <code>refined_analysis_regime_fits_pareto_ccdf_empirical.svg</code> | <code>trusted_analysis_regime_fits_pareto_ccdf_empirical.svg</code> | Annual log-log least-squares fits for the Pareto upper tail using the empirical CCDF. |
+| Gompertz regime fits | <code>refined_analysis_regime_fits_gompertz_ccdf_empirical.svg</code> | <code>trusted_analysis_regime_fits_gompertz_ccdf_empirical.svg</code> | Annual free-intercept least-squares fits of <code>ln[ln F(x)] = A - Bx</code> on normalized individual income, including the identified <code>x_G,max</code>. |
+| Pareto regime fits | <code>refined_analysis_regime_fits_pareto_ccdf_empirical.svg</code> | <code>trusted_analysis_regime_fits_pareto_ccdf_empirical.svg</code> | Annual log-log Pareto diagnostics showing the LS tail and direct-MLE curve together with <code>x_P,min</code> and <code>x_t</code>. |
 
 # Analysis tables
 
@@ -37,13 +38,14 @@
 | --- | --- | --- | --- |
 | Annual statistics | <code>refined_analysis_statistics_annual.csv</code> | <code>trusted_analysis_statistics_annual.csv</code> | One row per survey year with sample counts, nominal and adjusted income statistics, inequality indices and top-income shares. |
 | CCDF | <code>refined_analysis_ccdf.csv</code> | <code>trusted_analysis_ccdf.csv</code> | Point-level empirical CCDF, percentages and Gompertz diagnostic transformation. |
-| Geometric bins | <code>refined_analysis_geometric_bins.csv</code> | <code>trusted_analysis_geometric_bins.csv</code> | Geometric bin limits, centers, counts, means, geometric means, medians, standard deviations and CCDF. |
+| Geometric bins | <code>refined_analysis_geometric_bins.csv</code> | <code>trusted_analysis_geometric_bins.csv</code> | Geometric bin limits with ratio <code>1.10</code>, centers, counts, means, geometric means, medians, standard deviations and CCDF. |
 | Geometric-bin preview | <code>refined_analysis_geometric_bins_preview.csv</code> | <code>trusted_analysis_geometric_bins_preview.csv</code> | Compact inspection subset of the geometric-bin dataset. |
 | Histograms | <code>refined_analysis_histograms.csv</code> | <code>trusted_analysis_histograms.csv</code> | Histogram bin boundaries, centers and counts. |
 | Lorenz coordinates | <code>refined_analysis_lorenz.csv</code> | <code>trusted_analysis_lorenz.csv</code> | Lorenz-curve coordinates on a common population-share grid. |
 | Gini validation | <code>refined_analysis_gini_validation_annual.csv</code> | <code>trusted_analysis_gini_validation_annual.csv</code> | One row per survey year comparing calculated Gini with IPEA and World Bank values. |
-| Regime fits | <code>refined_analysis_regime_fits_annual.csv</code> | <code>trusted_analysis_regime_fits_annual.csv</code> | One row per survey year with cutoff, Gompertz/Pareto parameters and fit diagnostics. |
-| Regime curves | <code>refined_analysis_regime_curves.csv</code> | <code>trusted_analysis_regime_curves.csv</code> | Point-level normalized income, empirical CCDF, regime assignment and fitted curves. |
+| Gompertz–Pareto annual metrics | <code>refined_analysis_gompertz_pareto_annual.csv</code> | <code>trusted_analysis_gompertz_pareto_annual.csv</code> | One row per survey year with <code>A</code>, <code>B</code>, Gompertz and Pareto fit diagnostics, <code>x_G,max</code>, <code>x_P,min</code>, <code>x_t</code>, <code>delta x_t</code>, Pareto LS/MLE parameters, and mutually exclusive Gompertz/Pareto population counts and percentages summing to 100%. |
+| Regime fits compatibility table | <code>refined_analysis_regime_fits_annual.csv</code> | <code>trusted_analysis_regime_fits_annual.csv</code> | Compatibility copy of the annual Gompertz–Pareto metrics table. |
+| Regime curves | <code>refined_analysis_regime_curves.csv</code> | <code>trusted_analysis_regime_curves.csv</code> | Point-level normalized income, logarithmic-bin counts, empirical CCDF, regime boundaries and fitted Gompertz/Pareto curves. |
 
 ## Trusted-stage audit tables
 
@@ -55,7 +57,6 @@
 <p align="justify">Tables with exactly one consolidated record per survey year use the <code>_annual</code> suffix. Tables containing multiple coordinates, bins or fitted points per year do not. Refined-analysis filenames use <code>refined_analysis_</code>; trusted-analysis filenames use <code>trusted_analysis_</code>; trusted-stage audit tables use <code>trusted_</code>.</p>
 
 <p align="justify">The distinction between analytical and paper assets is methodological rather than cosmetic. Analysis assets preserve diagnostics, validation material and complete numerical objects; paper assets contain only results explicitly selected for publication.</p>
-
 
 # Synthetic assets
 

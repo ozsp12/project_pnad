@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "src/stage_05_moura_ribeiro.py"
+      - "src/stage_05_paper_figures.py"
       - "data/trusted/**"
       - "data/refined/**"
       - "data/auxiliary/gdp_growth_brazil_1978_2025.csv"
@@ -36,11 +37,17 @@ jobs:
       - name: Generate Moura-Ribeiro paper assets
         env:
           MPLBACKEND: Agg
-        run: python src/stage_05_moura_ribeiro.py
+        run: |
+          python src/stage_05_moura_ribeiro.py
+          python src/stage_05_paper_figures.py
 
       - name: Enforce SVG-only paper figures
         run: |
           find assets/figures_paper -type f -name '*.pdf' -delete
+          if find assets/figures_paper -type f -name 'moura_ribeiro_2009_*' | grep -q .; then
+            echo "Legacy figure filename prefix still present."
+            exit 1
+          fi
           python - <<'PY'
           from pathlib import Path
           import pandas as pd
@@ -50,6 +57,10 @@ jobs:
               manifest = pd.read_csv(path)
               if "pdf" in manifest.columns:
                   manifest = manifest.drop(columns=["pdf"])
+              if {"asset_type", "stem", "svg"}.issubset(manifest.columns):
+                  figure_mask = manifest["asset_type"].eq("figure")
+                  manifest.loc[figure_mask, "stem"] = manifest.loc[figure_mask, "stem"].str.removeprefix("moura_ribeiro_2009_")
+                  manifest.loc[figure_mask, "svg"] = manifest.loc[figure_mask, "svg"].str.removeprefix("moura_ribeiro_2009_")
               manifest.to_csv(path, index=False)
           PY
 
@@ -66,7 +77,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/figures_paper assets/tables_paper
+          git add -A assets/figures_paper assets/tables_paper
           if git diff --cached --quiet; then
             echo "No paper-asset changes to commit."
           else

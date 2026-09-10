@@ -76,36 +76,28 @@ $$
 \ln F(x)=\ln\beta-\alpha\ln x.
 $$
 
-<p align="justify"><code>x_P,min</code> is the earliest admissible start of a positive-slope-exponent Pareto tail with at least five logarithmic points and <code>R² ≥ 0.98</code>; if no suffix satisfies this deterministic operational criterion, the highest-<code>R²</code> tail is retained and explicitly flagged as a fallback. When the two empirical regime boundaries coincide, the transition income is <code>x_t = x_G,max = x_P,min</code>. When they differ, the transition and its half-width follow the boundary prescription used in the paper,</p>
+<p align="justify"><code>x_P,min</code> is the earliest admissible start of a positive-slope-exponent Pareto tail with at least five logarithmic points and <code>R² ≥ 0.98</code>; if no suffix satisfies this deterministic operational criterion, the highest-<code>R²</code> tail is retained and explicitly flagged as a fallback. When the two empirical regime boundaries coincide, the transition income is <code>x_t = x_G,max = x_P,min</code>. When they differ, the transition and its half-width follow the boundary prescription used in the paper. </p>
 
 $$
-x_t=\frac{x_{P,\min}+x_{G,\max}}{2},
-\qquad
-\delta x_t=\frac{|x_{P,\min}-x_{G,\max}|}{2}.
+x_t=\frac{x_{P,\min}+x_{G,\max}}{2}, \qquad \delta x_t=\frac{|x_{P,\min}-x_{G,\max}|}{2}.
 $$
 
-<p align="justify">For comparison with the original least-squares treatment, <code>alpha</code> and <code>beta</code> are obtained from the log-binned Pareto CCDF. The primary direct Pareto maximum-likelihood estimate is calculated from the individual normalized observations satisfying <code>x_i ≥ x_t</code>, without replacing them by bin representatives,</p>
+<p align="justify">For comparison with the original least-squares treatment, <code>alpha</code> and <code>beta</code> are obtained from the log-binned Pareto CCDF. The primary direct Pareto maximum-likelihood estimate is calculated from the individual normalized observations satisfying <code>x_i ≥ x_t</code>, without replacing them by bin representatives. </p>
 
 $$
-\widehat\alpha_{\mathrm{MLE}}
-=
-\frac{n_t}{\displaystyle\sum_{i=1}^{n_t}\ln(x_i/x_t)}.
+\widehat\alpha_{\mathrm{MLE}} = \frac{n_t}{\displaystyle\sum_{i=1}^{n_t}\ln(x_i/x_t)}.
 $$
 
 <p align="justify">For the MLE branch, the Pareto normalization is fixed by continuity with the fitted Gompertz curve at the transition,</p>
 
 $$
-F_t=\exp\!\left[\exp(A-Bx_t)\right],
-\qquad
-\beta_{\mathrm{MLE}}=F_t x_t^{\widehat\alpha_{\mathrm{MLE}}}.
+F_t=\exp\!\left[\exp(A-Bx_t)\right], \qquad \beta_{\mathrm{MLE}}=F_t x_t^{\widehat\alpha_{\mathrm{MLE}}}.
 $$
 
-<p align="justify">Population membership is evaluated directly from the individual normalized observations using the final transition <code>x_t</code>. Observations with <code>x &lt; x_t</code> form the Gompertz population and observations with <code>x ≥ x_t</code> form the Pareto population. The reported percentages are complementary by construction,</p>
+<p align="justify">Population membership is evaluated directly from the individual normalized observations using the final transition <code>x_t</code>. Observations with <code>x &lt; x_t</code> form the Gompertz population and observations with <code>x ≥ x_t</code> form the Pareto population. The reported percentages are complementary by construction. </p>
 
 $$
-p_G=100-p_P,
-\qquad
-p_P=100\frac{n(x\ge x_t)}{n_{\mathrm{positive}}},
+p_G=100-p_P, \qquad p_P=100\frac{n(x\ge x_t)}{n_{\mathrm{positive}}},
 $$
 
 <p align="justify">so <code>p_G + p_P = 100%</code> to numerical precision. The annual CSV <code>*_analysis_gompertz_pareto_annual.csv</code> contains the logarithmic ratio, normalization mean, <code>A</code>, <code>B</code>, Gompertz <code>R²</code>, <code>x_G,max</code>, <code>x_P,min</code>, <code>x_t</code>, <code>delta x_t</code>, Gompertz/Pareto population counts and percentages, Pareto LS parameters and <code>R²</code>, direct MLE <code>alpha</code>, its Fisher standard error, the continuity-normalized <code>beta</code>, and the fitted Gompertz CCDF at <code>x_t</code>.</p>

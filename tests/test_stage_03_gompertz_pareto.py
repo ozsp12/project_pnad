@@ -1,8 +1,11 @@
-import math
+from pathlib import Path
+import sys
 
 import numpy as np
 import pandas as pd
 import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.stage_03_pnad_analysis import (
     BIN_RATIO,
@@ -11,7 +14,6 @@ from src.stage_03_pnad_analysis import (
     direct_pareto_mle,
     fit_pareto_ls,
     select_gompertz_region,
-    select_pareto_region,
 )
 
 

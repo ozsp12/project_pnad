@@ -50,8 +50,6 @@ The annual validation includes:
 | External validation | calculated Gini versus IPEA and World Bank series |
 | Gompertz–Pareto | Gompertz LS body fit and Pareto LS tail fit evaluated from the empirical CCDF, cutoff search and annual fitted curves |
 
-# Gompertz–Pareto regime fitting
-
 <p align="justify">The Gompertz–Pareto fit in <code>stage_03_pnad_analysis.py</code> is performed directly from the empirical complementary cumulative distribution function (CCDF), not from bin means or histogram frequencies. For each survey year, positive adjusted incomes are normalized by their annual mean, so that the fitting coordinate is <code>u = x / mean(x)</code>. The empirical CCDF is evaluated on the geometric threshold grid used in stage 03; these geometrically spaced points define where the empirical curve is sampled and which transition points can be tested, but the fit itself does not average observations within logarithmic bins. For the Gompertz body, the empirical CCDF is expressed in percent and transformed as</p>
 
 $$
@@ -116,7 +114,7 @@ $$
 
 <p align="justify">Refined outputs use the <code>refined_analysis_</code> prefix and are written to <code>assets/figures_analysis_refined</code> and <code>assets/tables_analysis_refined</code>. Trusted outputs use the <code>trusted_analysis_</code> prefix and are written to <code>assets/figures_analysis_trusted</code> and <code>assets/tables_analysis_trusted</code>. Tables with exactly one record per survey year use the <code>_annual</code> suffix.</p>
 
-# Synthetic LS–MLE experiment
+# Stage 04: Synthetic LS–MLE experiment
 
 <p align="justify"><code>synthetic.py</code> implements a controlled comparison between a deterministic power-law relation and a probabilistic Pareto model. The experiment is independent of the numbered PNAD stages. A single pseudo-random stream <code>U_i ~ U(0,1)</code> is generated with seed <code>20260902</code>, and all reported sample sizes are nested prefixes of this same stream. The design uses <code>beta = 10</code>, <code>alpha_0 = 2.5</code> and <code>x_t = 1</code>. The deterministic design is constructed as</p> 
 

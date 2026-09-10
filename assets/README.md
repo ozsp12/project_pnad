@@ -37,14 +37,12 @@
 | Analysis | Refined asset | Trusted asset | Description |
 | --- | --- | --- | --- |
 | Annual statistics | <code>refined_analysis_statistics_annual.csv</code> | <code>trusted_analysis_statistics_annual.csv</code> | One row per survey year with sample counts, nominal and adjusted income statistics, inequality indices and top-income shares. |
-| CCDF | <code>refined_analysis_ccdf.csv</code> | <code>trusted_analysis_ccdf.csv</code> | Point-level empirical CCDF, percentages and Gompertz diagnostic transformation. |
+| Empirical CCDF | <code>refined_analysis_ccdf_empirical.csv</code> | <code>trusted_analysis_ccdf_empirical.csv</code> | Point-level empirical CCDF, percentages and Gompertz diagnostic transformation. |
 | Geometric bins | <code>refined_analysis_geometric_bins.csv</code> | <code>trusted_analysis_geometric_bins.csv</code> | Geometric bin limits with ratio <code>1.10</code>, centers, counts, means, geometric means, medians, standard deviations and CCDF. |
-| Geometric-bin preview | <code>refined_analysis_geometric_bins_preview.csv</code> | <code>trusted_analysis_geometric_bins_preview.csv</code> | Compact inspection subset of the geometric-bin dataset. |
 | Histograms | <code>refined_analysis_histograms.csv</code> | <code>trusted_analysis_histograms.csv</code> | Histogram bin boundaries, centers and counts. |
 | Lorenz coordinates | <code>refined_analysis_lorenz.csv</code> | <code>trusted_analysis_lorenz.csv</code> | Lorenz-curve coordinates on a common population-share grid. |
-| Gini validation | <code>refined_analysis_gini_validation_annual.csv</code> | <code>trusted_analysis_gini_validation_annual.csv</code> | One row per survey year comparing calculated Gini with IPEA and World Bank values. |
+| Gini validation | <code>refined_analysis_gini_validation_vs_ipea_wb_annual.csv</code> | <code>trusted_analysis_gini_validation_vs_ipea_wb_annual.csv</code> | One row per survey year comparing calculated Gini with IPEA and World Bank values. |
 | Gompertz–Pareto annual metrics | <code>refined_analysis_gompertz_pareto_annual.csv</code> | <code>trusted_analysis_gompertz_pareto_annual.csv</code> | One row per survey year with <code>A</code>, <code>B</code>, Gompertz and Pareto fit diagnostics, <code>x_G,max</code>, <code>x_P,min</code>, <code>x_t</code>, <code>delta x_t</code>, Pareto LS/MLE parameters, and mutually exclusive Gompertz/Pareto population counts and percentages summing to 100%. |
-| Regime fits compatibility table | <code>refined_analysis_regime_fits_annual.csv</code> | <code>trusted_analysis_regime_fits_annual.csv</code> | Compatibility copy of the annual Gompertz–Pareto metrics table. |
 | Regime curves | <code>refined_analysis_regime_curves.csv</code> | <code>trusted_analysis_regime_curves.csv</code> | Point-level normalized income, logarithmic-bin counts, empirical CCDF, regime boundaries and fitted Gompertz/Pareto curves. |
 
 ## Trusted-stage audit tables

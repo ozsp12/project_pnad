@@ -13,12 +13,24 @@ from src.stage_03_pnad_analysis import (
     determine_threshold,
     direct_pareto_mle,
     fit_pareto_ls,
+    linear_fit,
     select_gompertz_region,
 )
 
 
 def test_default_geometric_ratio_matches_moura_ribeiro():
     assert BIN_RATIO == pytest.approx(1.10)
+
+
+def test_linear_fit_accepts_distinct_small_abscissae():
+    x = np.geomspace(1.0e-5, 2.0e-4, 12)
+    y = 1.53 - 0.35 * x
+
+    fit = linear_fit(x, y)
+
+    assert fit["intercept"] == pytest.approx(1.53, abs=1e-12)
+    assert fit["slope"] == pytest.approx(-0.35, abs=1e-10)
+    assert fit["fit_r2"] == pytest.approx(1.0, abs=1e-10)
 
 
 def test_gompertz_free_ls_recovers_A_and_B():

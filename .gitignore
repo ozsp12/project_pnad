@@ -17,6 +17,9 @@ env/
 # Local raw microdata
 data/raw/
 
+# Paper figures: canonical repository format is SVG only
+assets/figures_paper/*.pdf
+
 # Operating-system and editor files
 .DS_Store
 Thumbs.db

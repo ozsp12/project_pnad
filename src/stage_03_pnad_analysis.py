@@ -582,7 +582,7 @@ def _fit_r2(observed, fitted):
     residual = observed - fitted
     sse = float(np.sum(residual ** 2))
     tss = float(np.sum((observed - observed.mean()) ** 2))
-    return (np.nan if np.isclose(tss, 0) else float(1.0 - sse / tss)), sse
+    return (np.nan if tss <= 0.0 else float(1.0 - sse / tss)), sse
 
 
 def linear_fit(x, y):

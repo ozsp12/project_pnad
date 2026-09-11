@@ -247,7 +247,7 @@ def _load_tables():
     )
     for frame in (stats, ccdf, lorenz, annual, curves, metadata):
         frame["year"] = pd.to_numeric(frame["year"], errors="coerce").astype("Int64")
-    filt = lambda d: d[(d["year"] >= START_YEAR) & (d["year"] <= END_YEAR)].copy()
+    filt = alpha d: d[(d["year"] >= START_YEAR) & (d["year"] <= END_YEAR)].copy()
     return filt(stats), filt(ccdf), filt(lorenz), filt(annual), filt(curves), filt(metadata)
 
 
@@ -401,7 +401,7 @@ def build_exponential_fits(curves, annual):
         xg = float(annual_i.loc[year, "gompertz_x_gmax"])
         d = curves[(curves["year"] == year) & (curves["income_normalized"] <= xg) & (curves["empirical_ccdf_percent"] > 0)]
         intercept, slope, r2 = _linear_fit(d["income_normalized"], np.log(d["empirical_ccdf_percent"]))
-        rows.append({"year": year, "exp_intercept": intercept, "exp_lambda": -slope, "exp_r2": r2, "x_max": xg})
+        rows.append({"year": year, "exp_intercept": intercept, "exp_alpha": -slope, "exp_r2": r2, "x_max": xg})
     out = pd.DataFrame(rows)
     out.to_csv(TABLES_PAPER / "moura_ribeiro_2009_exponential_fit_diagnostics_trusted_1978_2025.csv", index=False)
     return out
@@ -578,7 +578,7 @@ def plot_exponential(curves, expfits, years):
             x = x[order]
             ax.plot(
                 x,
-                float(fit["exp_intercept"]) - float(fit["exp_lambda"]) * x,
+                float(fit["exp_intercept"]) - float(fit["exp_alpha"]) * x,
                 color="0.10",
                 linewidth=1.05,
                 label="Exponential fit",
@@ -588,7 +588,7 @@ def plot_exponential(curves, expfits, years):
             _annotation(
                 ax,
                 "\n".join([
-                    rf"$\lambda = {float(fit['exp_lambda']):.3f}$",
+                    rf"$\alpha = {float(fit['exp_alpha']):.3f}$",
                     rf"$R^2 = {float(fit['exp_r2']):.3f}$",
                 ]),
             )

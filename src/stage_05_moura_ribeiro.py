@@ -247,7 +247,7 @@ def _load_tables():
     )
     for frame in (stats, ccdf, lorenz, annual, curves, metadata):
         frame["year"] = pd.to_numeric(frame["year"], errors="coerce").astype("Int64")
-    filt = alpha d: d[(d["year"] >= START_YEAR) & (d["year"] <= END_YEAR)].copy()
+    filt = lambda d: d[(d["year"] >= START_YEAR) & (d["year"] <= END_YEAR)].copy()
     return filt(stats), filt(ccdf), filt(lorenz), filt(annual), filt(curves), filt(metadata)
 
 

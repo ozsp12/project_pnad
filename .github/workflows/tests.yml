@@ -7,14 +7,12 @@ on:
       - "src/**"
       - "tests/**"
       - "requirements.txt"
-      - "requirements-dev.txt"
       - ".github/workflows/tests.yml"
   pull_request:
     paths:
       - "src/**"
       - "tests/**"
       - "requirements.txt"
-      - "requirements-dev.txt"
       - ".github/workflows/tests.yml"
 
 permissions:
@@ -32,12 +30,10 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: |
-            requirements.txt
-            requirements-dev.txt
+          cache-dependency-path: requirements.txt
 
-      - name: Install development dependencies
-        run: pip install -r requirements-dev.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
       - name: Compile source
         run: python -m compileall src

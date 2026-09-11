@@ -9,7 +9,7 @@ This repository contains the reproducible computational workflow used to study t
 | 00 | `src/stage_00_build_metadata.py` | Consolidates extraction specifications and monetary metadata | `data/metadata/df_metadata.xlsx` |
 | 01 | `src/stage_01_build_refined_pnad.py` | Harmonizes local raw PNAD records into annual income samples | `data/refined/pnad_refined_YYYY.parquet` |
 | 02 | `src/stage_02_build_trusted_pnad.py` | Applies deterministic upper-tail treatment and validation | `data/trusted/pnad_trusted_YYYY.parquet` and audit tables |
-| 03 | `src/stage_03_pnad_analysis.py` | Runs descriptive, inequality, CCDF and Gompertz–Pareto analyses on refined and trusted data | analytical CSV and SVG assets |
+| 03 | `src/stage_03_pnad_analysis.py` | Runs descriptive, inequality, CCDF and Gompertz–Pareto analyses on refined and trusted data | analytical CSV and PNG assets |
 | 05 | `src/stage_05_moura_ribeiro.py` | Builds the Moura Jr.–Ribeiro replication/extension from trusted Stage-03 outputs | publication figures and intermediate paper metrics |
 | — | `src/paper_figures.py` | Finalizes publication figures | `assets/figures_paper/` |
 | — | `src/paper_tables.py` | Builds the canonical publication tables | `assets/tables_paper/` |
@@ -55,14 +55,13 @@ Current generated outputs are organized as follows:
 
 | Directory | Content |
 | --- | --- |
-| `assets/figures_analysis_refined/` | SVG analytical figures from refined data |
-| `assets/figures_analysis_trusted/` | SVG analytical figures from trusted data |
+| `assets/figures_analysis_refined/` | PNG analytical figures from refined data |
+| `assets/figures_analysis_trusted/` | PNG analytical figures from trusted data |
 | `assets/tables_analysis_refined/` | Refined analytical CSV tables |
 | `assets/tables_analysis_trusted/` | Trusted audit and analytical CSV tables |
 | `assets/figures_paper/` | 300 dpi PNG publication figures |
 | `assets/tables_paper/` | Four canonical publication CSV tables |
 
-The older `assets/figures_synthetic/` and `assets/tables_synthetic/` directories are retained only as historical artifacts; there is no synthetic generator in the current `src` workflow.
 
 ## Dependencies
 

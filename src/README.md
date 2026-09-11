@@ -9,7 +9,7 @@ The `src` directory contains the canonical scientific workflow of the project. S
 | 00 | `stage_00_build_metadata.py` | Consolidates historical PNAD/PNAD Contínua extraction specifications and monetary metadata | `data/metadata/df_metadata.xlsx` |
 | 01 | `stage_01_build_refined_pnad.py` | Harmonizes original survey records into annual income datasets | `data/refined/pnad_refined_YYYY.parquet` |
 | 02 | `stage_02_build_trusted_pnad.py` | Applies deterministic upper-tail treatment and distribution-level validation | `data/trusted/pnad_trusted_YYYY.parquet` and trusted audit tables |
-| 03 | `stage_03_pnad_analysis.py` | Complete descriptive, inequality and Gompertz–Pareto analysis for refined and trusted datasets | analytical CSV and SVG assets |
+| 03 | `stage_03_pnad_analysis.py` | Complete descriptive, inequality and Gompertz–Pareto analysis for refined and trusted datasets | analytical CSV and PNG assets |
 | 05 | `stage_05_moura_ribeiro.py` | Moura Jr.–Ribeiro replication and extension through 2025 | publication fits and figures |
 | — | `paper_figures.py` | Finalizes publication figures | `assets/figures_paper/` |
 | — | `paper_tables.py` | Consolidates publication tables | `assets/tables_paper/` |

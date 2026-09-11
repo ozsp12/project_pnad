@@ -137,16 +137,15 @@ def make_grid(n, cols=4, figsize=None, width_per_col=4.2, height_per_row=3.4,
     return plt.subplots(rows, cols, figsize=figsize, squeeze=False, sharex=sharex, sharey=sharey)
 
 
-def finish_grid(fig, axes, n_used, suptitle, path, dpi=250):
+def finish_grid(fig, axes, n_used, suptitle, path, dpi=250, top=0.985):
     rows, cols = axes.shape
     for j in range(n_used, rows * cols):
         row, col = divmod(j, cols)
         fig.delaxes(axes[row, col])
     fig.suptitle(suptitle, fontsize=18, y=0.998)
-    fig.tight_layout(rect=[0, 0, 1, 0.985])
+    fig.tight_layout(rect=[0, 0, 1, top])
     fig.savefig(path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
-
 
 def norm_col(name):
     s = unicodedata.normalize("NFKD", str(name))
@@ -407,21 +406,32 @@ def plot_histograms(df, years, output_path, ncols=4, figsize=None):
     finish_grid(fig, axes, len(years), "Annual histograms - PNAD", output_path)
 
 
-def plot_income_mean_median(df, output_path, figsize=(14, 5)):
-    fig, axes = plt.subplots(1, 2, figsize=figsize, squeeze=False, sharex=True)
+def plot_income_mean_median(df, output_path, figsize=(14, 13)):
+    fig, axes = plt.subplots(3, 2, figsize=figsize, squeeze=False, sharex=True)
     full_years = np.arange(int(df["year"].min()), int(df["year"].max()) + 1)
     indexed = df.set_index("year").reindex(full_years)
-    for ax, column, title in zip(axes.ravel(), ["mean", "median"], ["Mean income", "Median income"]):
+    indexed["dispersion"] = indexed["std"] / indexed["mean"]
+    series = [
+        ("mean", "Mean income", "Adjusted income (2025 US$)"),
+        ("median", "Median income", "Adjusted income (2025 US$)"),
+        ("std", "Standard deviation", "Adjusted income (2025 US$)"),
+        ("dispersion", r"Relative dispersion $\sigma/\mu$", r"$\sigma/\mu$"),
+        ("xmax", "Maximum income", "Adjusted income (2025 US$)"),
+        ("xmin", "Minimum income", "Adjusted income (2025 US$)"),
+    ]
+    for ax, (column, title, ylabel) in zip(axes.ravel(), series):
         y = indexed[column].interpolate(method="linear", limit_direction="both")
-        ax.plot(full_years, y, marker="o", markersize=3, linewidth=1.5)
+        ax.plot(full_years, y, marker="o", markersize=3, linewidth=1.4)
         ax.set_title(title)
-        ax.set_xlabel("Year")
-        ax.set_ylabel("Adjusted income (2025 US$)")
+        ax.set_ylabel(ylabel)
         ax.grid(True, alpha=0.3)
-    fig.tight_layout()
+    axes[2, 0].set_xlabel("Year")
+    axes[2, 1].set_xlabel("Year")
+    axes[2, 1].axhline(0.0, linestyle="--", linewidth=0.9)
+    fig.suptitle("Annual income statistics - PNAD", fontsize=18, y=0.995)
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
     fig.savefig(output_path, dpi=250, bbox_inches="tight")
     plt.close(fig)
-
 
 def plot_ccdf_loglog(df, years, output_path, ncols=4, figsize=None):
     fig, axes = make_grid(len(years), cols=ncols, figsize=figsize, sharey=True)
@@ -436,15 +446,6 @@ def plot_ccdf_loglog(df, years, output_path, ncols=4, figsize=None):
     finish_grid(fig, axes, len(years), "Empirical CCDF by year - PNAD", output_path)
 
 
-def plot_ccdf_lnln(df, years, output_path, ncols=4, figsize=None):
-    fig, axes = make_grid(len(years), cols=ncols, figsize=figsize, sharey=True)
-    for i, year in enumerate(years):
-        d = df[(df["year"] == year) & df["ln_ln_ccdf_pct"].notna()]
-        ax = axes.ravel()[i]
-        ax.plot(d["x"], d["ln_ln_ccdf_pct"], linewidth=1.5)
-        ax.set_title(str(year))
-        ax.grid(True, alpha=0.3)
-    finish_grid(fig, axes, len(years), "ln[ln F(x)] with F in percent - PNAD", output_path)
 
 
 def plot_lorenz_indices_pretty(df_lorenz, df_stats, years, output_path, ncols=3, figsize=None):
@@ -489,11 +490,30 @@ def plot_top_shares(df, output_path, figsize=(14, 6)):
     fig, ax = plt.subplots(figsize=figsize)
     for col, label, marker in [("top_10", "Top 10%", "o"), ("top_1", "Top 1%", "s"), ("top_01", "Top 0.1%", "^")]:
         ax.plot(df["year"], 100 * df[col], marker=marker, label=label)
-    ax.set_title("Income concentration")
+    ax.set_title("Income concentration - cumulative top shares")
     ax.set_xlabel("Year")
-    ax.set_ylabel("% of total income")
-    ax.legend()
+    ax.set_ylabel("Share of total income (%)")
     ax.grid(True, alpha=0.3)
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=250, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_top_shares_exclusive(df, output_path, figsize=(14, 6)):
+    fig, ax = plt.subplots(figsize=figsize)
+    brackets = [
+        (100 * (df["top_10"] - df["top_1"]), "90-99%", "o"),
+        (100 * (df["top_1"] - df["top_01"]), "99-99.9%", "s"),
+        (100 * df["top_01"], "99.9-100%", "^"),
+    ]
+    for values, label, marker in brackets:
+        ax.plot(df["year"], values, marker=marker, label=label)
+    ax.set_title("Income concentration - exclusive top-income brackets")
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Share of total income (%)")
+    ax.grid(True, alpha=0.3)
+    ax.legend()
     fig.tight_layout()
     fig.savefig(output_path, dpi=250, bbox_inches="tight")
     plt.close(fig)
@@ -897,17 +917,43 @@ def plot_gompertz_regime_fits(curves, fits, years, output_path, ncols=4, figsize
             & curves["gompertz_transform"].notna()
         ]
         ax = axes.ravel()[i]
-        ax.scatter(d["income_normalized"], d["gompertz_transform"], s=12, alpha=0.7)
-        ax.plot(d["income_normalized"], d["gompertz_fitted_transform"], linewidth=1.8)
-        ax.axvline(xg, linestyle="--", linewidth=1.0)
+        ax.scatter(
+            d["income_normalized"], d["gompertz_transform"],
+            s=12, alpha=0.7, color="0.35", label="Empirical transform"
+        )
+        ax.plot(
+            d["income_normalized"], d["gompertz_fitted_transform"],
+            linewidth=1.8, color="tab:blue", label="Fixed-A Gompertz fit"
+        )
+        a_free = float(f["gompertz_boundary_A_free"])
+        b_free = float(f["gompertz_boundary_B_free"])
+        if np.isfinite(a_free) and np.isfinite(b_free):
+            ax.plot(
+                d["income_normalized"],
+                a_free - b_free * d["income_normalized"],
+                linewidth=1.4, linestyle="--", color="tab:orange",
+                label="Free-intercept LSF diagnostic",
+            )
+        ax.axvline(
+            xg, linestyle=":", linewidth=1.0, color="black",
+            label=r"$x_{G,\max}$",
+        )
         ax.set_title(
             fr"{year} - $A={f['gompertz_A']:.3f}$, $B={f['gompertz_B']:.3f}$, $R^2={f['gompertz_r2']:.3f}$"
         )
         ax.set_xlabel("Normalized individual income")
         ax.set_ylabel(r"$\ln[\ln(F)]$")
         ax.grid(True, alpha=0.3)
-    finish_grid(fig, axes, len(years), "Gompertz region - fixed-A Moura-Ribeiro LSF", output_path)
-
+    handles, labels = axes.ravel()[0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels, loc="upper center", bbox_to_anchor=(0.5, 0.985),
+        ncol=4, frameon=True,
+    )
+    finish_grid(
+        fig, axes, len(years),
+        "Gompertz region - fixed-A Moura-Ribeiro fit",
+        output_path, top=0.965,
+    )
 
 def plot_pareto_regime_fits(curves, fits, years, output_path, ncols=4, figsize=None):
     fit_i = fits.set_index("year")
@@ -921,11 +967,24 @@ def plot_pareto_regime_fits(curves, fits, years, output_path, ncols=4, figsize=N
             & (curves["income_normalized"] >= min(xt, xp))
         ]
         ax = axes.ravel()[i]
-        ax.scatter(d["income_normalized"], d["empirical_ccdf_percent"], s=12, alpha=0.7)
-        ax.plot(d["income_normalized"], d["pareto_fitted_ccdf_percent_mle"], linewidth=1.8, label="MLE")
-        ax.plot(d["income_normalized"], d["pareto_fitted_ccdf_percent_ls"], linewidth=1.2, linestyle="--", label="LSF")
-        ax.axvline(xt, linestyle=":", linewidth=1.0)
-        ax.axvline(xp, linestyle="--", linewidth=1.0)
+        ax.scatter(
+            d["income_normalized"], d["empirical_ccdf_percent"],
+            s=12, alpha=0.7, color="0.35", label="Empirical CCDF",
+        )
+        ax.plot(
+            d["income_normalized"], d["pareto_fitted_ccdf_percent_mle"],
+            linewidth=1.8, color="tab:blue", label="Pareto MLE",
+        )
+        ax.plot(
+            d["income_normalized"], d["pareto_fitted_ccdf_percent_ls"],
+            linewidth=1.4, linestyle="--", color="tab:orange", label="Pareto LSF",
+        )
+        ax.axvline(
+            xt, linestyle=":", linewidth=1.0, color="black", label=r"$x_t$"
+        )
+        ax.axvline(
+            xp, linestyle="-.", linewidth=1.0, color="0.5", label=r"$x_{P,\min}$"
+        )
         ax.set_xscale("log")
         ax.set_yscale("log")
         ax.set_title(
@@ -934,8 +993,16 @@ def plot_pareto_regime_fits(curves, fits, years, output_path, ncols=4, figsize=N
         ax.set_xlabel("Normalized individual income")
         ax.set_ylabel("CCDF (%)")
         ax.grid(True, alpha=0.3)
-    finish_grid(fig, axes, len(years), "Pareto region - direct MLE and log-binned CCDF LSF", output_path)
-
+    handles, labels = axes.ravel()[0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels, loc="upper center", bbox_to_anchor=(0.5, 0.985),
+        ncol=5, frameon=True,
+    )
+    finish_grid(
+        fig, axes, len(years),
+        "Pareto region - direct MLE and log-binned CCDF LSF",
+        output_path, top=0.965,
+    )
 
 def save_table(df, filename, tables_path):
     path = tables_path / filename
@@ -1044,30 +1111,43 @@ def run_analysis_layer(layer, data_path, file_pattern, tables_path, figures_path
     for filename, frame in tables.items():
         save_table(frame, filename, tables_path)
 
-    prefix = f"{layer}_analysis"
-    plot_histograms(hist, years, figures_path / f"{prefix}_histograms.svg", ncols=4)
-    plot_income_mean_median(stats, figures_path / f"{prefix}_income_mean_median.svg")
-    plot_ccdf_loglog(ccdf, years, figures_path / f"{prefix}_ccdf_loglog.svg", ncols=4)
-    plot_ccdf_lnln(ccdf, years, figures_path / f"{prefix}_ccdf_lnln.svg", ncols=4)
+    for legacy_path in figures_path.glob("*.svg"):
+        legacy_path.unlink(missing_ok=True)
+
+    for legacy_path in figures_path.glob(f"{layer}_analysis_*.png"):
+        legacy_path.unlink(missing_ok=True)
+    (figures_path / "ccdf_lnln.png").unlink(missing_ok=True)
+
+    income_plot_stats = stats.copy()
+    income_plot_stats["xmin"] = np.where(
+        income_plot_stats["n_zero"] > 0,
+        0.0,
+        income_plot_stats["xmin_positive"],
+    )
+
+    plot_histograms(hist, years, figures_path / "histograms.png", ncols=4)
+    plot_income_mean_median(income_plot_stats, figures_path / "income_mean_median.png")
+    plot_ccdf_loglog(ccdf, years, figures_path / "ccdf_loglog.png", ncols=4)
     plot_lorenz_indices_pretty(
         lorenz, stats, years,
-        figures_path / f"{prefix}_lorenz_geometry.svg",
+        figures_path / "lorenz_geometry.png",
         ncols=3,
     )
-    plot_top_shares(stats, figures_path / f"{prefix}_top_income_shares.svg")
-    plot_top_shares_mean_median(stats, figures_path / f"{prefix}_top_income_shares_mean_median.svg")
-    plot_inequality_indices(stats, figures_path / f"{prefix}_inequality_indices.svg")
-    plot_inequality_indices_grid(stats, figures_path / f"{prefix}_inequality_indices_2x2.svg")
-    plot_gini_validation(gini_validation, figures_path / f"{prefix}_gini_validation.svg")
+    plot_top_shares(stats, figures_path / "top_income_shares.png")
+    plot_top_shares_exclusive(stats, figures_path / "top_income_exclusive_shares.png")
+    plot_top_shares_mean_median(stats, figures_path / "top_income_shares_mean_median.png")
+    plot_inequality_indices(stats, figures_path / "inequality_indices.png")
+    plot_inequality_indices_grid(stats, figures_path / "inequality_indices_2x2.png")
+    plot_gini_validation(gini_validation, figures_path / "gini_validation.png")
     plot_gompertz_regime_fits(
         regime_curves, regime_fits, years,
-        figures_path / f"{prefix}_regime_fits_gompertz_ccdf_empirical.svg",
+        figures_path / "gompertz_fit.png",
         ncols=4,
         figsize=(20, 60),
     )
     plot_pareto_regime_fits(
         regime_curves, regime_fits, years,
-        figures_path / f"{prefix}_regime_fits_pareto_ccdf_empirical.svg",
+        figures_path / "pareto_fit.png",
         ncols=4,
         figsize=(20, 60),
     )

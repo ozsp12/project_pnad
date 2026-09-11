@@ -47,6 +47,38 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Prepare legacy Stage 05 table interface
+        shell: bash
+        run: |
+          if [[ -f assets/tables_analysis_trusted/statistics_annual.csv ]]; then
+            cp assets/tables_analysis_trusted/statistics_annual.csv \
+               assets/tables_analysis_trusted/trusted_analysis_statistics_annual.csv
+            cp assets/tables_analysis_trusted/lorenz.csv \
+               assets/tables_analysis_trusted/trusted_analysis_lorenz.csv
+            cp assets/tables_analysis_trusted/gompertz_pareto_curves.csv \
+               assets/tables_analysis_trusted/trusted_analysis_regime_curves.csv
+            cp assets/tables_analysis_trusted/gompertz_pareto_curves.csv \
+               assets/tables_analysis_trusted/trusted_analysis_ccdf_empirical.csv
+            python - <<'PY'
+          import pandas as pd
+          from pathlib import Path
+
+          root = Path("assets/tables_analysis_trusted")
+          gompertz = pd.read_csv(root / "gompertz_annual.csv")
+          pareto = pd.read_csv(root / "pareto_annual.csv")
+          annual = gompertz.merge(
+              pareto,
+              on="year",
+              how="inner",
+              validate="one_to_one",
+          )
+          annual.to_csv(
+              root / "trusted_analysis_gompertz_pareto_annual.csv",
+              index=False,
+          )
+          PY
+          fi
+
       - name: Generate trusted paper fits and figures
         env:
           MPLBACKEND: Agg

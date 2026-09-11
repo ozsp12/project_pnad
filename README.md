@@ -1,70 +1,92 @@
 # PNAD Longitudinal Income Research
 
-<p align="justify">This repository provides a compact and reproducible scientific workflow for longitudinal research on the Brazilian income distribution using the Pesquisa Nacional por Amostra de Domicílios (PNAD) and PNAD Contínua. The empirical series covers the available surveys from 1976 through 2025 and is organized as a sequence of explicit transformations: historical survey metadata are consolidated, annual microdata are harmonized into refined income samples, refined distributions are subjected to deterministic quality control to produce trusted datasets, and the same analytical pipeline is then applied independently to the refined and trusted layers. The repository is intended primarily as research material and supplementary computational documentation for scientific manuscripts.</p>
+This repository contains the reproducible computational workflow used to study the Brazilian income distribution with PNAD and PNAD Contínua data. The available longitudinal series spans 1976–2025 and is organized into explicit metadata, refined-data, trusted-data, analytical, and publication stages.
 
-## Data and analyses
+## Scientific pipeline
 
-<p align="justify">The original PNAD microdata are local fixed-width text files totaling approximately 20 GB and are deliberately not versioned under <code>data/raw</code>. The current <code>data/refined</code> layer was materialized outside the GitHub environment from those local microdata and is treated as the persistent input for subsequent stages. <code>src/stage_01_build_refined_pnad.py</code> documents and implements the raw-to-refined transformation when that extraction must be reproduced locally.</p>
+| Stage | Module | Role | Main output |
+| ---: | --- | --- | --- |
+| 00 | `src/stage_00_build_metadata.py` | Consolidates extraction specifications and monetary metadata | `data/metadata/df_metadata.xlsx` |
+| 01 | `src/stage_01_build_refined_pnad.py` | Harmonizes local raw PNAD records into annual income samples | `data/refined/pnad_refined_YYYY.parquet` |
+| 02 | `src/stage_02_build_trusted_pnad.py` | Applies deterministic upper-tail treatment and validation | `data/trusted/pnad_trusted_YYYY.parquet` and audit tables |
+| 03 | `src/stage_03_pnad_analysis.py` | Runs descriptive, inequality, CCDF and Gompertz–Pareto analyses on refined and trusted data | analytical CSV and SVG assets |
+| 05 | `src/stage_05_moura_ribeiro.py` | Builds the Moura Jr.–Ribeiro replication/extension from trusted Stage-03 outputs | publication figures and intermediate paper metrics |
+| — | `src/paper_figures.py` | Finalizes publication figures | `assets/figures_paper/` |
+| — | `src/paper_tables.py` | Builds the canonical publication tables | `assets/tables_paper/` |
 
-<p align="justify">Survey definitions are not assumed to be constant through time. Historical PNAD and PNAD Contínua use different variables, layouts and survey regimes, and these differences remain explicit in the metadata. The refined layer preserves the harmonized pre-trimming distributions, while the trusted layer applies the documented log-MAD upper-tail treatment and distribution-level validation. Stage 03 reproduces the same analysis on both layers so that the consequences of the trusted-data treatment remain directly auditable.</p>
+The original fixed-width PNAD microdata are local files of approximately 20 GB and are not versioned under `data/raw/`. The persisted `data/refined/` layer is therefore the normal reproducible starting point inside GitHub. Stage 01 documents the local raw-to-refined reconstruction when the original files are available.
 
-The analytical workflow includes:
+## Stage 03 methodology
 
-- annual sample diagnostics and descriptive income statistics;
-- income normalization using the canonical monetary metadata;
-- histograms, geometric grids and empirical complementary cumulative distribution functions (CCDF);
-- Gompertz diagnostics and Gompertz-Pareto regime fits;
-- Lorenz curves, Gini, Pietra, Kolkata and Zanardi indices;
-- top-income shares and longitudinal inequality diagnostics;
-- comparison of the calculated Gini series with IPEA and World Bank reference series;
-- Pareto least-squares and direct maximum-likelihood estimates.
+Stage 03 is implemented in a single module, `src/stage_03_pnad_analysis.py`. It runs the same general analytical pipeline independently on the refined and trusted layers and includes:
 
-## Standalone synthetic experiment
+- annual descriptive statistics and diagnostics;
+- histograms and geometric bins with ratio `r = 1.10`;
+- empirical CCDFs;
+- Lorenz curves on a `100 × 100` percentage geometry;
+- Gini, Pietra, Kolkata and Zanardi indices;
+- top-income shares;
+- external Gini comparison with IPEA and World Bank series;
+- Gompertz–Pareto regime estimation.
 
-<p align="justify"><code>src/synthetic.py</code> is the currently implemented LS-MLE synthetic experiment. It is independent of the numbered PNAD stages and does not read refined or trusted PNAD data. It regenerates <code>assets/tables_synthetic/table_1.csv</code> and <code>assets/tables_synthetic/table_2.csv</code>. The directory <code>assets/figures_synthetic/</code> is reserved for synthetic figures and is not populated by the current script.</p>
+For the Gompertz branch, the empirical CCDF is expressed in percent and linearized as
 
-## Moura-Ribeiro replication and extension
+$$
+\ln[\ln F(x)].
+$$
 
-<p align="justify"><code>src/stage_05_moura_ribeiro.py</code> is implemented and produces the paper-specific replication and extension of Moura Jr. and Ribeiro (2009) through 2025. It consumes the trusted analytical assets from stage 03 and the trusted Parquet files required for the income-share decomposition. The stage uses the canonical metadata file <code>data/metadata/df_metadata.xlsx</code> and the persisted World Bank/WDI GDP-growth series <code>data/auxiliary/gdp_growth_brazil_1978_2025.csv</code>; it performs no network requests at runtime. Paper figures are persisted as print-resolution PNG files.</p>
+The normalization parameter is fixed at
+
+$$
+A=\ln[\ln(100)],
+$$
+
+and only `B` is estimated by least-squares fitting. The empirical boundaries `x_{G,max}` and `x_{P,min}` are identified separately, after which
+
+$$
+x_t=\frac{x_{G,\max}+x_{P,\min}}{2}
+$$
+
+when the boundaries differ. Pareto parameters are then estimated by both least-squares fitting and direct maximum likelihood on individual observations satisfying $x_i\ge x_t$.
 
 ## Assets
 
-<p align="justify">Generated research outputs are stored under <code>assets</code>. Refined and trusted analytical artifacts are deliberately separated so that the effect of the trusted-data treatment can be inspected directly. Analytical figures remain SVG evidence artifacts, while paper figures are 300 dpi PNG assets; analytical and paper tables are CSV files. Tables consolidated to exactly one record per survey year use the <code>_annual</code> suffix.</p>
+Current generated outputs are organized as follows:
 
 | Directory | Content |
 | --- | --- |
-| <code>assets/figures_analysis_refined/</code> | Analytical figures generated from <code>data/refined</code> |
-| <code>assets/figures_analysis_trusted/</code> | Analytical figures generated from <code>data/trusted</code> |
-| <code>assets/tables_analysis_refined/</code> | Analytical tables generated from <code>data/refined</code> |
-| <code>assets/tables_analysis_trusted/</code> | Trusted-data audits and analytical tables generated from <code>data/trusted</code> |
-| <code>assets/figures_synthetic/</code> | Reserved for figures from <code>src/synthetic.py</code> |
-| <code>assets/tables_synthetic/</code> | Synthetic LS-MLE Tables 1 and 2 |
-| <code>assets/figures_paper/</code> | 300 dpi PNG figures generated by the Moura-Ribeiro paper stage; multi-year families use at most 12 panels in 3 columns × 4 rows |
-| <code>assets/tables_paper/</code> | Tables generated by the Moura-Ribeiro paper stage |
+| `assets/figures_analysis_refined/` | SVG analytical figures from refined data |
+| `assets/figures_analysis_trusted/` | SVG analytical figures from trusted data |
+| `assets/tables_analysis_refined/` | Refined analytical CSV tables |
+| `assets/tables_analysis_trusted/` | Trusted audit and analytical CSV tables |
+| `assets/figures_paper/` | 300 dpi PNG publication figures |
+| `assets/tables_paper/` | Four canonical publication CSV tables |
 
-## Execution and dependencies
+The older `assets/figures_synthetic/` and `assets/tables_synthetic/` directories are retained only as historical artifacts; there is no synthetic generator in the current `src` workflow.
 
-<p align="justify">The repository uses a deliberately small Python environment. <code>requirements.txt</code> remains the normal installation entry point. <code>requirements-lock.txt</code> is a pinned snapshot of the scientific runtime dependencies resolved on CPython 3.12.14 in GitHub Actions; it is provided for environment reproducibility and is not required by the existing workflows.</p>
+## Dependencies
 
-Rebuilding from original microdata requires the local PNAD files expected by stage 01. When refined datasets are already available, execution may begin at stage 02. Stage 03 analyzes both refined and trusted distributions and regenerates both analytical asset families.
+The repository uses one dependency specification: `requirements.txt`. All direct project and test dependencies are pinned to explicit versions so the same file is used locally and in GitHub Actions.
 
 ```bash
 pip install -r requirements.txt
+```
+
+## Execution
+
+When refined data are already available, the main empirical workflow is:
+
+```bash
 python src/stage_02_build_trusted_pnad.py
 python src/stage_03_pnad_analysis.py
 ```
 
-The independent synthetic experiment can be regenerated with:
-
-```bash
-python src/synthetic.py
-```
-
-The Moura-Ribeiro publication assets can be regenerated, after the refined stage-03 assets exist, with:
+Publication assets are generated from the trusted analytical outputs with:
 
 ```bash
 python src/stage_05_moura_ribeiro.py
 python src/paper_figures.py
+python src/paper_tables.py
 ```
 
-<p align="justify">The authoritative computational workflow is the source code under <code>src</code>, and the authoritative numerical outputs are the corresponding persistent assets.</p>
+The authoritative implementation is the source code under `src`, and the persistent numerical and graphical outputs are stored under `assets`.

@@ -498,7 +498,6 @@ def plot_top_shares(df, output_path, figsize=(14, 6)):
     fig.savefig(output_path, dpi=250, bbox_inches="tight")
     plt.close(fig)
 
-
 def plot_top_shares_mean_median(df, output_path, figsize=(14, 10)):
     fig, axes = plt.subplots(2, 1, figsize=figsize, sharex=True)
     axes[0].plot(df["year"], df["mean"], marker="o", label="Mean")
@@ -747,7 +746,6 @@ def select_pareto_region(regime_ccdf, gompertz_x_gmax):
         "pareto_selection_status": status,
     }
 
-
 def determine_threshold(gompertz_x_gmax, pareto_x_pmin):
     if pareto_x_pmin < gompertz_x_gmax:
         raise ValueError("Pareto lower boundary cannot precede Gompertz upper boundary.")
@@ -945,6 +943,57 @@ def save_table(df, filename, tables_path):
     return path
 
 
+GOMPERTZ_ANNUAL_COLUMNS = [
+    "year",
+    "log_bin_ratio",
+    "normalization_mean_income_adj_2025_usd",
+    "positive_income_observation_n",
+    "gompertz_A",
+    "gompertz_B",
+    "gompertz_r2",
+    "gompertz_sse",
+    "gompertz_x_gmax",
+    "gompertz_point_n",
+    "gompertz_selection_status",
+    "gompertz_boundary_A_free",
+    "gompertz_boundary_B_free",
+    "gompertz_boundary_r2_free",
+    "gompertz_population_n",
+    "gompertz_population_pct",
+    "gompertz_ccdf_at_x_t_percent",
+]
+
+PARETO_ANNUAL_COLUMNS = [
+    "year",
+    "pareto_x_pmin",
+    "pareto_selection_alpha",
+    "pareto_selection_r2",
+    "pareto_selection_status",
+    "transition_x_t",
+    "transition_delta_x_t",
+    "transition_rule",
+    "pareto_population_n",
+    "pareto_population_pct",
+    "pareto_alpha_ls",
+    "pareto_beta_ls",
+    "pareto_ls_r2",
+    "pareto_ls_sse",
+    "pareto_alpha_mle",
+    "pareto_alpha_mle_fisher_se",
+    "pareto_beta_mle_continuity",
+    "cutoff_normalized",
+    "cutoff_income_adj",
+    "pareto_alpha",
+    "pareto_r2",
+]
+
+
+def split_regime_annual(regime_fits):
+    gompertz = regime_fits[GOMPERTZ_ANNUAL_COLUMNS].copy()
+    pareto = regime_fits[PARETO_ANNUAL_COLUMNS].copy()
+    return gompertz, pareto
+
+
 def run_analysis_layer(layer, data_path, file_pattern, tables_path, figures_path):
     tables_path.mkdir(parents=True, exist_ok=True)
     figures_path.mkdir(parents=True, exist_ok=True)
@@ -962,22 +1011,40 @@ def run_analysis_layer(layer, data_path, file_pattern, tables_path, figures_path
     lorenz = results["df_lorenz"]
     hist = build_histogram_dataset(files, years, bins=100)
     gini_validation = build_gini_validation(stats)
+    stats = stats.merge(
+        gini_validation.drop(columns=["Gini"]),
+        on="year",
+        how="left",
+        validate="one_to_one",
+    )
     regime_fits, regime_curves = build_regime_datasets(files, results["df_metadata"])
+    gompertz_annual, pareto_annual = split_regime_annual(regime_fits)
 
-    prefix = f"{layer}_analysis"
+    legacy_names = [
+        f"{layer}_analysis_statistics_annual.csv",
+        f"{layer}_analysis_ccdf_empirical.csv",
+        f"{layer}_analysis_geometric_bins.csv",
+        f"{layer}_analysis_lorenz.csv",
+        f"{layer}_analysis_histograms.csv",
+        f"{layer}_analysis_gini_validation_vs_ipea_wb_annual.csv",
+        f"{layer}_analysis_gompertz_pareto_annual.csv",
+        f"{layer}_analysis_regime_curves.csv",
+    ]
+    for filename in legacy_names:
+        (tables_path / filename).unlink(missing_ok=True)
+
     tables = {
-        f"{prefix}_statistics_annual.csv": stats,
-        f"{prefix}_ccdf_empirical.csv": ccdf,
-        f"{prefix}_geometric_bins.csv": bins,
-        f"{prefix}_lorenz.csv": lorenz,
-        f"{prefix}_histograms.csv": hist,
-        f"{prefix}_gini_validation_vs_ipea_wb_annual.csv": gini_validation,
-        f"{prefix}_gompertz_pareto_annual.csv": regime_fits,
-        f"{prefix}_regime_curves.csv": regime_curves,
+        "statistics_annual.csv": stats,
+        "geometric_bins.csv": bins,
+        "lorenz.csv": lorenz,
+        "gompertz_annual.csv": gompertz_annual,
+        "pareto_annual.csv": pareto_annual,
+        "gompertz_pareto_curves.csv": regime_curves,
     }
     for filename, frame in tables.items():
         save_table(frame, filename, tables_path)
 
+    prefix = f"{layer}_analysis"
     plot_histograms(hist, years, figures_path / f"{prefix}_histograms.svg", ncols=4)
     plot_income_mean_median(stats, figures_path / f"{prefix}_income_mean_median.svg")
     plot_ccdf_loglog(ccdf, years, figures_path / f"{prefix}_ccdf_loglog.svg", ncols=4)
@@ -1008,6 +1075,9 @@ def run_analysis_layer(layer, data_path, file_pattern, tables_path, figures_path
         **results,
         "df_histograms": hist,
         "df_gini_validation": gini_validation,
+        "df_gompertz_annual": gompertz_annual,
+        "df_pareto_annual": pareto_annual,
+        "df_gompertz_pareto_curves": regime_curves,
         "df_regime_fits": regime_fits,
         "df_regime_curves": regime_curves,
     }

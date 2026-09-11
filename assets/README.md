@@ -34,16 +34,18 @@ The refined and trusted analysis directories are intentionally symmetric. Stage 
 
 The Gompertz figures report the final fixed-normalization model with $A=\ln[\ln(100)]$ and fitted $B$. A free-intercept regression is used only as a diagnostic to locate $x_{G,\max}$. Pareto figures retain both least-squares and direct-MLE estimates after the transition $x_t$ has been determined.
 
-The principal Stage-03 tables are:
+Stage-03 table filenames are identical in the refined and trusted directories; the directory itself identifies the data layer. One-row-per-year tables use the `_annual` suffix.
 
-- `*_analysis_statistics_annual.csv`;
-- `*_analysis_ccdf_empirical.csv`;
-- `*_analysis_geometric_bins.csv`;
-- `*_analysis_lorenz.csv`;
-- `*_analysis_histograms.csv`;
-- `*_analysis_gini_validation_vs_ipea_wb_annual.csv`;
-- `*_analysis_gompertz_pareto_annual.csv`;
-- `*_analysis_regime_curves.csv`.
+The canonical tables are:
+
+- `statistics_annual.csv`;
+- `geometric_bins.csv`;
+- `lorenz.csv`;
+- `gompertz_annual.csv`;
+- `pareto_annual.csv`;
+- `gompertz_pareto_curves.csv`.
+
+`statistics_annual.csv` contains the PNAD inequality statistics together with the IPEA/World Bank Gini reference values and differences. Histogram and descriptive CCDF datasets are reconstructed directly from the Parquet inputs for plotting and are not persisted as separate CSV tables.
 
 Trusted-stage validation additionally produces `trusted_distribution_tests_annual.csv` and `trusted_trim_audit_annual.csv`.
 

@@ -120,22 +120,22 @@ $$
 
 Refined outputs are written to `assets/tables_analysis_refined/` and `assets/figures_analysis_refined/`. Trusted outputs are written to `assets/tables_analysis_trusted/` and `assets/figures_analysis_trusted/`.
 
-The principal tables are:
+The table layout is identical in both analysis directories. Because the directory already identifies the data layer, table filenames do not repeat `trusted`, `refined` or `analysis` prefixes. Tables with one row per survey year use the `_annual` suffix.
 
-- `*_analysis_statistics_annual.csv`;
-- `*_analysis_ccdf_empirical.csv`;
-- `*_analysis_geometric_bins.csv`;
-- `*_analysis_lorenz.csv`;
-- `*_analysis_histograms.csv`;
-- `*_analysis_gini_validation_vs_ipea_wb_annual.csv`;
-- `*_analysis_gompertz_pareto_annual.csv`;
-- `*_analysis_regime_curves.csv`.
+The canonical Stage-03 tables are:
 
-The trusted versions of `statistics_annual`, `ccdf_empirical`, `lorenz`, `gompertz_pareto_annual` and `regime_curves` are the canonical Stage-05 inputs.
+- `statistics_annual.csv`: annual descriptive statistics, inequality indices, top-income shares and IPEA/World Bank Gini validation fields;
+- `geometric_bins.csv`: descriptive statistics on the geometric income grid;
+- `lorenz.csv`: sampled Lorenz-curve coordinates;
+- `gompertz_annual.csv`: annual Gompertz parameters, boundary diagnostics and population share;
+- `pareto_annual.csv`: annual Pareto boundaries, transition quantities, LSF/MLE estimates and population share;
+- `gompertz_pareto_curves.csv`: empirical CCDF and fitted Gompertz/Pareto curves on the common normalized-income grid.
+
+Histogram and descriptive CCDF datasets are built directly from the annual Parquet files for plotting but are not persisted as separate CSV tables.
 
 ## Stage 05: Moura Jr.–Ribeiro replication and extension
 
-`stage_05_moura_ribeiro.py` is a publication layer. It does not import Stage 03 as a Python module; it consumes persisted trusted analytical CSVs from Stage 03 and reads trusted annual Parquet files where individual observations are required. `paper_figures.py` finalizes publication figures and `paper_tables.py` consolidates the four canonical publication tables.
+`stage_05_moura_ribeiro.py` is a publication layer. It does not import Stage 03 as a Python module; it consumes persisted trusted analytical outputs and reads trusted annual Parquet files where individual observations are required. `paper_figures.py` finalizes publication figures and `paper_tables.py` consolidates the four canonical publication tables.
 
 ## Dependencies and tests
 

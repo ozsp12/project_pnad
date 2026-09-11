@@ -9,13 +9,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.stage_03_pnad_analysis import (
     BIN_RATIO,
+    GOMPERTZ_ANNUAL_COLUMNS,
     GOMPERTZ_A_THEORY,
+    PARETO_ANNUAL_COLUMNS,
     build_regime_ccdf,
     determine_threshold,
     direct_pareto_mle,
     fit_pareto_ls,
     linear_fit,
     select_gompertz_region,
+    split_regime_annual,
 )
 
 
@@ -110,3 +113,16 @@ def test_regime_ccdf_uses_geometric_thresholds_and_percentage_ccdf():
     np.testing.assert_allclose(ratios, BIN_RATIO, rtol=1e-12, atol=1e-12)
     assert regime["empirical_ccdf_percent"].max() <= 100.0
     assert regime["empirical_ccdf_percent"].max() > 1.0
+
+
+def test_regime_annual_output_is_split_into_gompertz_and_pareto_tables():
+    columns = list(dict.fromkeys(GOMPERTZ_ANNUAL_COLUMNS + PARETO_ANNUAL_COLUMNS))
+    row = {column: 1.0 for column in columns}
+    row["year"] = 2025
+    regime_fits = pd.DataFrame([row])
+
+    gompertz, pareto = split_regime_annual(regime_fits)
+
+    assert list(gompertz.columns) == GOMPERTZ_ANNUAL_COLUMNS
+    assert list(pareto.columns) == PARETO_ANNUAL_COLUMNS
+    assert set(gompertz.columns).intersection(pareto.columns) == {"year"}

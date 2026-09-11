@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.stage_03_pnad_analysis import (
     BIN_RATIO,
+    GOMPERTZ_A_THEORY,
     build_regime_ccdf,
     determine_threshold,
     direct_pareto_mle,
@@ -33,8 +34,8 @@ def test_linear_fit_accepts_distinct_small_abscissae():
     assert fit["fit_r2"] == pytest.approx(1.0, abs=1e-10)
 
 
-def test_gompertz_free_ls_recovers_A_and_B():
-    A = 1.53
+def test_gompertz_final_fit_fixes_A_and_recovers_B():
+    A = GOMPERTZ_A_THEORY
     B = 0.35
     x = np.geomspace(0.1, 6.0, 18)
     F = np.exp(np.exp(A - B * x))
@@ -49,9 +50,10 @@ def test_gompertz_free_ls_recovers_A_and_B():
 
     result = select_gompertz_region(regime)
 
-    assert result["gompertz_A"] == pytest.approx(A, abs=1e-10)
+    assert result["gompertz_A"] == pytest.approx(GOMPERTZ_A_THEORY, abs=1e-12)
     assert result["gompertz_B"] == pytest.approx(B, abs=1e-10)
     assert result["gompertz_r2"] == pytest.approx(1.0, abs=1e-12)
+    assert 1.4 <= result["gompertz_boundary_A_free"] <= 1.6
 
 
 def test_transition_threshold_uses_boundary_midpoint():
@@ -98,7 +100,7 @@ def test_pareto_ls_recovers_power_law_slope():
     assert r2 == pytest.approx(1.0, abs=1e-12)
 
 
-def test_regime_ccdf_uses_geometric_thresholds():
+def test_regime_ccdf_uses_geometric_thresholds_and_percentage_ccdf():
     income = np.geomspace(0.1, 20.0, 500)
     regime = build_regime_ccdf(income)
     thresholds = regime["income_normalized"].to_numpy(float)
@@ -106,3 +108,5 @@ def test_regime_ccdf_uses_geometric_thresholds():
 
     assert ratios.size > 0
     np.testing.assert_allclose(ratios, BIN_RATIO, rtol=1e-12, atol=1e-12)
+    assert regime["empirical_ccdf_percent"].max() <= 100.0
+    assert regime["empirical_ccdf_percent"].max() > 1.0

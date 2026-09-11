@@ -1,0 +1,245 @@
+from pathlib import Path
+
+stage_path = Path("src/stage_03_pnad_analysis.py")
+text = stage_path.read_text(encoding="utf-8")
+
+
+def replace_function(source, name, replacement):
+    marker = f"def {name}("
+    start = source.index(marker)
+    next_def = source.find("\ndef ", start + len(marker))
+    if next_def < 0:
+        raise RuntimeError(f"Could not locate end of {name}")
+    return source[:start] + replacement.rstrip() + "\n\n" + source[next_def + 1:]
+
+
+text = replace_function(text, "finish_grid", r'''def finish_grid(fig, axes, n_used, suptitle, path, dpi=250, top=0.985):
+    rows, cols = axes.shape
+    for j in range(n_used, rows * cols):
+        row, col = divmod(j, cols)
+        fig.delaxes(axes[row, col])
+    fig.suptitle(suptitle, fontsize=18, y=0.998)
+    fig.tight_layout(rect=[0, 0, 1, top])
+    fig.savefig(path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)''')
+
+text = replace_function(text, "plot_income_mean_median", r'''def plot_income_mean_median(df, output_path, figsize=(14, 13)):
+    fig, axes = plt.subplots(3, 2, figsize=figsize, squeeze=False, sharex=True)
+    full_years = np.arange(int(df["year"].min()), int(df["year"].max()) + 1)
+    indexed = df.set_index("year").reindex(full_years)
+    indexed["dispersion"] = indexed["std"] / indexed["mean"]
+    series = [
+        ("mean", "Mean income", "Adjusted income (2025 US$)"),
+        ("median", "Median income", "Adjusted income (2025 US$)"),
+        ("std", "Standard deviation", "Adjusted income (2025 US$)"),
+        ("dispersion", r"Relative dispersion $\sigma/\mu$", r"$\sigma/\mu$"),
+        ("xmax", "Maximum income", "Adjusted income (2025 US$)"),
+        ("xmin", "Minimum income", "Adjusted income (2025 US$)"),
+    ]
+    for ax, (column, title, ylabel) in zip(axes.ravel(), series):
+        y = indexed[column].interpolate(method="linear", limit_direction="both")
+        ax.plot(full_years, y, marker="o", markersize=3, linewidth=1.4)
+        ax.set_title(title)
+        ax.set_ylabel(ylabel)
+        ax.grid(True, alpha=0.3)
+    axes[2, 0].set_xlabel("Year")
+    axes[2, 1].set_xlabel("Year")
+    axes[2, 1].axhline(0.0, linestyle="--", linewidth=0.9)
+    fig.suptitle("Annual income statistics - PNAD", fontsize=18, y=0.995)
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
+    fig.savefig(output_path, dpi=250, bbox_inches="tight")
+    plt.close(fig)''')
+
+text = replace_function(text, "plot_ccdf_lnln", "")
+
+text = replace_function(text, "plot_top_shares", r'''def plot_top_shares(df, output_path, figsize=(14, 6)):
+    fig, ax = plt.subplots(figsize=figsize)
+    for col, label, marker in [("top_10", "Top 10%", "o"), ("top_1", "Top 1%", "s"), ("top_01", "Top 0.1%", "^")]:
+        ax.plot(df["year"], 100 * df[col], marker=marker, label=label)
+    ax.set_title("Income concentration - cumulative top shares")
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Share of total income (%)")
+    ax.grid(True, alpha=0.3)
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=250, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_top_shares_exclusive(df, output_path, figsize=(14, 6)):
+    fig, ax = plt.subplots(figsize=figsize)
+    brackets = [
+        (100 * (df["top_10"] - df["top_1"]), "90-99%", "o"),
+        (100 * (df["top_1"] - df["top_01"]), "99-99.9%", "s"),
+        (100 * df["top_01"], "99.9-100%", "^"),
+    ]
+    for values, label, marker in brackets:
+        ax.plot(df["year"], values, marker=marker, label=label)
+    ax.set_title("Income concentration - exclusive top-income brackets")
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Share of total income (%)")
+    ax.grid(True, alpha=0.3)
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=250, bbox_inches="tight")
+    plt.close(fig)''')
+
+text = replace_function(text, "plot_gompertz_regime_fits", r'''def plot_gompertz_regime_fits(curves, fits, years, output_path, ncols=4, figsize=None):
+    fit_i = fits.set_index("year")
+    fig, axes = make_grid(len(years), cols=ncols, figsize=figsize)
+    for i, year in enumerate(years):
+        f = fit_i.loc[year]
+        xg = float(f["gompertz_x_gmax"])
+        d = curves[
+            (curves["year"] == year)
+            & (curves["income_normalized"] <= xg)
+            & curves["gompertz_transform"].notna()
+        ]
+        ax = axes.ravel()[i]
+        ax.scatter(
+            d["income_normalized"], d["gompertz_transform"],
+            s=12, alpha=0.7, color="0.35", label="Empirical transform"
+        )
+        ax.plot(
+            d["income_normalized"], d["gompertz_fitted_transform"],
+            linewidth=1.8, color="tab:blue", label="Fixed-A Gompertz fit"
+        )
+        a_free = float(f["gompertz_boundary_A_free"])
+        b_free = float(f["gompertz_boundary_B_free"])
+        if np.isfinite(a_free) and np.isfinite(b_free):
+            ax.plot(
+                d["income_normalized"],
+                a_free - b_free * d["income_normalized"],
+                linewidth=1.4, linestyle="--", color="tab:orange",
+                label="Free-intercept LSF diagnostic",
+            )
+        ax.axvline(
+            xg, linestyle=":", linewidth=1.0, color="black",
+            label=r"$x_{G,\max}$",
+        )
+        ax.set_title(
+            fr"{year} - $A={f['gompertz_A']:.3f}$, $B={f['gompertz_B']:.3f}$, $R^2={f['gompertz_r2']:.3f}$"
+        )
+        ax.set_xlabel("Normalized individual income")
+        ax.set_ylabel(r"$\ln[\ln(F)]$")
+        ax.grid(True, alpha=0.3)
+    handles, labels = axes.ravel()[0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels, loc="upper center", bbox_to_anchor=(0.5, 0.985),
+        ncol=4, frameon=True,
+    )
+    finish_grid(
+        fig, axes, len(years),
+        "Gompertz region - fixed-A Moura-Ribeiro fit",
+        output_path, top=0.965,
+    )''')
+
+text = replace_function(text, "plot_pareto_regime_fits", r'''def plot_pareto_regime_fits(curves, fits, years, output_path, ncols=4, figsize=None):
+    fit_i = fits.set_index("year")
+    fig, axes = make_grid(len(years), cols=ncols, figsize=figsize)
+    for i, year in enumerate(years):
+        f = fit_i.loc[year]
+        xp = float(f["pareto_x_pmin"])
+        xt = float(f["transition_x_t"])
+        d = curves[
+            (curves["year"] == year)
+            & (curves["income_normalized"] >= min(xt, xp))
+        ]
+        ax = axes.ravel()[i]
+        ax.scatter(
+            d["income_normalized"], d["empirical_ccdf_percent"],
+            s=12, alpha=0.7, color="0.35", label="Empirical CCDF",
+        )
+        ax.plot(
+            d["income_normalized"], d["pareto_fitted_ccdf_percent_mle"],
+            linewidth=1.8, color="tab:blue", label="Pareto MLE",
+        )
+        ax.plot(
+            d["income_normalized"], d["pareto_fitted_ccdf_percent_ls"],
+            linewidth=1.4, linestyle="--", color="tab:orange", label="Pareto LSF",
+        )
+        ax.axvline(
+            xt, linestyle=":", linewidth=1.0, color="black", label=r"$x_t$"
+        )
+        ax.axvline(
+            xp, linestyle="-.", linewidth=1.0, color="0.5", label=r"$x_{P,\min}$"
+        )
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        ax.set_title(
+            fr"{year} - $\alpha_{{MLE}}={f['pareto_alpha_mle']:.3f}$, $R^2_{{LS}}={f['pareto_ls_r2']:.3f}$"
+        )
+        ax.set_xlabel("Normalized individual income")
+        ax.set_ylabel("CCDF (%)")
+        ax.grid(True, alpha=0.3)
+    handles, labels = axes.ravel()[0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels, loc="upper center", bbox_to_anchor=(0.5, 0.985),
+        ncol=5, frameon=True,
+    )
+    finish_grid(
+        fig, axes, len(years),
+        "Pareto region - direct MLE and log-binned CCDF LSF",
+        output_path, top=0.965,
+    )''')
+
+start = text.index('    prefix = f"{layer}_analysis"')
+end = text.index("    return {\n", start)
+output_block = "\n".join([
+    '    for legacy_path in figures_path.glob("*.svg"):','        legacy_path.unlink(missing_ok=True)','',
+    '    for legacy_path in figures_path.glob(f"{layer}_analysis_*.png"):','        legacy_path.unlink(missing_ok=True)',
+    '    (figures_path / "ccdf_lnln.png").unlink(missing_ok=True)','',
+    '    income_plot_stats = stats.copy()',
+    '    income_plot_stats["xmin"] = np.where(',
+    '        income_plot_stats["n_zero"] > 0,','        0.0,','        income_plot_stats["xmin_positive"],','    )','',
+    '    plot_histograms(hist, years, figures_path / "histograms.png", ncols=4)',
+    '    plot_income_mean_median(income_plot_stats, figures_path / "income_mean_median.png")',
+    '    plot_ccdf_loglog(ccdf, years, figures_path / "ccdf_loglog.png", ncols=4)',
+    '    plot_lorenz_indices_pretty(','        lorenz, stats, years,','        figures_path / "lorenz_geometry.png",','        ncols=3,','    )',
+    '    plot_top_shares(stats, figures_path / "top_income_shares.png")',
+    '    plot_top_shares_exclusive(stats, figures_path / "top_income_exclusive_shares.png")',
+    '    plot_top_shares_mean_median(stats, figures_path / "top_income_shares_mean_median.png")',
+    '    plot_inequality_indices(stats, figures_path / "inequality_indices.png")',
+    '    plot_inequality_indices_grid(stats, figures_path / "inequality_indices_2x2.png")',
+    '    plot_gini_validation(gini_validation, figures_path / "gini_validation.png")',
+    '    plot_gompertz_regime_fits(','        regime_curves, regime_fits, years,','        figures_path / "gompertz_fit.png",','        ncols=4,','        figsize=(20, 60),','    )',
+    '    plot_pareto_regime_fits(','        regime_curves, regime_fits, years,','        figures_path / "pareto_fit.png",','        ncols=4,','        figsize=(20, 60),','    )','',
+])
+text = text[:start] + output_block + text[end:]
+stage_path.write_text(text, encoding="utf-8")
+
+root = Path("README.md")
+r = root.read_text(encoding="utf-8")
+r = r.replace("analytical CSV and SVG assets", "analytical CSV and PNG assets")
+r = r.replace("SVG analytical figures from refined data", "PNG analytical figures from refined data")
+r = r.replace("SVG analytical figures from trusted data", "PNG analytical figures from trusted data")
+r = r.replace("\nThe older `assets/figures_synthetic/` and `assets/tables_synthetic/` directories are retained only as historical artifacts; there is no synthetic generator in the current `src` workflow.\n", "\n")
+root.write_text(r, encoding="utf-8")
+
+src_readme = Path("src/README.md")
+s = src_readme.read_text(encoding="utf-8")
+s = s.replace("analytical CSV and SVG assets", "analytical CSV and PNG assets")
+src_readme.write_text(s, encoding="utf-8")
+
+assets_readme = Path("assets/README.md")
+a = assets_readme.read_text(encoding="utf-8")
+a = a.replace("Analytical figures are SVG files", "Analytical figures are 250 dpi PNG files")
+a = a.replace("SVG analytical figures generated from `data/refined/` by Stage 03", "250 dpi PNG analytical figures generated from `data/refined/` by Stage 03")
+a = a.replace("SVG analytical figures generated from `data/trusted/` by Stage 03", "250 dpi PNG analytical figures generated from `data/trusted/` by Stage 03")
+a = "\n".join(line for line in a.splitlines() if "figures_synthetic/" not in line and "tables_synthetic/" not in line) + "\n"
+table_start = a.index("| Analysis | Refined asset | Trusted asset |")
+table_end = a.index("\n\nThe Gompertz figures", table_start)
+figure_table = "\n".join([
+    "| Analysis | Canonical filename in each layer directory |","| --- | --- |","| Histograms | `histograms.png` |",
+    "| Income statistics (2×3) | `income_mean_median.png` |","| CCDF log-log | `ccdf_loglog.png` |",
+    "| Lorenz geometry | `lorenz_geometry.png` |","| Cumulative top-income shares | `top_income_shares.png` |",
+    "| Exclusive top-income shares | `top_income_exclusive_shares.png` |","| Mean/median and top shares | `top_income_shares_mean_median.png` |",
+    "| Inequality indices | `inequality_indices.png` |","| Inequality indices 2×2 | `inequality_indices_2x2.png` |",
+    "| Gini validation | `gini_validation.png` |","| Gompertz regime fits | `gompertz_fit.png` |","| Pareto regime fits | `pareto_fit.png` |",
+])
+a = a[:table_start] + figure_table + a[table_end:]
+a = a.replace(
+    "The Gompertz figures report the final fixed-normalization model with $A=\\ln[\\ln(100)]$ and fitted $B$. A free-intercept regression is used only as a diagnostic to locate $x_{G,\\max}$. Pareto figures retain both least-squares and direct-MLE estimates after the transition $x_t$ has been determined.",
+    "The Gompertz fit figure reports the final fixed-normalization model with $A=\\ln[\\ln(100)]$ and fitted $B$, together with the orange dashed free-intercept LSF diagnostic used to locate $x_{G,\\max}$. The Pareto fit figure uses a blue continuous MLE curve and an orange dashed LSF curve, with a single figure-level legend above the panel grid."
+)
+assets_readme.write_text(a, encoding="utf-8")

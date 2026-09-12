@@ -6,6 +6,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pytest
 from matplotlib.ticker import NullFormatter
 
@@ -63,3 +64,17 @@ def test_clean_figures_removes_obsolete_formats(tmp_path, monkeypatch):
     stage_05.clean_figures()
 
     assert sorted(path.name for path in tmp_path.iterdir()) == [".gitkeep"]
+
+
+def test_fixed_gompertz_bootstrap_keeps_A_and_recovers_B(monkeypatch):
+    monkeypatch.setattr(stage_05, "BOOTSTRAP_REPS", 32)
+    A = float(np.log(np.log(100.0)))
+    B = 1.75
+    x = np.linspace(0.2, 3.0, 20)
+    y = A - B * x
+    rng = np.random.default_rng(1234)
+
+    draws = stage_05.bootstrap_fixed_gompertz_B(x, y, A, rng)
+
+    assert draws.shape == (32,)
+    assert np.allclose(draws, B, atol=1e-12)

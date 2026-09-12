@@ -171,13 +171,31 @@ def bootstrap_line(x, y, rng):
     return ym - slope * xm, slope
 
 
+def bootstrap_fixed_gompertz_B(x, y, A, rng):
+    """Bootstrap B in y=A-Bx while keeping the theoretical A fixed."""
+    x, y = np.asarray(x, float), np.asarray(y, float)
+    mask = np.isfinite(x) & np.isfinite(y); x, y = x[mask], y[mask]
+    if len(x) < 3:
+        return np.full(BOOTSTRAP_REPS, np.nan)
+    idx = rng.integers(0, len(x), size=(BOOTSTRAP_REPS, len(x)))
+    xb, yb = x[idx], y[idx]
+    den = (xb ** 2).sum(1)
+    num = (xb * (float(A) - yb)).sum(1)
+    return np.divide(num, den, out=np.full(BOOTSTRAP_REPS, np.nan), where=den > 0)
+
+
 def bootstrap(curves, annual):
     rows = []; ai = annual.set_index("year")
     for year in years_of(annual["year"].dropna()):
         f = ai.loc[year]; rng = np.random.default_rng(BOOTSTRAP_SEED + year)
         xg = float(f["gompertz_x_gmax"])
         g = curves[(curves.year == year) & (curves.income_normalized <= xg) & curves.gompertz_transform.notna()]
-        gi, gs = bootstrap_line(g.income_normalized, g.gompertz_transform, rng)
+        gb = bootstrap_fixed_gompertz_B(
+            g.income_normalized,
+            g.gompertz_transform,
+            float(f["gompertz_A"]),
+            rng,
+        )
         xp = float(f["pareto_x_pmin"])
         p = curves[(curves.year == year) & (curves.income_normalized >= xp) & (curves.empirical_ccdf_percent > 0)]
         pi, ps = bootstrap_line(np.log(p.income_normalized), np.log(p.empirical_ccdf_percent), rng)
@@ -192,7 +210,8 @@ def bootstrap(curves, annual):
         sd = lambda v: float(np.nanstd(v, ddof=1))
         rows.append({
             "year": year, "bootstrap_reps": BOOTSTRAP_REPS,
-            "gompertz_A_bootstrap_se": sd(gi), "gompertz_B_bootstrap_se": sd(-gs),
+            # A is fixed by the Gompertz normalization assumption; its SE is zero by construction.
+            "gompertz_A_bootstrap_se": 0.0, "gompertz_B_bootstrap_se": sd(gb),
             "pareto_alpha_ls_bootstrap_se": sd(-ps), "pareto_beta_ls_bootstrap_se": sd(np.exp(pi)),
             "pareto_alpha_mle_bootstrap_se": sd(am), "pareto_beta_mle_bootstrap_se": sd(bm),
         })

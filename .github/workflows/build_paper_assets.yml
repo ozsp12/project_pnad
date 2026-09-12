@@ -5,7 +5,6 @@ on:
   pull_request:
     paths:
       - "src/stage_05_moura_ribeiro.py"
-      - "src/paper_figures.py"
       - "src/paper_tables.py"
       - "data/trusted/**"
       - "data/auxiliary/gdp_growth_brazil_1978_2025.csv"
@@ -18,7 +17,6 @@ on:
     branches: [main]
     paths:
       - "src/stage_05_moura_ribeiro.py"
-      - "src/paper_figures.py"
       - "src/paper_tables.py"
       - "data/trusted/**"
       - "data/auxiliary/gdp_growth_brazil_1978_2025.csv"
@@ -47,47 +45,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Prepare legacy Stage 05 table interface
-        shell: bash
-        run: |
-          if [[ -f assets/tables_analysis_trusted/statistics_annual.csv ]]; then
-            cp assets/tables_analysis_trusted/statistics_annual.csv \
-               assets/tables_analysis_trusted/trusted_analysis_statistics_annual.csv
-            cp assets/tables_analysis_trusted/lorenz.csv \
-               assets/tables_analysis_trusted/trusted_analysis_lorenz.csv
-            cp assets/tables_analysis_trusted/gompertz_pareto_curves.csv \
-               assets/tables_analysis_trusted/trusted_analysis_regime_curves.csv
-            cp assets/tables_analysis_trusted/gompertz_pareto_curves.csv \
-               assets/tables_analysis_trusted/trusted_analysis_ccdf_empirical.csv
-            python - <<'PY'
-          import pandas as pd
-          from pathlib import Path
-
-          root = Path("assets/tables_analysis_trusted")
-          gompertz = pd.read_csv(root / "gompertz_annual.csv")
-          pareto = pd.read_csv(root / "pareto_annual.csv")
-          annual = gompertz.merge(
-              pareto,
-              on="year",
-              how="inner",
-              validate="one_to_one",
-          )
-          annual.to_csv(
-              root / "trusted_analysis_gompertz_pareto_annual.csv",
-              index=False,
-          )
-          PY
-          fi
-
       - name: Generate trusted paper fits and figures
         env:
           MPLBACKEND: Agg
         run: python src/stage_05_moura_ribeiro.py
-
-      - name: Finalize paper figures
-        env:
-          MPLBACKEND: Agg
-        run: python src/paper_figures.py
 
       - name: Build canonical paper tables
         run: python src/paper_tables.py
@@ -110,6 +71,7 @@ jobs:
           )
           if unexpected_figures:
               raise SystemExit(f"Non-PNG paper figures found: {unexpected_figures}")
+
           figures = sorted(figures_dir.glob("*.png"))
           if not figures:
               raise SystemExit("No PNG paper figures were generated")
@@ -189,9 +151,14 @@ jobs:
               ("table_02_pareto_annual.csv", pareto),
               ("table_03_economic_inequality_annual.csv", economic),
           ]:
-              missing_docs = [column for column in frame.columns if (table_name, column) not in documented]
+              missing_docs = [
+                  column for column in frame.columns
+                  if (table_name, column) not in documented
+              ]
               if missing_docs:
-                  raise SystemExit(f"Undocumented columns in {table_name}: {missing_docs}")
+                  raise SystemExit(
+                      f"Undocumented columns in {table_name}: {missing_docs}"
+                  )
           PY
 
       - name: Upload paper assets

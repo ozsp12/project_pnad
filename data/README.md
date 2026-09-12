@@ -1,26 +1,28 @@
 # Data
 
-The `data` directory contains the empirical material used by the PNAD longitudinal research pipeline. Data are organized by scientific processing stage. The refined and trusted directories represent two distinct versions of the same annual income samples, `analytics/` contains the consolidated cross-year trusted product, and auxiliary external series remain isolated from PNAD-derived data.
+The `data` directory contains the empirical material used by the PNAD longitudinal research pipeline. Refined and trusted directories represent two versions of the same annual samples, `analytics/` contains the consolidated cross-year trusted product, and `auxiliary/` contains external/reference series rather than PNAD-derived microdata.
 
 | Directory | Content | Produced or consumed by |
 | --- | --- | --- |
-| `metadata/` | Annual extraction specifications, monetary metadata, and processing information | produced by Stage 00; consumed by Stages 01, 03, and 05 |
-| `refined/` | Harmonized annual PNAD/PNAD Contínua datasets before trusted-stage trimming; current files were materialized outside GitHub from local microdata | produced by Stage 01; consumed by Stages 02 and 03 |
-| `trusted/` | Annual datasets after structural cleaning, log-MAD upper-tail treatment, and validation | produced by Stage 02; consumed by Stages 03, 04, and 05 |
-| `analytics/` | Single vertically concatenated trusted microdata product across all survey years | produced independently by Stage 04; intended for cross-year and longitudinal analyses |
-| `auxiliary/` | Independent external reference series: IPEA/World Bank Gini data and the persisted World Bank/WDI Brazil real-GDP-growth series | consumed by Stages 03 and 05 |
-| `raw/` | Local fixed-width original microdata, approximately 20 GB in total | deliberately not versioned |
+| `metadata/` | Annual extraction specifications, monetary metadata, and processing information | produced by Stage 00; consumed downstream |
+| `refined/` | Harmonized annual PNAD/PNAD Contínua datasets before trusted-stage trimming | produced by Stage 01; consumed by Stages 02–03 |
+| `trusted/` | Annual datasets after structural cleaning, log-MAD upper-tail treatment, and validation | produced by Stage 02; consumed by Stages 03–05 |
+| `analytics/` | Single vertically concatenated trusted microdata product | produced independently by Stage 04 |
+| `auxiliary/` | External Gini/GDP series and published Moura–Ribeiro 2009 reference values | consumed by Stages 03 and 05 |
+| `raw/` | Local fixed-width original microdata, approximately 20 GB | deliberately not versioned |
 
-The raw-to-refined boundary is intentionally external to ordinary GitHub execution. Original fixed-width microdata remain local because of their volume, while the already materialized `data/refined/` files form the persistent repository input for downstream processing. When reconstruction from the original microdata is required, `src/stage_01_build_refined_pnad.py` provides the extraction and harmonization procedure.
+The raw-to-refined boundary is intentionally external to ordinary GitHub execution. Original fixed-width microdata remain local because of their volume, while materialized `data/refined/` files are the persistent repository input for downstream processing. `src/stage_01_build_refined_pnad.py` documents reconstruction from the original files.
 
-The distinction between `refined` and `trusted` is substantive. The refined layer preserves harmonized annual samples before trusted-stage statistical treatment. The trusted layer excludes structural invalids, applies the documented log-MAD upper cutoff, and verifies distribution-level invariants. Stage 03 analyzes both layers using the same analytical functions, allowing direct before/after comparison without changing the downstream methodology.
+The distinction between `refined` and `trusted` is substantive. Stage 03 analyzes both layers with the same analytical functions so the impact of trusted-stage treatment can be assessed without changing the downstream model.
 
 ## Analytics layer
 
-`data/analytics/pnad_analytics_all.parquet` is produced by `src/stage_04_build_analytic_pnad.py` exclusively from annual trusted Parquet files. Stage 04 introduces no new statistical transformation: it validates trusted invariants and schema compatibility, orders survey years, and vertically concatenates the annual samples. Each survey year is stored as one Parquet row group so year-level filtering remains efficient.
-
-Stage 04 is automated separately from Stage 03. Changes limited to the consolidated analytics product can therefore be rebuilt without rerunning the full empirical analysis.
+`data/analytics/pnad_analytics_all.parquet` is built exclusively from annual trusted Parquet files. Stage 04 performs validation and vertical concatenation only; each survey year is stored as one Parquet row group. Stage 04 is automated independently from Stage 03.
 
 ## Auxiliary series
 
-`series_gini_ipea_banco_mundial.csv` contains external Gini reference series used by Stage 03. `gdp_growth_brazil_1978_2025.csv` is the local snapshot used by `src/stage_05_moura_ribeiro.py` for the GDP-growth comparison. It contains `year`, `gdp_growth_pct`, `indicator`, and `source`; the indicator is `NY.GDP.MKTP.KD.ZG` and the source is World Bank/World Development Indicators (WDI). Persisting this snapshot removes network dependence from Stage 05 while preserving the GDP values used by the publication layer.
+- `series_gini_ipea_banco_mundial.csv`: external Gini reference series.
+- `gdp_growth_brazil_1978_2025.csv`: persisted World Bank/WDI Brazil real-GDP-growth series (`NY.GDP.MKTP.KD.ZG`).
+- `moura_ribeiro_2009_reference.csv`: values transcribed from the four tables of Moura Jr. and Ribeiro, *Eur. Phys. J. B* **67**, 101–120 (2009), used strictly as the published benchmark for reproduction evidence.
+
+The 2009 reference file preserves the exceptional 1978–1979 Pareto population-share result as an interval rather than inventing a central value. It is not an input to the current estimators; it is used only after estimation to quantify reproduction differences.

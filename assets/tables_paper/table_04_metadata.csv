@@ -1,65 +1,90 @@
 table_name,column_name,description,unit,source
-table_01_gompertz_annual.csv,year,Survey/reference year.,year,PNAD / auxiliary annual series
-table_01_gompertz_annual.csv,gompertz_A,Gompertz normalization parameter A.,dimensionless,trusted PNAD regime fit
-table_01_gompertz_annual.csv,gompertz_A_bootstrap_se,Bootstrap standard error associated with the Gompertz intercept diagnostic.,dimensionless,trusted PNAD bootstrap
-table_01_gompertz_annual.csv,gompertz_B,Gompertz slope parameter B in G(x)=exp[exp(A-Bx)].,dimensionless,trusted PNAD regime fit
-table_01_gompertz_annual.csv,gompertz_B_bootstrap_se,Bootstrap standard error of Gompertz B.,dimensionless,trusted PNAD bootstrap
-table_01_gompertz_annual.csv,gompertz_x_gmax,Largest normalized income assigned to the Gompertz fitting region.,normalized income,trusted PNAD regime fit
-table_01_gompertz_annual.csv,transition_x_t,Gompertz-Pareto transition income.,normalized income,trusted PNAD regime fit
-table_01_gompertz_annual.csv,gompertz_r2,Coefficient of determination for the Gompertz linearized fit.,dimensionless,trusted PNAD regime fit
-table_01_gompertz_annual.csv,gompertz_correlation_coefficient,Positive square root of Gompertz R^2.,dimensionless,derived from trusted PNAD fit
-table_01_gompertz_annual.csv,gompertz_population_pct,Share of positive-income observations in the Gompertz regime.,%,trusted PNAD regime fit
-table_01_gompertz_annual.csv,gompertz_income_share_pct,Share of total trusted adjusted income below x_t.,%,trusted PNAD microdata
-table_01_gompertz_annual.csv,bootstrap_reps,Number of bootstrap resamples used for parameter uncertainty.,count,paper pipeline configuration
-table_02_pareto_annual.csv,year,Survey/reference year.,year,PNAD / auxiliary annual series
-table_02_pareto_annual.csv,pareto_x_pmin,Minimum normalized income of the selected Pareto LS tail.,normalized income,trusted PNAD regime fit
-table_02_pareto_annual.csv,transition_x_t,Gompertz-Pareto transition income.,normalized income,trusted PNAD regime fit
-table_02_pareto_annual.csv,transition_delta_x_t,"Half-width between x_G,max and x_P,min when the bounds differ.",normalized income,trusted PNAD regime fit
-table_02_pareto_annual.csv,pareto_alpha_ls,Pareto exponent estimated by log-log least squares.,dimensionless,trusted PNAD regime fit
-table_02_pareto_annual.csv,pareto_alpha_ls_bootstrap_se,Bootstrap standard error of the Pareto LS exponent.,dimensionless,trusted PNAD bootstrap
-table_02_pareto_annual.csv,pareto_beta_ls,Pareto amplitude estimated by log-log least squares.,CCDF-percent scale,trusted PNAD regime fit
-table_02_pareto_annual.csv,pareto_beta_ls_bootstrap_se,Bootstrap standard error of the Pareto LS amplitude.,CCDF-percent scale,trusted PNAD bootstrap
-table_02_pareto_annual.csv,pareto_ls_r2,Coefficient of determination for the Pareto LS log-log fit.,dimensionless,trusted PNAD regime fit
-table_02_pareto_annual.csv,pareto_ls_correlation_coefficient,Positive square root of Pareto LS R^2.,dimensionless,derived from trusted PNAD fit
-table_02_pareto_annual.csv,pareto_alpha_mle,Pareto exponent estimated directly from individual observations above x_t.,dimensionless,trusted PNAD direct MLE
-table_02_pareto_annual.csv,pareto_alpha_mle_fisher_se,Fisher-information standard error of the direct Pareto MLE exponent.,dimensionless,trusted PNAD direct MLE
-table_02_pareto_annual.csv,pareto_alpha_mle_bootstrap_se,Bootstrap standard error of the direct Pareto MLE exponent.,dimensionless,trusted PNAD bootstrap
-table_02_pareto_annual.csv,pareto_beta_mle_continuity,Pareto amplitude implied by continuity with the Gompertz curve at x_t.,CCDF-percent scale,trusted PNAD continuity condition
-table_02_pareto_annual.csv,pareto_beta_mle_bootstrap_se,Bootstrap standard error of the continuity Pareto amplitude.,CCDF-percent scale,trusted PNAD bootstrap
-table_02_pareto_annual.csv,pareto_mle_r2,Log-space R^2 diagnostic for the direct-MLE Pareto curve.,dimensionless,trusted PNAD regime curves
-table_02_pareto_annual.csv,pareto_mle_correlation_coefficient,Positive square root of the MLE-curve R^2 diagnostic.,dimensionless,derived from trusted PNAD regime curves
-table_02_pareto_annual.csv,pareto_population_pct,Share of positive-income observations in the Pareto regime.,%,trusted PNAD regime fit
-table_02_pareto_annual.csv,pareto_income_share_pct,Share of total trusted adjusted income at or above x_t.,%,trusted PNAD microdata
-table_02_pareto_annual.csv,bootstrap_reps,Number of bootstrap resamples used for parameter uncertainty.,count,paper pipeline configuration
-table_03_economic_inequality_annual.csv,year,Survey/reference year.,year,PNAD / auxiliary annual series
-table_03_economic_inequality_annual.csv,gdp_growth_pct,Brazil real GDP annual growth rate.,% per year,World Bank/WDI NY.GDP.MKTP.KD.ZG snapshot
-table_03_economic_inequality_annual.csv,income_observation_n,Number of positive finite trusted income observations used in the annual summary.,count,trusted PNAD microdata
-table_03_economic_inequality_annual.csv,income_mean_2025_usd,Mean positive trusted income after the project 2025-US$ adjustment.,2025 US$,trusted PNAD microdata + df_metadata.xlsx
-table_03_economic_inequality_annual.csv,income_median_2025_usd,Median positive trusted income after the project 2025-US$ adjustment.,2025 US$,trusted PNAD microdata + df_metadata.xlsx
-table_03_economic_inequality_annual.csv,income_std_2025_usd,Sample standard deviation of positive trusted adjusted income.,2025 US$,trusted PNAD microdata + df_metadata.xlsx
-table_03_economic_inequality_annual.csv,gini_pnad,Gini coefficient calculated from trusted PNAD income.,dimensionless,trusted PNAD analysis
-table_03_economic_inequality_annual.csv,pietra_pnad,Pietra inequality index calculated from trusted PNAD income.,dimensionless,trusted PNAD analysis
-table_03_economic_inequality_annual.csv,kolkata_pnad,Kolkata inequality index calculated from trusted PNAD income.,dimensionless,trusted PNAD analysis
-table_03_economic_inequality_annual.csv,zanardi_pnad,Zanardi inequality index calculated from trusted PNAD income.,dimensionless,trusted PNAD analysis
-table_03_economic_inequality_annual.csv,gini_ipea,External IPEA Gini reference merged into the annual metadata frame.,dimensionless,series_gini_ipea_banco_mundial.csv
-table_03_economic_inequality_annual.csv,gini_world_bank,External World Bank Gini reference merged into the annual metadata frame.,dimensionless,series_gini_ipea_banco_mundial.csv
-table_03_economic_inequality_annual.csv,p90_p99_population_n,Observation count in the mutually exclusive 90th-to-99th-percentile income rank band.,count,trusted PNAD microdata
-table_03_economic_inequality_annual.csv,p90_p99_income_share_pct,Share of total annual income received by the mutually exclusive 90th-to-99th-percentile income rank band.,%,trusted PNAD microdata
-table_03_economic_inequality_annual.csv,p90_p99_mean_income_2025_usd,Mean adjusted income in the mutually exclusive 90th-to-99th-percentile income rank band.,2025 US$,trusted PNAD microdata + df_metadata.xlsx
-table_03_economic_inequality_annual.csv,p90_p99_median_income_2025_usd,Median adjusted income in the mutually exclusive 90th-to-99th-percentile income rank band.,2025 US$,trusted PNAD microdata + df_metadata.xlsx
-table_03_economic_inequality_annual.csv,p90_p99_std_income_2025_usd,Sample standard deviation of adjusted income in the mutually exclusive 90th-to-99th-percentile income rank band.,2025 US$,trusted PNAD microdata + df_metadata.xlsx
-table_03_economic_inequality_annual.csv,p99_p999_population_n,Observation count in the mutually exclusive 99th-to-99.9th-percentile income rank band.,count,trusted PNAD microdata
-table_03_economic_inequality_annual.csv,p99_p999_income_share_pct,Share of total annual income received by the mutually exclusive 99th-to-99.9th-percentile income rank band.,%,trusted PNAD microdata
-table_03_economic_inequality_annual.csv,p99_p999_mean_income_2025_usd,Mean adjusted income in the mutually exclusive 99th-to-99.9th-percentile income rank band.,2025 US$,trusted PNAD microdata + df_metadata.xlsx
-table_03_economic_inequality_annual.csv,p99_p999_median_income_2025_usd,Median adjusted income in the mutually exclusive 99th-to-99.9th-percentile income rank band.,2025 US$,trusted PNAD microdata + df_metadata.xlsx
-table_03_economic_inequality_annual.csv,p99_p999_std_income_2025_usd,Sample standard deviation of adjusted income in the mutually exclusive 99th-to-99.9th-percentile income rank band.,2025 US$,trusted PNAD microdata + df_metadata.xlsx
-table_03_economic_inequality_annual.csv,p999_p100_population_n,Observation count in the mutually exclusive top-0.1% income rank band.,count,trusted PNAD microdata
-table_03_economic_inequality_annual.csv,p999_p100_income_share_pct,Share of total annual income received by the mutually exclusive top-0.1% income rank band.,%,trusted PNAD microdata
-table_03_economic_inequality_annual.csv,p999_p100_mean_income_2025_usd,Mean adjusted income in the mutually exclusive top-0.1% income rank band.,2025 US$,trusted PNAD microdata + df_metadata.xlsx
-table_03_economic_inequality_annual.csv,p999_p100_median_income_2025_usd,Median adjusted income in the mutually exclusive top-0.1% income rank band.,2025 US$,trusted PNAD microdata + df_metadata.xlsx
-table_03_economic_inequality_annual.csv,p999_p100_std_income_2025_usd,Sample standard deviation of adjusted income in the mutually exclusive top-0.1% income rank band.,2025 US$,trusted PNAD microdata + df_metadata.xlsx
-table_04_metadata.csv,table_name,Name of the canonical paper table containing the documented field.,text,paper table schema
-table_04_metadata.csv,column_name,Column name documented by this metadata row.,text,paper table schema
+table_01_gompertz_annual.csv,year,Survey/reference year.,year,PNAD / annual series
+table_01_gompertz_annual.csv,gompertz_A,Gompertz a.,dimensionless,Stage-05 consolidation
+table_01_gompertz_annual.csv,gompertz_B,Gompertz b.,dimensionless,Stage-05 consolidation
+table_01_gompertz_annual.csv,gompertz_B_bootstrap_se,Gompertz b bootstrap se.,dimensionless,Stage-05 consolidation
+table_01_gompertz_annual.csv,gompertz_boundary_A_free,Gompertz boundary a free.,dimensionless,Stage-05 consolidation
+table_01_gompertz_annual.csv,gompertz_A_free_bootstrap_se,Gompertz a free bootstrap se.,dimensionless,Stage-05 consolidation
+table_01_gompertz_annual.csv,gompertz_boundary_B_free,Gompertz boundary b free.,dimensionless,Stage-05 consolidation
+table_01_gompertz_annual.csv,gompertz_B_free_bootstrap_se,Gompertz b free bootstrap se.,dimensionless,Stage-05 consolidation
+table_01_gompertz_annual.csv,gompertz_x_gmax,Gompertz x gmax.,normalized income,Stage-05 consolidation
+table_01_gompertz_annual.csv,transition_x_t,Transition x t.,normalized income,Stage-05 consolidation
+table_01_gompertz_annual.csv,gompertz_r2,Gompertz r2.,dimensionless,Stage-05 consolidation
+table_01_gompertz_annual.csv,gompertz_correlation_coefficient,Gompertz correlation coefficient.,dimensionless,Stage-05 consolidation
+table_01_gompertz_annual.csv,gompertz_population_pct,Gompertz population pct.,%,Stage-05 consolidation
+table_01_gompertz_annual.csv,gompertz_income_share_pct,Gompertz income share pct.,%,Stage-05 consolidation
+table_01_gompertz_annual.csv,bootstrap_reps,Bootstrap reps.,count,Stage-05 consolidation
+table_02_pareto_annual.csv,year,Survey/reference year.,year,PNAD / annual series
+table_02_pareto_annual.csv,pareto_x_pmin,Pareto x pmin.,normalized income,Stage-05 consolidation
+table_02_pareto_annual.csv,transition_x_t,Transition x t.,normalized income,Stage-05 consolidation
+table_02_pareto_annual.csv,transition_delta_x_t,Transition delta x t.,normalized income,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_selection_status,Pareto selection status.,text,Stage-03 reproduction diagnostics
+table_02_pareto_annual.csv,pareto_supported,Pareto supported.,boolean,Stage-03 reproduction diagnostics
+table_02_pareto_annual.csv,pareto_alpha_ls,Pareto alpha ls.,dimensionless,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_alpha_ls_bootstrap_se,Pareto alpha ls bootstrap se.,dimensionless,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_beta_ls,Pareto beta ls.,CCDF-percent scale,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_beta_ls_bootstrap_se,Pareto beta ls bootstrap se.,CCDF-percent scale,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_ls_r2,Pareto ls r2.,dimensionless,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_ls_correlation_coefficient,Pareto ls correlation coefficient.,dimensionless,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_alpha_mle,Pareto alpha mle.,dimensionless,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_alpha_mle_fisher_se,Pareto alpha mle fisher se.,dimensionless,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_alpha_mle_likelihood_se,Pareto alpha mle likelihood se.,dimensionless,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_alpha_mle_bootstrap_se,Pareto alpha mle bootstrap se.,dimensionless,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_beta_mle_continuity,Pareto beta mle continuity.,CCDF-percent scale,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_beta_mle_likelihood_se,Pareto beta mle likelihood se.,CCDF-percent scale,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_beta_mle_bootstrap_se,Pareto beta mle bootstrap se.,CCDF-percent scale,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_mle_r2,Pareto mle r2.,dimensionless,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_mle_correlation_coefficient,Pareto mle correlation coefficient.,dimensionless,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_population_pct,Pareto population pct.,%,Stage-05 consolidation
+table_02_pareto_annual.csv,pareto_income_share_pct,Pareto income share pct.,%,Stage-05 consolidation
+table_02_pareto_annual.csv,bootstrap_reps,Bootstrap reps.,count,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,year,Survey/reference year.,year,PNAD / annual series
+table_03_economic_inequality_annual.csv,gdp_growth_pct,Gdp growth pct.,%,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,income_observation_n,Income observation n.,count,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,income_mean_2025_usd,Income mean 2025 usd.,2025 US$,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,income_median_2025_usd,Income median 2025 usd.,2025 US$,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,income_std_2025_usd,Income std 2025 usd.,2025 US$,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,gini_pnad,Gini pnad.,dimensionless,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,pietra_pnad,Pietra pnad.,dimensionless,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,kolkata_pnad,Kolkata pnad.,dimensionless,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,zanardi_pnad,Zanardi pnad.,dimensionless,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,gini_ipea,Gini ipea.,dimensionless,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,gini_world_bank,Gini world bank.,dimensionless,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p90_p99_population_n,P90 p99 population n.,count,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p90_p99_income_share_pct,P90 p99 income share pct.,%,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p90_p99_mean_income_2025_usd,P90 p99 mean income 2025 usd.,2025 US$,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p90_p99_median_income_2025_usd,P90 p99 median income 2025 usd.,2025 US$,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p90_p99_std_income_2025_usd,P90 p99 std income 2025 usd.,2025 US$,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p99_p999_population_n,P99 p999 population n.,count,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p99_p999_income_share_pct,P99 p999 income share pct.,%,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p99_p999_mean_income_2025_usd,P99 p999 mean income 2025 usd.,2025 US$,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p99_p999_median_income_2025_usd,P99 p999 median income 2025 usd.,2025 US$,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p99_p999_std_income_2025_usd,P99 p999 std income 2025 usd.,2025 US$,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p999_p100_population_n,P999 p100 population n.,count,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p999_p100_income_share_pct,P999 p100 income share pct.,%,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p999_p100_mean_income_2025_usd,P999 p100 mean income 2025 usd.,2025 US$,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p999_p100_median_income_2025_usd,P999 p100 median income 2025 usd.,2025 US$,Stage-05 consolidation
+table_03_economic_inequality_annual.csv,p999_p100_std_income_2025_usd,P999 p100 std income 2025 usd.,2025 US$,Stage-05 consolidation
+table_05_moura_ribeiro_evidence.csv,year,Survey/reference year.,year,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,layer,Analysis layer: refined or trusted.,text,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,paper_table,Paper table.,text,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,test,Test.,text,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,estimator,Estimator.,text,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,parameter,Parameter.,text,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,estimate,Estimate.,varies,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,standard_error,Standard error.,varies,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,fit_metric,Fit metric.,text,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,fit_value,Fit value.,dimensionless,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,criterion,Criterion.,text,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,passed,Passed.,boolean,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,evidence_status,Evidence status.,text,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,paper_2009_value,Paper 2009 value.,varies,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,paper_2009_standard_error,Paper 2009 standard error.,varies,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,difference_from_2009,Difference from 2009.,varies,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,relative_difference_pct,Relative difference pct.,%,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_05_moura_ribeiro_evidence.csv,within_paper_1se,Within paper 1se.,boolean,Stage-03 refined/trusted evidence and Moura-Ribeiro 2009 reference
+table_04_metadata.csv,table_name,Canonical paper table containing the documented field.,text,paper table schema
+table_04_metadata.csv,column_name,Column documented by this metadata row.,text,paper table schema
 table_04_metadata.csv,description,Human-readable definition of the column.,text,paper table schema
-table_04_metadata.csv,unit,Measurement unit or scale of the column.,text,paper table schema
-table_04_metadata.csv,source,Primary repository data source or derivation for the column.,text,paper table schema
+table_04_metadata.csv,unit,Measurement unit or scale.,text,paper table schema
+table_04_metadata.csv,source,Primary source or derivation.,text,paper table schema

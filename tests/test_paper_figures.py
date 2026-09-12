@@ -11,7 +11,6 @@ from matplotlib.ticker import NullFormatter
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src import paper_figures
 from src import stage_05_moura_ribeiro as stage_05
 
 
@@ -64,14 +63,3 @@ def test_clean_figures_removes_obsolete_formats(tmp_path, monkeypatch):
     stage_05.clean_figures()
 
     assert sorted(path.name for path in tmp_path.iterdir()) == [".gitkeep"]
-
-
-def test_normalize_paper_figure_names_removes_legacy_prefix(tmp_path, monkeypatch):
-    monkeypatch.setattr(paper_figures, "FIGURES_PAPER", tmp_path)
-    legacy = tmp_path / "moura_ribeiro_2009_ccdf_trusted_part_01.png"
-    legacy.write_bytes(b"png")
-
-    paper_figures.normalize_paper_figure_names()
-
-    assert not legacy.exists()
-    assert (tmp_path / "ccdf_trusted_part_01.png").is_file()

@@ -1,9 +1,9 @@
 table_name,column_name,description,unit,source
 table_01_gompertz_annual.csv,year,Survey/reference year.,year,PNAD / auxiliary annual series
-table_01_gompertz_annual.csv,gompertz_A,Free-intercept Gompertz fit parameter A.,dimensionless,trusted PNAD regime fit
-table_01_gompertz_annual.csv,gompertz_A_bootstrap_se,Bootstrap standard error of Gompertz A.,dimensionless,1000-replicate trusted PNAD bootstrap
+table_01_gompertz_annual.csv,gompertz_A,Gompertz normalization parameter A.,dimensionless,trusted PNAD regime fit
+table_01_gompertz_annual.csv,gompertz_A_bootstrap_se,Bootstrap standard error associated with the Gompertz intercept diagnostic.,dimensionless,trusted PNAD bootstrap
 table_01_gompertz_annual.csv,gompertz_B,Gompertz slope parameter B in G(x)=exp[exp(A-Bx)].,dimensionless,trusted PNAD regime fit
-table_01_gompertz_annual.csv,gompertz_B_bootstrap_se,Bootstrap standard error of Gompertz B.,dimensionless,1000-replicate trusted PNAD bootstrap
+table_01_gompertz_annual.csv,gompertz_B_bootstrap_se,Bootstrap standard error of Gompertz B.,dimensionless,trusted PNAD bootstrap
 table_01_gompertz_annual.csv,gompertz_x_gmax,Largest normalized income assigned to the Gompertz fitting region.,normalized income,trusted PNAD regime fit
 table_01_gompertz_annual.csv,transition_x_t,Gompertz-Pareto transition income.,normalized income,trusted PNAD regime fit
 table_01_gompertz_annual.csv,gompertz_r2,Coefficient of determination for the Gompertz linearized fit.,dimensionless,trusted PNAD regime fit
@@ -16,16 +16,16 @@ table_02_pareto_annual.csv,pareto_x_pmin,Minimum normalized income of the select
 table_02_pareto_annual.csv,transition_x_t,Gompertz-Pareto transition income.,normalized income,trusted PNAD regime fit
 table_02_pareto_annual.csv,transition_delta_x_t,"Half-width between x_G,max and x_P,min when the bounds differ.",normalized income,trusted PNAD regime fit
 table_02_pareto_annual.csv,pareto_alpha_ls,Pareto exponent estimated by log-log least squares.,dimensionless,trusted PNAD regime fit
-table_02_pareto_annual.csv,pareto_alpha_ls_bootstrap_se,Bootstrap standard error of the Pareto LS exponent.,dimensionless,1000-replicate trusted PNAD bootstrap
+table_02_pareto_annual.csv,pareto_alpha_ls_bootstrap_se,Bootstrap standard error of the Pareto LS exponent.,dimensionless,trusted PNAD bootstrap
 table_02_pareto_annual.csv,pareto_beta_ls,Pareto amplitude estimated by log-log least squares.,CCDF-percent scale,trusted PNAD regime fit
-table_02_pareto_annual.csv,pareto_beta_ls_bootstrap_se,Bootstrap standard error of the Pareto LS amplitude.,CCDF-percent scale,1000-replicate trusted PNAD bootstrap
+table_02_pareto_annual.csv,pareto_beta_ls_bootstrap_se,Bootstrap standard error of the Pareto LS amplitude.,CCDF-percent scale,trusted PNAD bootstrap
 table_02_pareto_annual.csv,pareto_ls_r2,Coefficient of determination for the Pareto LS log-log fit.,dimensionless,trusted PNAD regime fit
 table_02_pareto_annual.csv,pareto_ls_correlation_coefficient,Positive square root of Pareto LS R^2.,dimensionless,derived from trusted PNAD fit
 table_02_pareto_annual.csv,pareto_alpha_mle,Pareto exponent estimated directly from individual observations above x_t.,dimensionless,trusted PNAD direct MLE
 table_02_pareto_annual.csv,pareto_alpha_mle_fisher_se,Fisher-information standard error of the direct Pareto MLE exponent.,dimensionless,trusted PNAD direct MLE
-table_02_pareto_annual.csv,pareto_alpha_mle_bootstrap_se,Bootstrap standard error of the direct Pareto MLE exponent.,dimensionless,1000-replicate trusted PNAD bootstrap
+table_02_pareto_annual.csv,pareto_alpha_mle_bootstrap_se,Bootstrap standard error of the direct Pareto MLE exponent.,dimensionless,trusted PNAD bootstrap
 table_02_pareto_annual.csv,pareto_beta_mle_continuity,Pareto amplitude implied by continuity with the Gompertz curve at x_t.,CCDF-percent scale,trusted PNAD continuity condition
-table_02_pareto_annual.csv,pareto_beta_mle_bootstrap_se,Bootstrap standard error of the continuity Pareto amplitude.,CCDF-percent scale,1000-replicate trusted PNAD bootstrap
+table_02_pareto_annual.csv,pareto_beta_mle_bootstrap_se,Bootstrap standard error of the continuity Pareto amplitude.,CCDF-percent scale,trusted PNAD bootstrap
 table_02_pareto_annual.csv,pareto_mle_r2,Log-space R^2 diagnostic for the direct-MLE Pareto curve.,dimensionless,trusted PNAD regime curves
 table_02_pareto_annual.csv,pareto_mle_correlation_coefficient,Positive square root of the MLE-curve R^2 diagnostic.,dimensionless,derived from trusted PNAD regime curves
 table_02_pareto_annual.csv,pareto_population_pct,Share of positive-income observations in the Pareto regime.,%,trusted PNAD regime fit

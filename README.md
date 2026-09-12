@@ -1,6 +1,6 @@
 # PNAD Longitudinal Income Research
 
-This repository contains the reproducible computational workflow used to study the Brazilian income distribution with PNAD and PNAD Contínua data. The available longitudinal series spans 1976–2025 and is organized into explicit metadata, refined-data, trusted-data, analytical, and publication stages.
+This repository contains the reproducible computational workflow used to study the Brazilian income distribution with PNAD and PNAD Contínua data. The available longitudinal series spans 1976–2025 and is organized into explicit metadata, refined-data, trusted-data, analytical, cross-year analytics, and publication stages.
 
 ## Scientific pipeline
 
@@ -10,11 +10,13 @@ This repository contains the reproducible computational workflow used to study t
 | 01 | `src/stage_01_build_refined_pnad.py` | Harmonizes local raw PNAD records into annual income samples | `data/refined/pnad_refined_YYYY.parquet` |
 | 02 | `src/stage_02_build_trusted_pnad.py` | Applies deterministic upper-tail treatment and validation | `data/trusted/pnad_trusted_YYYY.parquet` and audit tables |
 | 03 | `src/stage_03_pnad_analysis.py` | Runs descriptive, inequality, CCDF and Gompertz–Pareto analyses on refined and trusted data | analytical CSV and PNG assets |
-| 05 | `src/stage_05_moura_ribeiro.py` | Builds the Moura Jr.–Ribeiro replication/extension from trusted Stage-03 outputs | publication figures and intermediate paper metrics |
-| — | `src/paper_figures.py` | Finalizes publication figures | `assets/figures_paper/` |
-| — | `src/paper_tables.py` | Builds the canonical publication tables | `assets/tables_paper/` |
+| 04 | `src/stage_04_build_analytic_pnad.py` | Concatenates all trusted annual samples into one validated cross-year Parquet | `data/analytics/pnad_analytics_all.parquet` |
+| 05 | `src/stage_05_moura_ribeiro.py` | Builds the trusted-data publication figures and bootstrap uncertainty products | `assets/figures_paper/` and temporary publication metrics |
+| — | `src/paper_tables.py` | Builds the four canonical publication tables directly from canonical trusted Stage-03 outputs | `assets/tables_paper/` |
 
 The original fixed-width PNAD microdata are local files of approximately 20 GB and are not versioned under `data/raw/`. The persisted `data/refined/` layer is therefore the normal reproducible starting point inside GitHub. Stage 01 documents the local raw-to-refined reconstruction when the original files are available.
+
+The notebooks under `notebook/` are retained intentionally as historical and pedagogical artifacts. The authoritative implementation of the current workflow is the source code under `src/`.
 
 ## Stage 03 methodology
 
@@ -49,6 +51,14 @@ $$
 
 when the boundaries differ. Pareto parameters are then estimated by both least-squares fitting and direct maximum likelihood on individual observations satisfying $x_i\ge x_t$.
 
+## Stage 04 analytics dataset
+
+Stage 04 reads only `data/trusted/pnad_trusted_YYYY.parquet`. It performs no new statistical transformation. It validates year consistency, finite non-negative trusted income and annual schema compatibility, then writes the vertically concatenated dataset to
+
+`data/analytics/pnad_analytics_all.parquet`.
+
+Each survey year is stored as one Parquet row group, preserving efficient year-level filtering while providing a single file for longitudinal and cross-year analyses.
+
 ## Assets
 
 Current generated outputs are organized as follows:
@@ -59,9 +69,8 @@ Current generated outputs are organized as follows:
 | `assets/figures_analysis_trusted/` | PNG analytical figures from trusted data |
 | `assets/tables_analysis_refined/` | Refined analytical CSV tables |
 | `assets/tables_analysis_trusted/` | Trusted audit and analytical CSV tables |
-| `assets/figures_paper/` | 300 dpi PNG publication figures |
+| `assets/figures_paper/` | 300 dpi trusted-data publication figures |
 | `assets/tables_paper/` | Four canonical publication CSV tables |
-
 
 ## Dependencies
 
@@ -78,14 +87,14 @@ When refined data are already available, the main empirical workflow is:
 ```bash
 python src/stage_02_build_trusted_pnad.py
 python src/stage_03_pnad_analysis.py
+python src/stage_04_build_analytic_pnad.py
 ```
 
 Publication assets are generated from the trusted analytical outputs with:
 
 ```bash
 python src/stage_05_moura_ribeiro.py
-python src/paper_figures.py
 python src/paper_tables.py
 ```
 
-The authoritative implementation is the source code under `src`, and the persistent numerical and graphical outputs are stored under `assets`.
+The authoritative implementation is the source code under `src`, and the persistent numerical, graphical and analytical data products are stored under `assets/` and `data/analytics/`.

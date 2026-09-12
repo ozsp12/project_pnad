@@ -117,6 +117,8 @@ def save(fig, stem, top=0.985):
 
 
 def grid(n):
+    if n > MAX_PANELS:
+        raise ValueError(f"At most {MAX_PANELS} panels are allowed per image.")
     rows = min(4, math.ceil(n / 3))
     return plt.subplots(rows, 3, figsize=PAGE_SIZE, squeeze=False)
 
@@ -208,14 +210,19 @@ def r2_log(obs, fit):
 
 
 def plot_histograms(years, meta):
-    mi = meta.set_index("year")
     def draw(ax, year):
-        x = adjusted_income(year, mi); lo, hi = x.min(), x.max()
-        bins = np.geomspace(lo, hi, 45) if lo > 0 and hi > lo else 60
-        ax.hist(x, bins=bins, histtype="step", color="0.10", lw=1.0)
-        if not isinstance(bins, int): ax.set_xscale("log")
-        ax.set_yscale("log"); style(ax, True)
-    return family(years, "histograms", draw, "Adjusted individual income (2025 US$)", "Observations")
+        x = income(year, positive=False)
+        x = x[x >= 0]
+        counts, edges = np.histogram(x, bins=100)
+        ax.bar(
+            edges[:-1], counts, width=np.diff(edges), align="edge",
+            facecolor="white", edgecolor="0.12", linewidth=0.35,
+        )
+        ax.set_yscale("log")
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.grid(True, axis="y", which="major", color="0.90", lw=0.42)
+    return family(years, "histograms", draw, "Income", "Frequency (log)")
 
 
 def plot_income_statistics(stats, years, meta):
@@ -247,14 +254,27 @@ def plot_ccdf(curves, annual, years):
 def plot_lorenz(lorenz,stats,years):
     si=stats.set_index("year")
     def draw(ax,year):
-        d=lorenz[lorenz.year==year];r=si.loc[year];p=100*d.population_share.to_numpy(float);L=100*d.income_share.to_numpy(float)
+        d=lorenz[lorenz.year==year];r=si.loc[year]
+        p_unit=d.population_share.to_numpy(float);L_unit=d.income_share.to_numpy(float)
+        p=100*p_unit;L=100*L_unit
+        aulc=float(np.trapezoid(L_unit,p_unit))
         ax.fill_between(p,0,L,color="0.95");ax.plot(p,L,color="0.08",lw=1.35,label="Lorenz curve")
         ax.plot([0,100],[0,100],color="0.50",ls="--",lw=0.9,label="Equality line")
         k=100*float(r["Kolkata"]);q=100-k;ax.plot([k,k],[0,q],color="0.35",ls=":",lw=0.85,label="Kolkata construction");ax.plot([0,k],[q,q],color="0.35",ls=":",lw=0.85)
         i=int(np.argmax(p-L));ax.plot([p[i],p[i]],[L[i],p[i]],color="0.25",ls="-.",lw=0.85,label="Pietra construction")
+        ax.plot([],[],color="none",label="AULC = area under Lorenz curve")
         ax.set_xlim(0,100);ax.set_ylim(0,100);ax.set_aspect("equal");style(ax)
-        annotation(ax,"\n".join([rf"$G={float(r['Gini']):.3f}$",rf"$k={k:.2f}\%$",rf"$Z={float(r['Zanardi']):.3f}$",rf"$P={100*float(r['Pietra']):.2f}\%$"]),0.96,0.05,"right")
-    return family(years,"lorenz_geometry",draw,"Cumulative population (%)","Cumulative income (%)",True,4)
+        text="\n".join([
+            f"Gini     = {float(r['Gini']):.3f}",
+            f"Kolkata  = {k:.2f}%",
+            f"Zanardi  = {float(r['Zanardi']):.3f}",
+            f"Pietra   = {100.0*float(r['Pietra']):.2f}%",
+            f"AULC     = {aulc:.3f}",
+        ])
+        ax.text(0.04,0.96,text,transform=ax.transAxes,ha="left",va="top",fontsize=6.6,
+                fontfamily="monospace",linespacing=1.18,zorder=10,
+                bbox=dict(boxstyle="round,pad=0.25",facecolor="white",edgecolor="0.55",alpha=0.94))
+    return family(years,"lorenz_geometry",draw,"Cumulative population (%)","Cumulative income (%)",True,3)
 
 
 def exponential_fits(curves,annual):

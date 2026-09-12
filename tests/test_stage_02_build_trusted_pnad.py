@@ -30,7 +30,7 @@ def test_compute_log_mad_threshold_matches_definition():
 
 
 def test_compute_log_mad_threshold_uses_zero_dispersion_cutoff():
-    income = np.array([5.0, 5.0, 5.0])
+    income = np.array([5.0])
 
     result = stage_02.compute_log_mad_threshold(income)
 

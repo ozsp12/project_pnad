@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "src/stage_03_pnad_analysis.py"
+      - "src/stage_04_build_analytic_pnad.py"
       - "data/metadata/df_metadata.xlsx"
       - "data/auxiliary/**"
       - "data/refined/**"
@@ -61,12 +62,16 @@ jobs:
           MPLBACKEND: Agg
         run: python src/stage_03_pnad_analysis.py
 
-      - name: Commit analytical assets
+      - name: Build concatenated trusted analytics parquet
+        run: python src/stage_04_build_analytic_pnad.py
+
+      - name: Commit analytical assets and analytics dataset
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A assets/figures_analysis_trusted assets/figures_analysis_refined
           git add -A assets/tables_analysis_trusted assets/tables_analysis_refined
+          git add -A data/analytics
           if git diff --cached --quiet; then
             echo "No analysis changes to commit."
           else

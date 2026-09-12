@@ -1,6 +1,6 @@
 # PNAD Longitudinal Income Research
 
-This repository contains the reproducible computational workflow used to study the Brazilian income distribution with PNAD and PNAD Contínua data. The longitudinal metadata span 1976–2025, including years without a survey, and the empirical workflow is organized into explicit metadata, refined-data, trusted-data, analytical, cross-year analytics, and publication stages.
+This repository contains the reproducible computational workflow used to study the Brazilian income distribution with PNAD and PNAD Contínua data. Longitudinal metadata span 1976–2025, including years without a survey. The workflow separates data construction, statistical analysis, cross-year analytics, scientific reproduction diagnostics, and publication assets.
 
 ## Scientific pipeline
 
@@ -10,108 +10,96 @@ This repository contains the reproducible computational workflow used to study t
 | 01 | `src/stage_01_build_refined_pnad.py` | Harmonizes local raw PNAD records into annual income samples | `data/refined/pnad_refined_YYYY.parquet` |
 | 02 | `src/stage_02_build_trusted_pnad.py` | Applies deterministic upper-tail treatment and validation | `data/trusted/pnad_trusted_YYYY.parquet` and audit tables |
 | 03 | `src/stage_03_pnad_analysis.py` | Runs descriptive, inequality, CCDF, and Gompertz–Pareto analyses on refined and trusted data | analytical CSV and PNG assets |
-| 04 | `src/stage_04_build_analytic_pnad.py` | Concatenates all trusted annual samples into one validated cross-year Parquet | `data/analytics/pnad_analytics_all.parquet` |
-| 05 | `src/stage_05_moura_ribeiro.py` | Builds trusted-data publication figures and parameter-uncertainty products | `assets/figures_paper/` and bootstrap metrics |
-| — | `src/paper_tables.py` | Builds the four canonical publication tables from current trusted Stage-03 outputs | `assets/tables_paper/` |
+| 03 | `src/stage_03_moura_ribeiro_evidence.py` | Reproduces Moura Jr.–Ribeiro (2009) tests, uncertainties, and evidence for refined and trusted layers | bootstrap, reproduction, and evidence CSVs |
+| 04 | `src/stage_04_build_analytic_pnad.py` | Concatenates trusted annual samples into one validated cross-year Parquet | `data/analytics/pnad_analytics_all.parquet` |
+| 05 | `src/stage_05_publication.py` | Builds the complete paper-facing figure and table set from persisted Stage-03 results | `assets/figures_paper/` and `assets/tables_paper/` |
 
-The original fixed-width PNAD microdata are local files of approximately 20 GB and are not versioned under `data/raw/`. The persisted `data/refined/` layer is therefore the normal reproducible starting point inside GitHub. Stage 01 documents the local raw-to-refined reconstruction when the original files are available.
+The original fixed-width PNAD microdata are local files of approximately 20 GB and are not versioned under `data/raw/`. The persisted `data/refined/` layer is therefore the normal reproducible starting point inside GitHub. The notebooks under `notebook/` are intentionally retained as historical and pedagogical artifacts; source code under `src/` is authoritative.
 
-The notebooks under `notebook/` are retained intentionally as historical and pedagogical artifacts. The authoritative implementation of the current workflow is the source code under `src/`.
+## Stage 03 methodology and evidence
 
-## Stage 03 methodology
+Stage 03 applies the same analytical pipeline independently to `refined` and `trusted`. It includes descriptive statistics, geometric bins with ratio `r = 1.10`, empirical CCDFs, Lorenz geometry, inequality indices, top-income shares, external Gini validation, and Gompertz–Pareto regime estimation.
 
-Stage 03 is implemented in a single module, `src/stage_03_pnad_analysis.py`. It runs the same analytical pipeline independently on the refined and trusted layers and includes:
-
-- annual descriptive statistics and diagnostics;
-- histograms and geometric bins with ratio `r = 1.10`;
-- empirical CCDFs;
-- Lorenz curves and inequality geometry;
-- Gini, Pietra, Kolkata, and Zanardi indices;
-- top-income shares;
-- external Gini comparison with IPEA and World Bank series;
-- Gompertz–Pareto regime estimation.
-
-For the Gompertz branch, the empirical CCDF is expressed in percent and linearized as
+The current Gompertz model fixes
 
 $$
-\ln[\ln F(x)].
+A=\ln[\ln(100)]
 $$
 
-The normalization parameter is fixed at
+and estimates only `B` by least squares. A free-intercept fit is retained as a diagnostic and for comparison with the 2009 methodology. Pareto parameters are estimated by log-log least squares and direct maximum likelihood after determining the transition threshold.
 
-$$
-A=\ln[\ln(100)],
-$$
+`stage_03_moura_ribeiro_evidence.py` extends this analytical layer with the statistical tests required to reproduce Moura Jr. and Ribeiro, *Eur. Phys. J. B* **67**, 101–120 (2009). For both refined and trusted data it generates:
 
-and only `B` is estimated by least squares. The empirical boundaries `x_{G,max}` and `x_{P,min}` are identified separately, after which
+- fixed-`A` Gompertz bootstrap uncertainty for `B`;
+- free-intercept Gompertz bootstrap diagnostics for `A` and `B`;
+- Pareto LSF bootstrap uncertainties;
+- direct Pareto MLE bootstrap uncertainties;
+- the likelihood-width uncertainty for the MLE exponent following the 2009 prescription;
+- exponential-versus-Gompertz diagnostics;
+- annual reproduction quantities for the four published tables;
+- long-form evidence rows with criteria, support status, published values, and differences from the 2009 results.
 
-$$
-x_t=\frac{x_{G,\max}+x_{P,\min}}{2}
-$$
+The published reference values are persisted in `data/auxiliary/moura_ribeiro_2009_reference.csv`. Stage 03 writes the same evidence products to both `assets/tables_analysis_refined/` and `assets/tables_analysis_trusted/`:
 
-when the boundaries differ. Pareto parameters are then estimated by both least-squares fitting and direct maximum likelihood on individual observations satisfying $x_i\ge x_t$.
+- `moura_ribeiro_bootstrap_annual.csv`;
+- `moura_ribeiro_reproduction_annual.csv`;
+- `moura_ribeiro_evidence_annual.csv`.
 
 ## Stage 04 analytics dataset
 
-Stage 04 reads only `data/trusted/pnad_trusted_YYYY.parquet`. It performs no new statistical transformation. It validates year consistency, finite non-negative trusted income, and annual schema compatibility, then writes the vertically concatenated dataset to `data/analytics/pnad_analytics_all.parquet`.
-
-Each survey year is stored as one Parquet row group, preserving efficient year-level filtering while providing a single file for longitudinal and cross-year analyses. Stage 04 is automated independently from Stage 03, so rebuilding the consolidated analytics dataset does not require rerunning the empirical analysis.
+Stage 04 reads only `data/trusted/pnad_trusted_YYYY.parquet`. It introduces no statistical transformation: it validates year consistency, finite non-negative income and schema compatibility, then writes `data/analytics/pnad_analytics_all.parquet`. Each survey year occupies one Parquet row group. Stage 04 has an independent workflow and does not require Stage 03 to be rerun.
 
 ## Stage 05 publication layer
 
-Stage 05 consumes canonical trusted Stage-03 outputs and trusted annual microdata. Its Gompertz uncertainty calculation preserves the model normalization assumption: $A=\ln[\ln(100)]$ remains fixed in every bootstrap resample, and only $B$ is re-estimated. Pareto least-squares and direct-MLE uncertainty calculations are retained separately.
+Stage 05 is presentation-only. `stage_05_publication.py` consumes persisted Stage-03 scientific results and orchestrates publication figures plus the canonical tables. `stage_05_moura_ribeiro.py` contains the figure routines, while `stage_05_tables.py` consolidates the paper-facing tables. Statistical bootstrap and likelihood calculations no longer belong to Stage 05.
+
+The paper table set contains:
+
+- `table_01_gompertz_annual.csv`;
+- `table_02_pareto_annual.csv`;
+- `table_03_economic_inequality_annual.csv`;
+- `table_04_metadata.csv`;
+- `table_05_moura_ribeiro_evidence.csv`.
+
+Because the current model fixes `A`, Table 01 does not report a standard error for fixed `A`. The free-intercept `A` and its bootstrap uncertainty are retained explicitly as the 2009-method diagnostic. Table 05 combines refined and trusted reproduction evidence in a single paper-facing table.
 
 ## Automated workflows
 
-The repository separates the main automated products by responsibility:
-
-- `Run PNAD analysis` executes Stage 03 and commits only analytical tables and figures;
-- `Build PNAD analytics dataset` executes Stage 04 independently and commits only `data/analytics/`;
-- `Build paper assets` executes Stage 05 and `paper_tables.py`, validates publication figures and tables, and commits the canonical paper assets;
+- `Run PNAD analysis` executes the canonical Stage-03 analysis and Moura–Ribeiro evidence generation, then commits analytical assets.
+- `Build PNAD analytics dataset` executes Stage 04 independently and commits only `data/analytics/`.
+- `Build paper assets` ensures Stage-03 reproduction evidence exists, executes the canonical Stage-05 publication entry point, validates figures/tables, and commits paper assets on `main`.
 - `Unit tests` compiles `src/` and runs the complete `pytest` suite.
-
-This separation prevents a Stage-04-only change from forcing a complete Stage-03 rerun.
 
 ## Assets
 
-Current generated outputs are organized as follows:
-
 | Directory | Content |
 | --- | --- |
-| `assets/figures_analysis_refined/` | PNG analytical figures from refined data |
-| `assets/figures_analysis_trusted/` | PNG analytical figures from trusted data |
-| `assets/tables_analysis_refined/` | Refined analytical CSV tables |
-| `assets/tables_analysis_trusted/` | Trusted audit and analytical CSV tables |
-| `assets/figures_paper/` | 300 dpi trusted-data publication figures |
-| `assets/tables_paper/` | Four canonical publication CSV tables |
+| `assets/figures_analysis_refined/` | analytical figures from refined data |
+| `assets/figures_analysis_trusted/` | analytical figures from trusted data |
+| `assets/tables_analysis_refined/` | refined analytical and reproduction-evidence CSVs |
+| `assets/tables_analysis_trusted/` | trusted analytical and reproduction-evidence CSVs |
+| `assets/figures_paper/` | 300 dpi paper figures |
+| `assets/tables_paper/` | five canonical paper-facing CSV tables |
 
-## Dependencies and tests
+## Dependencies and execution
 
-The repository uses one dependency specification, `requirements.txt`. All direct runtime and test dependencies are pinned to explicit versions so the same environment definition is used locally and in GitHub Actions.
+All direct runtime and test dependencies are pinned in `requirements.txt`.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-The unit-test suite now covers metadata construction in Stage 00, raw-record parsing and harmonization in Stage 01, trusted-data trimming and invariants in Stage 02, Stage-03 mathematical and Gompertz–Pareto routines, Stage-04 concatenation, and the publication figure/table layer.
-
-## Execution
-
-When refined data are already available, the main empirical workflow is:
+With refined data already available, the analytical workflow is:
 
 ```bash
 python src/stage_02_build_trusted_pnad.py
 python src/stage_03_pnad_analysis.py
+python src/stage_03_moura_ribeiro_evidence.py
 python src/stage_04_build_analytic_pnad.py
 ```
 
-Stage 04 may also be run independently whenever only the consolidated trusted analytics file must be rebuilt.
-
-Publication assets are generated from the trusted analytical outputs with:
+Stage 04 may be executed independently. Publication assets are generated with one canonical command:
 
 ```bash
-python src/stage_05_moura_ribeiro.py
-python src/paper_tables.py
+python src/stage_05_publication.py
 ```
-
-The authoritative implementation is the source code under `src`, and the persistent numerical, graphical, and analytical data products are stored under `assets/` and `data/analytics/`.

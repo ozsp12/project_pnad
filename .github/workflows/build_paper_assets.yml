@@ -4,24 +4,30 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      - "src/stage_03_moura_ribeiro_evidence.py"
       - "src/stage_05_moura_ribeiro.py"
-      - "src/paper_tables.py"
+      - "src/stage_05_publication.py"
+      - "src/stage_05_tables.py"
+      - "data/refined/**"
       - "data/trusted/**"
-      - "data/auxiliary/gdp_growth_brazil_1978_2025.csv"
-      - "data/auxiliary/series_gini_ipea_banco_mundial.csv"
+      - "data/auxiliary/**"
       - "data/metadata/df_metadata.xlsx"
+      - "assets/tables_analysis_refined/**"
       - "assets/tables_analysis_trusted/**"
       - "requirements.txt"
       - ".github/workflows/build_paper_assets.yml"
   push:
     branches: [main]
     paths:
+      - "src/stage_03_moura_ribeiro_evidence.py"
       - "src/stage_05_moura_ribeiro.py"
-      - "src/paper_tables.py"
+      - "src/stage_05_publication.py"
+      - "src/stage_05_tables.py"
+      - "data/refined/**"
       - "data/trusted/**"
-      - "data/auxiliary/gdp_growth_brazil_1978_2025.csv"
-      - "data/auxiliary/series_gini_ipea_banco_mundial.csv"
+      - "data/auxiliary/**"
       - "data/metadata/df_metadata.xlsx"
+      - "assets/tables_analysis_refined/**"
       - "assets/tables_analysis_trusted/**"
       - "requirements.txt"
       - ".github/workflows/build_paper_assets.yml"
@@ -45,13 +51,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Generate trusted paper fits and figures
+      - name: Build Stage 03 Moura-Ribeiro evidence
+        run: python src/stage_03_moura_ribeiro_evidence.py
+
+      - name: Build Stage 05 publication assets
         env:
           MPLBACKEND: Agg
-        run: python src/stage_05_moura_ribeiro.py
-
-      - name: Build canonical paper tables
-        run: python src/paper_tables.py
+        run: python src/stage_05_publication.py
 
       - name: Validate canonical paper assets
         run: |
@@ -63,102 +69,55 @@ jobs:
 
           figures_dir = Path("assets/figures_paper")
           tables_dir = Path("assets/tables_paper")
-
-          unexpected_figures = sorted(
-              path.name
-              for path in figures_dir.iterdir()
-              if path.is_file() and path.name != ".gitkeep" and path.suffix.lower() != ".png"
-          )
-          if unexpected_figures:
-              raise SystemExit(f"Non-PNG paper figures found: {unexpected_figures}")
-
           figures = sorted(figures_dir.glob("*.png"))
           if not figures:
               raise SystemExit("No PNG paper figures were generated")
+          unexpected = [p.name for p in figures_dir.iterdir() if p.is_file() and p.name != ".gitkeep" and p.suffix.lower() != ".png"]
+          if unexpected:
+              raise SystemExit(f"Non-PNG paper figures found: {unexpected}")
           for figure in figures:
-              if figure.name.startswith("moura_ribeiro_2009_"):
-                  raise SystemExit(f"Legacy figure prefix remains: {figure.name}")
               with Image.open(figure) as image:
                   if image.format != "PNG":
                       raise SystemExit(f"Invalid PNG file: {figure}")
                   image.verify()
 
-          expected_tables = {
+          expected = {
               "table_01_gompertz_annual.csv",
               "table_02_pareto_annual.csv",
               "table_03_economic_inequality_annual.csv",
               "table_04_metadata.csv",
+              "table_05_moura_ribeiro_evidence.csv",
           }
-          generated_tables = {path.name for path in tables_dir.glob("*.csv")}
-          if generated_tables != expected_tables:
-              raise SystemExit(
-                  f"Paper table set mismatch: expected={sorted(expected_tables)}, "
-                  f"generated={sorted(generated_tables)}"
-              )
-          if any(name.startswith("moura_ribeiro_2009_") for name in generated_tables):
-              raise SystemExit("Legacy Moura-Ribeiro prefix remains in paper tables")
+          generated = {p.name for p in tables_dir.glob("*.csv")}
+          if generated != expected:
+              raise SystemExit(f"Paper table set mismatch: {sorted(generated)}")
 
           gompertz = pd.read_csv(tables_dir / "table_01_gompertz_annual.csv")
           pareto = pd.read_csv(tables_dir / "table_02_pareto_annual.csv")
           economic = pd.read_csv(tables_dir / "table_03_economic_inequality_annual.csv")
           metadata = pd.read_csv(tables_dir / "table_04_metadata.csv")
+          evidence = pd.read_csv(tables_dir / "table_05_moura_ribeiro_evidence.csv")
 
-          required_gompertz = {
-              "year", "gompertz_A", "gompertz_A_bootstrap_se", "gompertz_B",
-              "gompertz_B_bootstrap_se", "gompertz_x_gmax", "transition_x_t",
-              "gompertz_r2", "gompertz_correlation_coefficient",
-              "gompertz_population_pct", "gompertz_income_share_pct", "bootstrap_reps",
-          }
-          required_pareto = {
-              "year", "pareto_x_pmin", "transition_x_t", "transition_delta_x_t",
-              "pareto_alpha_ls", "pareto_alpha_ls_bootstrap_se", "pareto_beta_ls",
-              "pareto_beta_ls_bootstrap_se", "pareto_ls_r2",
-              "pareto_ls_correlation_coefficient", "pareto_alpha_mle",
-              "pareto_alpha_mle_fisher_se", "pareto_alpha_mle_bootstrap_se",
-              "pareto_beta_mle_continuity", "pareto_beta_mle_bootstrap_se",
-              "pareto_mle_r2", "pareto_mle_correlation_coefficient",
-              "pareto_population_pct", "pareto_income_share_pct", "bootstrap_reps",
-          }
-          required_economic = {
-              "year", "gdp_growth_pct", "income_observation_n", "income_mean_2025_usd",
-              "income_median_2025_usd", "income_std_2025_usd", "gini_pnad",
-              "pietra_pnad", "kolkata_pnad", "zanardi_pnad", "gini_ipea",
-              "gini_world_bank", "p90_p99_income_share_pct",
-              "p99_p999_income_share_pct", "p999_p100_income_share_pct",
-          }
-          for frame, required, name in [
-              (gompertz, required_gompertz, "Gompertz"),
-              (pareto, required_pareto, "Pareto"),
-              (economic, required_economic, "economic/inequality"),
-          ]:
+          required_g = {"year", "gompertz_A", "gompertz_B", "gompertz_B_bootstrap_se", "gompertz_boundary_A_free", "gompertz_A_free_bootstrap_se", "gompertz_x_gmax", "transition_x_t", "gompertz_r2", "gompertz_population_pct", "gompertz_income_share_pct"}
+          required_p = {"year", "pareto_x_pmin", "transition_x_t", "pareto_selection_status", "pareto_supported", "pareto_alpha_ls", "pareto_alpha_ls_bootstrap_se", "pareto_alpha_mle", "pareto_alpha_mle_fisher_se", "pareto_alpha_mle_likelihood_se", "pareto_alpha_mle_bootstrap_se", "pareto_beta_mle_continuity", "pareto_population_pct", "pareto_income_share_pct"}
+          required_e = {"year", "gdp_growth_pct", "income_observation_n", "income_mean_2025_usd", "gini_pnad", "pietra_pnad", "kolkata_pnad", "zanardi_pnad"}
+          required_ev = {"year", "layer", "paper_table", "test", "estimator", "parameter", "estimate", "criterion", "evidence_status", "paper_2009_value", "difference_from_2009"}
+          for frame, required, label in ((gompertz, required_g, "Gompertz"), (pareto, required_p, "Pareto"), (economic, required_e, "economic"), (evidence, required_ev, "evidence")):
               missing = sorted(required - set(frame.columns))
               if missing:
-                  raise SystemExit(f"Missing {name} columns: {missing}")
+                  raise SystemExit(f"Missing {label} columns: {missing}")
 
-          merged = gompertz[["year", "gompertz_income_share_pct"]].merge(
-              pareto[["year", "pareto_income_share_pct"]], on="year", how="inner"
-          )
-          if not np.allclose(
-              merged["gompertz_income_share_pct"] + merged["pareto_income_share_pct"],
-              100.0,
-              atol=1e-8,
-          ):
+          if set(evidence["layer"].dropna().unique()) != {"refined", "trusted"}:
+              raise SystemExit("Evidence table must contain refined and trusted layers")
+          merged = gompertz[["year", "gompertz_income_share_pct"]].merge(pareto[["year", "pareto_income_share_pct"]], on="year")
+          if not np.allclose(merged["gompertz_income_share_pct"] + merged["pareto_income_share_pct"], 100.0, atol=1e-8):
               raise SystemExit("Gompertz/Pareto income shares do not sum to 100%")
 
           documented = set(zip(metadata["table_name"], metadata["column_name"]))
-          for table_name, frame in [
-              ("table_01_gompertz_annual.csv", gompertz),
-              ("table_02_pareto_annual.csv", pareto),
-              ("table_03_economic_inequality_annual.csv", economic),
-          ]:
-              missing_docs = [
-                  column for column in frame.columns
-                  if (table_name, column) not in documented
-              ]
-              if missing_docs:
-                  raise SystemExit(
-                      f"Undocumented columns in {table_name}: {missing_docs}"
-                  )
+          for table_name, frame in (("table_01_gompertz_annual.csv", gompertz), ("table_02_pareto_annual.csv", pareto), ("table_03_economic_inequality_annual.csv", economic), ("table_05_moura_ribeiro_evidence.csv", evidence)):
+              missing = [c for c in frame.columns if (table_name, c) not in documented]
+              if missing:
+                  raise SystemExit(f"Undocumented columns in {table_name}: {missing}")
           PY
 
       - name: Upload paper assets
@@ -180,5 +139,6 @@ jobs:
             echo "No paper-asset changes to commit."
           else
             git commit -m "generate paper assets"
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi

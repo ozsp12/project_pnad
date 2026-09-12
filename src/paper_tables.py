@@ -2,10 +2,9 @@
 
 The paper-facing table layer is intentionally small: one annual Gompertz table,
 one annual Pareto table, one annual economic/inequality table, and one schema
-metadata table. Stage 05 may create intermediate CSVs while fitting/plotting;
-this module consumes the trusted analysis products and then removes those
-intermediate paper CSVs so ``assets/tables_paper`` exposes only the four
-canonical publication tables.
+metadata table. The module consumes the canonical trusted Stage-03 products
+directly and removes intermediate paper CSVs before persisting the four final
+tables.
 """
 from __future__ import annotations
 
@@ -23,9 +22,10 @@ METADATA_PATH = REPO_ROOT / "data" / "metadata" / "df_metadata.xlsx"
 GINI_REFERENCE_PATH = REPO_ROOT / "data" / "auxiliary" / "series_gini_ipea_banco_mundial.csv"
 GDP_PATH = REPO_ROOT / "data" / "auxiliary" / "gdp_growth_brazil_1978_2025.csv"
 
-STATS_PATH = TABLES_ANALYSIS / "trusted_analysis_statistics_annual.csv"
-ANNUAL_PATH = TABLES_ANALYSIS / "trusted_analysis_gompertz_pareto_annual.csv"
-CURVES_PATH = TABLES_ANALYSIS / "trusted_analysis_regime_curves.csv"
+STATS_PATH = TABLES_ANALYSIS / "statistics_annual.csv"
+GOMPERTZ_PATH = TABLES_ANALYSIS / "gompertz_annual.csv"
+PARETO_PATH = TABLES_ANALYSIS / "pareto_annual.csv"
+CURVES_PATH = TABLES_ANALYSIS / "gompertz_pareto_curves.csv"
 BOOTSTRAP_PATH = TABLES_PAPER / "moura_ribeiro_2009_bootstrap_uncertainties_trusted_1978_2025.csv"
 
 START_YEAR = 1978
@@ -35,7 +35,12 @@ GOMPERTZ_OUT = TABLES_PAPER / "table_01_gompertz_annual.csv"
 PARETO_OUT = TABLES_PAPER / "table_02_pareto_annual.csv"
 ECONOMIC_OUT = TABLES_PAPER / "table_03_economic_inequality_annual.csv"
 METADATA_OUT = TABLES_PAPER / "table_04_metadata.csv"
-CANONICAL_TABLES = {GOMPERTZ_OUT.name, PARETO_OUT.name, ECONOMIC_OUT.name, METADATA_OUT.name}
+CANONICAL_TABLES = {
+    GOMPERTZ_OUT.name,
+    PARETO_OUT.name,
+    ECONOMIC_OUT.name,
+    METADATA_OUT.name,
+}
 
 
 def _year_filter(frame: pd.DataFrame) -> pd.DataFrame:
@@ -61,7 +66,11 @@ def _load_metadata() -> pd.DataFrame:
         if not finite.empty and finite.max() > 1.5:
             gini[column] = gini[column] / 100.0
 
-    return metadata.merge(gini[["year", "gini_ipea", "gini_world_bank"]], on="year", how="left")
+    return metadata.merge(
+        gini[["year", "gini_ipea", "gini_world_bank"]],
+        on="year",
+        how="left",
+    )
 
 
 def _load_adjusted_income(year: int, metadata_index: pd.DataFrame) -> np.ndarray:
@@ -83,7 +92,11 @@ def _load_adjusted_income(year: int, metadata_index: pd.DataFrame) -> np.ndarray
     return income / exchange * inflation
 
 
-def _band_record(values: np.ndarray, total_income: float, prefix: str) -> dict[str, float | int]:
+def _band_record(
+    values: np.ndarray,
+    total_income: float,
+    prefix: str,
+) -> dict[str, float | int]:
     if values.size == 0:
         return {
             f"{prefix}_population_n": 0,
@@ -97,12 +110,17 @@ def _band_record(values: np.ndarray, total_income: float, prefix: str) -> dict[s
         f"{prefix}_income_share_pct": 100.0 * float(values.sum()) / total_income,
         f"{prefix}_mean_income_2025_usd": float(np.mean(values)),
         f"{prefix}_median_income_2025_usd": float(np.median(values)),
-        f"{prefix}_std_income_2025_usd": float(np.std(values, ddof=1)) if values.size > 1 else np.nan,
+        f"{prefix}_std_income_2025_usd": (
+            float(np.std(values, ddof=1)) if values.size > 1 else np.nan
+        ),
     }
 
 
 def build_income_summaries(
-    years: list[int], annual: pd.DataFrame, stats: pd.DataFrame, metadata: pd.DataFrame
+    years: list[int],
+    annual: pd.DataFrame,
+    stats: pd.DataFrame,
+    metadata: pd.DataFrame,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Build economic rows and Gompertz/Pareto income shares from trusted microdata."""
     annual_index = annual.set_index("year")
@@ -117,8 +135,13 @@ def build_income_summaries(
     gdp_index = gdp.set_index("year")
 
     for year in years:
-        if year not in annual_index.index or year not in stats_index.index or year not in metadata_index.index:
+        if (
+            year not in annual_index.index
+            or year not in stats_index.index
+            or year not in metadata_index.index
+        ):
             continue
+
         adjusted = np.sort(_load_adjusted_income(year, metadata_index))
         total = float(adjusted.sum())
         if total <= 0:
@@ -148,17 +171,31 @@ def build_income_summaries(
         metadata_row = metadata_index.loc[year]
         row: dict[str, float | int] = {
             "year": year,
-            "gdp_growth_pct": float(gdp_index.loc[year, "gdp_growth_pct"]) if year in gdp_index.index else np.nan,
+            "gdp_growth_pct": (
+                float(gdp_index.loc[year, "gdp_growth_pct"])
+                if year in gdp_index.index
+                else np.nan
+            ),
             "income_observation_n": int(n),
             "income_mean_2025_usd": float(np.mean(adjusted)),
             "income_median_2025_usd": float(np.median(adjusted)),
-            "income_std_2025_usd": float(np.std(adjusted, ddof=1)) if n > 1 else np.nan,
+            "income_std_2025_usd": (
+                float(np.std(adjusted, ddof=1)) if n > 1 else np.nan
+            ),
             "gini_pnad": float(stats_row["Gini"]),
             "pietra_pnad": float(stats_row["Pietra"]),
             "kolkata_pnad": float(stats_row["Kolkata"]),
             "zanardi_pnad": float(stats_row["Zanardi"]),
-            "gini_ipea": float(metadata_row["gini_ipea"]) if pd.notna(metadata_row["gini_ipea"]) else np.nan,
-            "gini_world_bank": float(metadata_row["gini_world_bank"]) if pd.notna(metadata_row["gini_world_bank"]) else np.nan,
+            "gini_ipea": (
+                float(metadata_row["gini_ipea"])
+                if pd.notna(metadata_row["gini_ipea"])
+                else np.nan
+            ),
+            "gini_world_bank": (
+                float(metadata_row["gini_world_bank"])
+                if pd.notna(metadata_row["gini_world_bank"])
+                else np.nan
+            ),
         }
         row.update(_band_record(p90_p99, total, "p90_p99"))
         row.update(_band_record(p99_p999, total, "p99_p999"))
@@ -180,9 +217,18 @@ def _mle_r2(curves: pd.DataFrame, annual: pd.DataFrame) -> pd.DataFrame:
             & (curves["income_normalized"] >= xt)
             & (curves["empirical_ccdf_percent"] > 0)
         ]
-        observed = pd.to_numeric(d["empirical_ccdf_percent"], errors="coerce").to_numpy(float)
-        fitted = pd.to_numeric(d["pareto_fitted_ccdf_percent_mle"], errors="coerce").to_numpy(float)
-        mask = np.isfinite(observed) & np.isfinite(fitted) & (observed > 0) & (fitted > 0)
+        observed = pd.to_numeric(
+            d["empirical_ccdf_percent"], errors="coerce"
+        ).to_numpy(float)
+        fitted = pd.to_numeric(
+            d["pareto_fitted_ccdf_percent_mle"], errors="coerce"
+        ).to_numpy(float)
+        mask = (
+            np.isfinite(observed)
+            & np.isfinite(fitted)
+            & (observed > 0)
+            & (fitted > 0)
+        )
         if mask.sum() < 2:
             r2 = np.nan
         else:
@@ -195,8 +241,14 @@ def _mle_r2(curves: pd.DataFrame, annual: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def build_gompertz_table(annual: pd.DataFrame, bootstrap: pd.DataFrame, regime: pd.DataFrame) -> pd.DataFrame:
-    t = annual.merge(bootstrap, on="year", how="left").merge(regime, on="year", how="left")
+def build_gompertz_table(
+    annual: pd.DataFrame,
+    bootstrap: pd.DataFrame,
+    regime: pd.DataFrame,
+) -> pd.DataFrame:
+    t = annual.merge(bootstrap, on="year", how="left").merge(
+        regime, on="year", how="left"
+    )
     t["gompertz_correlation_coefficient"] = np.sqrt(
         np.clip(pd.to_numeric(t["gompertz_r2"], errors="coerce"), 0.0, 1.0)
     )
@@ -218,7 +270,10 @@ def build_gompertz_table(annual: pd.DataFrame, bootstrap: pd.DataFrame, regime: 
 
 
 def build_pareto_table(
-    annual: pd.DataFrame, bootstrap: pd.DataFrame, regime: pd.DataFrame, curves: pd.DataFrame
+    annual: pd.DataFrame,
+    bootstrap: pd.DataFrame,
+    regime: pd.DataFrame,
+    curves: pd.DataFrame,
 ) -> pd.DataFrame:
     mle = _mle_r2(curves, annual)
     t = (
@@ -260,45 +315,201 @@ def build_pareto_table(
 def _metadata_for_column(table_name: str, column: str) -> tuple[str, str, str]:
     fixed: dict[str, tuple[str, str, str]] = {
         "year": ("Survey/reference year.", "year", "PNAD / auxiliary annual series"),
-        "gompertz_A": ("Free-intercept Gompertz fit parameter A.", "dimensionless", "trusted PNAD regime fit"),
-        "gompertz_A_bootstrap_se": ("Bootstrap standard error of Gompertz A.", "dimensionless", "1000-replicate trusted PNAD bootstrap"),
-        "gompertz_B": ("Gompertz slope parameter B in G(x)=exp[exp(A-Bx)].", "dimensionless", "trusted PNAD regime fit"),
-        "gompertz_B_bootstrap_se": ("Bootstrap standard error of Gompertz B.", "dimensionless", "1000-replicate trusted PNAD bootstrap"),
-        "gompertz_x_gmax": ("Largest normalized income assigned to the Gompertz fitting region.", "normalized income", "trusted PNAD regime fit"),
-        "transition_x_t": ("Gompertz-Pareto transition income.", "normalized income", "trusted PNAD regime fit"),
-        "gompertz_r2": ("Coefficient of determination for the Gompertz linearized fit.", "dimensionless", "trusted PNAD regime fit"),
-        "gompertz_correlation_coefficient": ("Positive square root of Gompertz R^2.", "dimensionless", "derived from trusted PNAD fit"),
-        "gompertz_population_pct": ("Share of positive-income observations in the Gompertz regime.", "%", "trusted PNAD regime fit"),
-        "gompertz_income_share_pct": ("Share of total trusted adjusted income below x_t.", "%", "trusted PNAD microdata"),
-        "bootstrap_reps": ("Number of bootstrap resamples used for parameter uncertainty.", "count", "paper pipeline configuration"),
-        "pareto_x_pmin": ("Minimum normalized income of the selected Pareto LS tail.", "normalized income", "trusted PNAD regime fit"),
-        "transition_delta_x_t": ("Half-width between x_G,max and x_P,min when the bounds differ.", "normalized income", "trusted PNAD regime fit"),
-        "pareto_alpha_ls": ("Pareto exponent estimated by log-log least squares.", "dimensionless", "trusted PNAD regime fit"),
-        "pareto_alpha_ls_bootstrap_se": ("Bootstrap standard error of the Pareto LS exponent.", "dimensionless", "1000-replicate trusted PNAD bootstrap"),
-        "pareto_beta_ls": ("Pareto amplitude estimated by log-log least squares.", "CCDF-percent scale", "trusted PNAD regime fit"),
-        "pareto_beta_ls_bootstrap_se": ("Bootstrap standard error of the Pareto LS amplitude.", "CCDF-percent scale", "1000-replicate trusted PNAD bootstrap"),
-        "pareto_ls_r2": ("Coefficient of determination for the Pareto LS log-log fit.", "dimensionless", "trusted PNAD regime fit"),
-        "pareto_ls_correlation_coefficient": ("Positive square root of Pareto LS R^2.", "dimensionless", "derived from trusted PNAD fit"),
-        "pareto_alpha_mle": ("Pareto exponent estimated directly from individual observations above x_t.", "dimensionless", "trusted PNAD direct MLE"),
-        "pareto_alpha_mle_fisher_se": ("Fisher-information standard error of the direct Pareto MLE exponent.", "dimensionless", "trusted PNAD direct MLE"),
-        "pareto_alpha_mle_bootstrap_se": ("Bootstrap standard error of the direct Pareto MLE exponent.", "dimensionless", "1000-replicate trusted PNAD bootstrap"),
-        "pareto_beta_mle_continuity": ("Pareto amplitude implied by continuity with the Gompertz curve at x_t.", "CCDF-percent scale", "trusted PNAD continuity condition"),
-        "pareto_beta_mle_bootstrap_se": ("Bootstrap standard error of the continuity Pareto amplitude.", "CCDF-percent scale", "1000-replicate trusted PNAD bootstrap"),
-        "pareto_mle_r2": ("Log-space R^2 diagnostic for the direct-MLE Pareto curve.", "dimensionless", "trusted PNAD regime curves"),
-        "pareto_mle_correlation_coefficient": ("Positive square root of the MLE-curve R^2 diagnostic.", "dimensionless", "derived from trusted PNAD regime curves"),
-        "pareto_population_pct": ("Share of positive-income observations in the Pareto regime.", "%", "trusted PNAD regime fit"),
-        "pareto_income_share_pct": ("Share of total trusted adjusted income at or above x_t.", "%", "trusted PNAD microdata"),
-        "gdp_growth_pct": ("Brazil real GDP annual growth rate.", "% per year", "World Bank/WDI NY.GDP.MKTP.KD.ZG snapshot"),
-        "income_observation_n": ("Number of positive finite trusted income observations used in the annual summary.", "count", "trusted PNAD microdata"),
-        "income_mean_2025_usd": ("Mean positive trusted income after the project 2025-US$ adjustment.", "2025 US$", "trusted PNAD microdata + df_metadata.xlsx"),
-        "income_median_2025_usd": ("Median positive trusted income after the project 2025-US$ adjustment.", "2025 US$", "trusted PNAD microdata + df_metadata.xlsx"),
-        "income_std_2025_usd": ("Sample standard deviation of positive trusted adjusted income.", "2025 US$", "trusted PNAD microdata + df_metadata.xlsx"),
-        "gini_pnad": ("Gini coefficient calculated from trusted PNAD income.", "dimensionless", "trusted PNAD analysis"),
-        "pietra_pnad": ("Pietra inequality index calculated from trusted PNAD income.", "dimensionless", "trusted PNAD analysis"),
-        "kolkata_pnad": ("Kolkata inequality index calculated from trusted PNAD income.", "dimensionless", "trusted PNAD analysis"),
-        "zanardi_pnad": ("Zanardi inequality index calculated from trusted PNAD income.", "dimensionless", "trusted PNAD analysis"),
-        "gini_ipea": ("External IPEA Gini reference merged into the annual metadata frame.", "dimensionless", "series_gini_ipea_banco_mundial.csv"),
-        "gini_world_bank": ("External World Bank Gini reference merged into the annual metadata frame.", "dimensionless", "series_gini_ipea_banco_mundial.csv"),
+        "gompertz_A": (
+            "Gompertz normalization parameter A.",
+            "dimensionless",
+            "trusted PNAD regime fit",
+        ),
+        "gompertz_A_bootstrap_se": (
+            "Bootstrap standard error associated with the Gompertz intercept diagnostic.",
+            "dimensionless",
+            "trusted PNAD bootstrap",
+        ),
+        "gompertz_B": (
+            "Gompertz slope parameter B in G(x)=exp[exp(A-Bx)].",
+            "dimensionless",
+            "trusted PNAD regime fit",
+        ),
+        "gompertz_B_bootstrap_se": (
+            "Bootstrap standard error of Gompertz B.",
+            "dimensionless",
+            "trusted PNAD bootstrap",
+        ),
+        "gompertz_x_gmax": (
+            "Largest normalized income assigned to the Gompertz fitting region.",
+            "normalized income",
+            "trusted PNAD regime fit",
+        ),
+        "transition_x_t": (
+            "Gompertz-Pareto transition income.",
+            "normalized income",
+            "trusted PNAD regime fit",
+        ),
+        "gompertz_r2": (
+            "Coefficient of determination for the Gompertz linearized fit.",
+            "dimensionless",
+            "trusted PNAD regime fit",
+        ),
+        "gompertz_correlation_coefficient": (
+            "Positive square root of Gompertz R^2.",
+            "dimensionless",
+            "derived from trusted PNAD fit",
+        ),
+        "gompertz_population_pct": (
+            "Share of positive-income observations in the Gompertz regime.",
+            "%",
+            "trusted PNAD regime fit",
+        ),
+        "gompertz_income_share_pct": (
+            "Share of total trusted adjusted income below x_t.",
+            "%",
+            "trusted PNAD microdata",
+        ),
+        "bootstrap_reps": (
+            "Number of bootstrap resamples used for parameter uncertainty.",
+            "count",
+            "paper pipeline configuration",
+        ),
+        "pareto_x_pmin": (
+            "Minimum normalized income of the selected Pareto LS tail.",
+            "normalized income",
+            "trusted PNAD regime fit",
+        ),
+        "transition_delta_x_t": (
+            "Half-width between x_G,max and x_P,min when the bounds differ.",
+            "normalized income",
+            "trusted PNAD regime fit",
+        ),
+        "pareto_alpha_ls": (
+            "Pareto exponent estimated by log-log least squares.",
+            "dimensionless",
+            "trusted PNAD regime fit",
+        ),
+        "pareto_alpha_ls_bootstrap_se": (
+            "Bootstrap standard error of the Pareto LS exponent.",
+            "dimensionless",
+            "trusted PNAD bootstrap",
+        ),
+        "pareto_beta_ls": (
+            "Pareto amplitude estimated by log-log least squares.",
+            "CCDF-percent scale",
+            "trusted PNAD regime fit",
+        ),
+        "pareto_beta_ls_bootstrap_se": (
+            "Bootstrap standard error of the Pareto LS amplitude.",
+            "CCDF-percent scale",
+            "trusted PNAD bootstrap",
+        ),
+        "pareto_ls_r2": (
+            "Coefficient of determination for the Pareto LS log-log fit.",
+            "dimensionless",
+            "trusted PNAD regime fit",
+        ),
+        "pareto_ls_correlation_coefficient": (
+            "Positive square root of Pareto LS R^2.",
+            "dimensionless",
+            "derived from trusted PNAD fit",
+        ),
+        "pareto_alpha_mle": (
+            "Pareto exponent estimated directly from individual observations above x_t.",
+            "dimensionless",
+            "trusted PNAD direct MLE",
+        ),
+        "pareto_alpha_mle_fisher_se": (
+            "Fisher-information standard error of the direct Pareto MLE exponent.",
+            "dimensionless",
+            "trusted PNAD direct MLE",
+        ),
+        "pareto_alpha_mle_bootstrap_se": (
+            "Bootstrap standard error of the direct Pareto MLE exponent.",
+            "dimensionless",
+            "trusted PNAD bootstrap",
+        ),
+        "pareto_beta_mle_continuity": (
+            "Pareto amplitude implied by continuity with the Gompertz curve at x_t.",
+            "CCDF-percent scale",
+            "trusted PNAD continuity condition",
+        ),
+        "pareto_beta_mle_bootstrap_se": (
+            "Bootstrap standard error of the continuity Pareto amplitude.",
+            "CCDF-percent scale",
+            "trusted PNAD bootstrap",
+        ),
+        "pareto_mle_r2": (
+            "Log-space R^2 diagnostic for the direct-MLE Pareto curve.",
+            "dimensionless",
+            "trusted PNAD regime curves",
+        ),
+        "pareto_mle_correlation_coefficient": (
+            "Positive square root of the MLE-curve R^2 diagnostic.",
+            "dimensionless",
+            "derived from trusted PNAD regime curves",
+        ),
+        "pareto_population_pct": (
+            "Share of positive-income observations in the Pareto regime.",
+            "%",
+            "trusted PNAD regime fit",
+        ),
+        "pareto_income_share_pct": (
+            "Share of total trusted adjusted income at or above x_t.",
+            "%",
+            "trusted PNAD microdata",
+        ),
+        "gdp_growth_pct": (
+            "Brazil real GDP annual growth rate.",
+            "% per year",
+            "World Bank/WDI NY.GDP.MKTP.KD.ZG snapshot",
+        ),
+        "income_observation_n": (
+            "Number of positive finite trusted income observations used in the annual summary.",
+            "count",
+            "trusted PNAD microdata",
+        ),
+        "income_mean_2025_usd": (
+            "Mean positive trusted income after the project 2025-US$ adjustment.",
+            "2025 US$",
+            "trusted PNAD microdata + df_metadata.xlsx",
+        ),
+        "income_median_2025_usd": (
+            "Median positive trusted income after the project 2025-US$ adjustment.",
+            "2025 US$",
+            "trusted PNAD microdata + df_metadata.xlsx",
+        ),
+        "income_std_2025_usd": (
+            "Sample standard deviation of positive trusted adjusted income.",
+            "2025 US$",
+            "trusted PNAD microdata + df_metadata.xlsx",
+        ),
+        "gini_pnad": (
+            "Gini coefficient calculated from trusted PNAD income.",
+            "dimensionless",
+            "trusted PNAD analysis",
+        ),
+        "pietra_pnad": (
+            "Pietra inequality index calculated from trusted PNAD income.",
+            "dimensionless",
+            "trusted PNAD analysis",
+        ),
+        "kolkata_pnad": (
+            "Kolkata inequality index calculated from trusted PNAD income.",
+            "dimensionless",
+            "trusted PNAD analysis",
+        ),
+        "zanardi_pnad": (
+            "Zanardi inequality index calculated from trusted PNAD income.",
+            "dimensionless",
+            "trusted PNAD analysis",
+        ),
+        "gini_ipea": (
+            "External IPEA Gini reference merged into the annual metadata frame.",
+            "dimensionless",
+            "series_gini_ipea_banco_mundial.csv",
+        ),
+        "gini_world_bank": (
+            "External World Bank Gini reference merged into the annual metadata frame.",
+            "dimensionless",
+            "series_gini_ipea_banco_mundial.csv",
+        ),
     }
     if column in fixed:
         return fixed[column]
@@ -310,15 +521,35 @@ def _metadata_for_column(table_name: str, column: str) -> tuple[str, str, str]:
     }
     for prefix, label in bands.items():
         if column == f"{prefix}_population_n":
-            return (f"Observation count in the {label}.", "count", "trusted PNAD microdata")
+            return (
+                f"Observation count in the {label}.",
+                "count",
+                "trusted PNAD microdata",
+            )
         if column == f"{prefix}_income_share_pct":
-            return (f"Share of total annual income received by the {label}.", "%", "trusted PNAD microdata")
+            return (
+                f"Share of total annual income received by the {label}.",
+                "%",
+                "trusted PNAD microdata",
+            )
         if column == f"{prefix}_mean_income_2025_usd":
-            return (f"Mean adjusted income in the {label}.", "2025 US$", "trusted PNAD microdata + df_metadata.xlsx")
+            return (
+                f"Mean adjusted income in the {label}.",
+                "2025 US$",
+                "trusted PNAD microdata + df_metadata.xlsx",
+            )
         if column == f"{prefix}_median_income_2025_usd":
-            return (f"Median adjusted income in the {label}.", "2025 US$", "trusted PNAD microdata + df_metadata.xlsx")
+            return (
+                f"Median adjusted income in the {label}.",
+                "2025 US$",
+                "trusted PNAD microdata + df_metadata.xlsx",
+            )
         if column == f"{prefix}_std_income_2025_usd":
-            return (f"Sample standard deviation of adjusted income in the {label}.", "2025 US$", "trusted PNAD microdata + df_metadata.xlsx")
+            return (
+                f"Sample standard deviation of adjusted income in the {label}.",
+                "2025 US$",
+                "trusted PNAD microdata + df_metadata.xlsx",
+            )
     raise KeyError(f"No metadata description for {table_name}.{column}")
 
 
@@ -338,11 +569,41 @@ def build_metadata_table(tables: dict[str, pd.DataFrame]) -> pd.DataFrame:
             )
     rows.extend(
         [
-            {"table_name": METADATA_OUT.name, "column_name": "table_name", "description": "Name of the canonical paper table containing the documented field.", "unit": "text", "source": "paper table schema"},
-            {"table_name": METADATA_OUT.name, "column_name": "column_name", "description": "Column name documented by this metadata row.", "unit": "text", "source": "paper table schema"},
-            {"table_name": METADATA_OUT.name, "column_name": "description", "description": "Human-readable definition of the column.", "unit": "text", "source": "paper table schema"},
-            {"table_name": METADATA_OUT.name, "column_name": "unit", "description": "Measurement unit or scale of the column.", "unit": "text", "source": "paper table schema"},
-            {"table_name": METADATA_OUT.name, "column_name": "source", "description": "Primary repository data source or derivation for the column.", "unit": "text", "source": "paper table schema"},
+            {
+                "table_name": METADATA_OUT.name,
+                "column_name": "table_name",
+                "description": "Name of the canonical paper table containing the documented field.",
+                "unit": "text",
+                "source": "paper table schema",
+            },
+            {
+                "table_name": METADATA_OUT.name,
+                "column_name": "column_name",
+                "description": "Column name documented by this metadata row.",
+                "unit": "text",
+                "source": "paper table schema",
+            },
+            {
+                "table_name": METADATA_OUT.name,
+                "column_name": "description",
+                "description": "Human-readable definition of the column.",
+                "unit": "text",
+                "source": "paper table schema",
+            },
+            {
+                "table_name": METADATA_OUT.name,
+                "column_name": "unit",
+                "description": "Measurement unit or scale of the column.",
+                "unit": "text",
+                "source": "paper table schema",
+            },
+            {
+                "table_name": METADATA_OUT.name,
+                "column_name": "source",
+                "description": "Primary repository data source or derivation for the column.",
+                "unit": "text",
+                "source": "paper table schema",
+            },
         ]
     )
     return pd.DataFrame(rows)
@@ -354,7 +615,11 @@ def _clean_paper_csvs() -> None:
         path.unlink()
 
 
-def validate_tables(gompertz: pd.DataFrame, pareto: pd.DataFrame, economic: pd.DataFrame) -> None:
+def validate_tables(
+    gompertz: pd.DataFrame,
+    pareto: pd.DataFrame,
+    economic: pd.DataFrame,
+) -> None:
     if not np.allclose(
         gompertz["gompertz_income_share_pct"].to_numpy(float)
         + pareto["pareto_income_share_pct"].to_numpy(float),
@@ -369,18 +634,38 @@ def validate_tables(gompertz: pd.DataFrame, pareto: pd.DataFrame, economic: pd.D
         shares = economic[f"{prefix}_income_share_pct"]
         if ((shares < 0) | (shares > 100)).any():
             raise AssertionError(f"Invalid income share in {prefix}")
-    if economic["year"].duplicated().any() or gompertz["year"].duplicated().any() or pareto["year"].duplicated().any():
+    if (
+        economic["year"].duplicated().any()
+        or gompertz["year"].duplicated().any()
+        or pareto["year"].duplicated().any()
+    ):
         raise AssertionError("Canonical paper tables must contain at most one row per year")
+
+
+def load_canonical_annual_fits() -> pd.DataFrame:
+    """Merge the canonical Stage-03 Gompertz and Pareto annual tables."""
+    gompertz = _year_filter(pd.read_csv(GOMPERTZ_PATH))
+    pareto = _year_filter(pd.read_csv(PARETO_PATH))
+    return gompertz.merge(
+        pareto,
+        on="year",
+        how="inner",
+        validate="one_to_one",
+        suffixes=("", "_pareto"),
+    )
 
 
 def main() -> None:
     stats = _year_filter(pd.read_csv(STATS_PATH))
-    annual = _year_filter(pd.read_csv(ANNUAL_PATH))
+    annual = load_canonical_annual_fits()
     curves = _year_filter(pd.read_csv(CURVES_PATH))
     bootstrap = _year_filter(pd.read_csv(BOOTSTRAP_PATH))
     metadata = _load_metadata()
 
-    years = sorted(set(int(y) for y in annual["year"].dropna()) & set(int(y) for y in stats["year"].dropna()))
+    years = sorted(
+        set(int(y) for y in annual["year"].dropna())
+        & set(int(y) for y in stats["year"].dropna())
+    )
     economic, regime = build_income_summaries(years, annual, stats, metadata)
     gompertz = build_gompertz_table(annual, bootstrap, regime)
     pareto = build_pareto_table(annual, bootstrap, regime, curves)
@@ -402,7 +687,9 @@ def main() -> None:
 
     generated = {path.name for path in TABLES_PAPER.glob("*.csv")}
     if generated != CANONICAL_TABLES:
-        raise AssertionError(f"Unexpected paper tables after cleanup: {sorted(generated)}")
+        raise AssertionError(
+            f"Unexpected paper tables after cleanup: {sorted(generated)}"
+        )
     print(f"Canonical paper tables generated: {', '.join(sorted(generated))}")
 
 

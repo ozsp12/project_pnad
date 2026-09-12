@@ -2,6 +2,12 @@ name: Build PNAD analytics dataset
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/stage_04_build_analytic_pnad.py"
+      - "data/trusted/**"
+      - "requirements.txt"
+      - ".github/workflows/build_analytics.yml"
   push:
     branches: [main]
     paths:
@@ -47,6 +53,7 @@ jobs:
         run: python src/stage_04_build_analytic_pnad.py
 
       - name: Commit analytics dataset
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

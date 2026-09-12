@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "src/stage_03_pnad_analysis.py"
+      - "src/stage_03_moura_ribeiro_evidence.py"
       - "data/metadata/df_metadata.xlsx"
       - "data/auxiliary/**"
       - "data/refined/**"
@@ -36,15 +37,18 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Ensure trusted datasets exist
+      - name: Ensure analysis datasets exist
         shell: bash
         run: |
           if ! compgen -G "data/trusted/pnad_trusted_*.parquet" > /dev/null; then
             echo "Trusted datasets are required and are not rebuilt by the analysis workflow."
-            echo "Persistent files matching data/trusted/pnad_trusted_*.parquet must be present before analysis."
             exit 1
           fi
-          echo "Trusted datasets are present."
+          if ! compgen -G "data/refined/pnad_refined_*.parquet" > /dev/null; then
+            echo "Refined datasets are required and are not rebuilt by the analysis workflow."
+            exit 1
+          fi
+          echo "Refined and trusted datasets are present."
 
       - name: Prepare analysis asset directories
         run: |
@@ -60,7 +64,9 @@ jobs:
       - name: Run complete PNAD analysis
         env:
           MPLBACKEND: Agg
-        run: python src/stage_03_pnad_analysis.py
+        run: |
+          python src/stage_03_pnad_analysis.py
+          python src/stage_03_moura_ribeiro_evidence.py
 
       - name: Commit analytical assets
         run: |

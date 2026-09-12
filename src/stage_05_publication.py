@@ -9,8 +9,12 @@ from __future__ import annotations
 
 import pandas as pd
 
-import stage_05_moura_ribeiro as figures
-import stage_05_tables as tables
+try:  # package import used by tests
+    from . import stage_05_moura_ribeiro as figures
+    from . import stage_05_tables as tables
+except ImportError:  # direct execution: python src/stage_05_publication.py
+    import stage_05_moura_ribeiro as figures
+    import stage_05_tables as tables
 
 
 def _year_filter(frame):

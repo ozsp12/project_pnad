@@ -1,0 +1,775 @@
+year,layer,paper_table,test,estimator,parameter,estimate,standard_error,fit_metric,fit_value,criterion,passed,evidence_status,paper_2009_value,paper_2009_standard_error,difference_from_2009,relative_difference_pct,within_paper_1se
+1978,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.08409432102750758,,delta_r2,0.08409432102750758,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1978,refined,table_1,annual_income,descriptive,mean_income_usd,382.70946936333206,,,,descriptive reproduction quantity,,descriptive,132.503,,250.20646936333208,188.83079580336454,
+1978,refined,table_2,gompertz,boundary,x_gmax,5.932210450585062,,gompertz_free_correlation_coefficient,0.9884351086806864,correlation_coefficient >= 0.98,True,supported,6.606,,-0.6737895494149377,-10.19966014857611,
+1978,refined,table_2,gompertz,free_lsf,A,1.5267294032027043,0.008007475660642905,gompertz_free_correlation_coefficient,0.9884351086806864,correlation_coefficient >= 0.98,True,supported,1.52,0.01,0.0067294032027043205,0.44272389491475794,True
+1978,refined,table_2,gompertz,free_lsf,B,0.4988186256394966,0.026384887324691405,gompertz_free_correlation_coefficient,0.9884351086806864,correlation_coefficient >= 0.98,True,supported,0.46,0.01,0.03881862563949656,8.438831660760123,False
+1978,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9884351086806864,,gompertz_free_correlation_coefficient,0.9884351086806864,correlation_coefficient >= 0.98,True,supported,0.997,,-0.008564891319313594,-0.8590663309241319,
+1978,refined,table_2,gompertz,population,population_pct,99.69583366076672,,gompertz_free_correlation_coefficient,0.9884351086806864,correlation_coefficient >= 0.98,True,supported,98.9,,0.7958336607667178,0.8046851979441029,
+1978,refined,table_3,pareto,boundary,x_pmin,77.77124454992553,,pareto_ls_r2,0.4306223613391662,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,40.0,,37.77124454992553,94.42811137481382,
+1978,refined,table_3,pareto,lsf,alpha,6.248532620568886,4.129451503457959,pareto_ls_r2,0.4306223613391662,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,2.44,0.11,3.808532620568886,156.08740248233138,False
+1978,refined,table_3,pareto,lsf,beta,489412446674.9764,4.4942359126117815e+53,pareto_ls_r2,0.4306223613391662,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,4767.0,4236.0,489412441907.9764,10266675936.815113,False
+1978,refined,table_3,pareto,lsf,correlation_coefficient,0.6562182269178191,,pareto_ls_r2,0.4306223613391662,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,0.981,,-0.3247817730821809,-33.107214381465944,
+1978,refined,table_3,pareto,mle,alpha,0.8631547721328956,0.008347333966289032,pareto_mle_r2,-0.49508192927134287,finite direct MLE on observations x >= x_t,True,supported,2.94,0.06,-2.0768452278671043,-70.6409941451396,False
+1978,refined,table_3,pareto,mle_continuity,beta,25.106701108268474,0.7825772756817623,pareto_mle_r2,-0.49508192927134287,finite direct MLE on observations x >= x_t,True,supported,10639.0,22543.0,-10613.893298891731,-99.76401258475168,True
+1978,refined,table_3,pareto,population,population_pct,0.3041663392332974,,pareto_ls_r2,0.4306223613391662,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+1978,refined,table_3,transition,boundary,x_t,41.85172750025529,,pareto_ls_r2,0.4306223613391662,descriptive reproduction quantity,,descriptive,23.3,16.7,18.551727500255293,79.6211480697652,False
+1978,refined,table_4,income_share,gompertz,share_pct,59.077025620961365,,,,descriptive reproduction quantity,,descriptive,57.1,,1.9770256209613635,3.46239163040519,
+1978,refined,table_4,income_share,pareto,share_pct,40.922974379038635,,,,descriptive reproduction quantity,,descriptive,31.9,,9.022974379038637,28.285186141186948,
+1978,refined,table_4,inequality,lorenz,gini,0.768253550064633,,,,descriptive reproduction quantity,,descriptive,0.739,,0.029253550064633038,3.9585318084753776,
+1979,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.019573217461391068,,delta_r2,0.019573217461391068,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1979,refined,table_1,annual_income,descriptive,mean_income_usd,348.838265715958,,,,descriptive reproduction quantity,,descriptive,122.531,,226.307265715958,184.69388621325052,
+1979,refined,table_2,gompertz,boundary,x_gmax,6.935027877303481,,gompertz_free_correlation_coefficient,0.959114398905715,correlation_coefficient >= 0.98,False,weak,6.92,,0.015027877303481318,0.21716585698672425,
+1979,refined,table_2,gompertz,free_lsf,A,1.557840581430473,0.018370844226579194,gompertz_free_correlation_coefficient,0.959114398905715,correlation_coefficient >= 0.98,False,weak,1.54,0.01,0.017840581430472957,1.158479313667075,False
+1979,refined,table_2,gompertz,free_lsf,B,0.5187213617369253,0.05555993633353513,gompertz_free_correlation_coefficient,0.959114398905715,correlation_coefficient >= 0.98,False,weak,0.44,0.01,0.07872136173692529,17.89121857657393,False
+1979,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.959114398905715,,gompertz_free_correlation_coefficient,0.959114398905715,correlation_coefficient >= 0.98,False,weak,0.997,,-0.03788560109428496,-3.799959989396686,
+1979,refined,table_2,gompertz,population,population_pct,98.97999078023705,,gompertz_free_correlation_coefficient,0.959114398905715,correlation_coefficient >= 0.98,False,weak,98.9,,0.07999078023703987,0.08088046535595537,
+1979,refined,table_3,pareto,boundary,x_pmin,6.935027877303481,,pareto_ls_r2,0.3534494791526539,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,40.0,,-33.06497212269652,-82.6624303067413,
+1979,refined,table_3,pareto,lsf,alpha,0.9539471829935028,0.3488255177171259,pareto_ls_r2,0.3534494791526539,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,3.09,0.17,-2.136052817006497,-69.12792288046916,False
+1979,refined,table_3,pareto,lsf,beta,6.392110916618047,7.790783720177381,pareto_ls_r2,0.3534494791526539,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,49543.0,76479.0,-49536.60788908338,-99.98709785253897,True
+1979,refined,table_3,pareto,lsf,correlation_coefficient,0.5945161723222119,,pareto_ls_r2,0.3534494791526539,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,0.973,,-0.3784838276777881,-38.89864621560001,
+1979,refined,table_3,pareto,mle,alpha,0.9131417615095891,0.005207011573612226,pareto_mle_r2,0.2491163657450407,finite direct MLE on observations x >= x_t,True,supported,3.09,0.09,-2.1768582384904107,-70.44848668253756,False
+1979,refined,table_3,pareto,mle_continuity,beta,6.700259092173232,0.06756421261076426,pareto_mle_r2,0.2491163657450407,finite direct MLE on observations x >= x_t,True,supported,17464.0,38230.0,-17457.299740907827,-99.9616338805991,True
+1979,refined,table_3,pareto,population,population_pct,1.0200092197629704,,pareto_ls_r2,0.3534494791526539,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+1979,refined,table_3,transition,boundary,x_t,6.935027877303481,,pareto_ls_r2,0.3534494791526539,descriptive reproduction quantity,,descriptive,23.5,16.5,-16.564972122696517,-70.48924307530433,False
+1979,refined,table_4,income_share,gompertz,share_pct,59.800922330517665,,,,descriptive reproduction quantity,,descriptive,62.0,,-2.1990776694823353,-3.5468994669069924,
+1979,refined,table_4,income_share,pareto,share_pct,40.199077669482335,,,,descriptive reproduction quantity,,descriptive,26.2,,13.999077669482336,53.431594158329524,
+1979,refined,table_4,inequality,lorenz,gini,0.7288355532326778,,,,descriptive reproduction quantity,,descriptive,0.711,,0.017835553232677825,2.508516629068611,
+1981,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.032424739407851066,,delta_r2,0.032424739407851066,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1981,refined,table_1,annual_income,descriptive,mean_income_usd,97.24296774377645,,,,descriptive reproduction quantity,,descriptive,88.201,,9.041967743776453,10.251547877888521,
+1981,refined,table_2,gompertz,boundary,x_gmax,7.371242712382564,,gompertz_free_correlation_coefficient,0.9868434136959774,correlation_coefficient >= 0.98,True,supported,7.533,,-0.16175728761743624,-2.147315646056501,
+1981,refined,table_2,gompertz,free_lsf,A,1.5426976258399587,0.005356568811870695,gompertz_free_correlation_coefficient,0.9868434136959774,correlation_coefficient >= 0.98,True,supported,1.55,0.01,-0.007302374160041314,-0.4711209135510525,True
+1981,refined,table_2,gompertz,free_lsf,B,0.3402385293521328,0.01936496093698337,gompertz_free_correlation_coefficient,0.9868434136959774,correlation_coefficient >= 0.98,True,supported,0.34,0.02,0.00023852935213275472,0.07015569180375139,True
+1981,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9868434136959774,,gompertz_free_correlation_coefficient,0.9868434136959774,correlation_coefficient >= 0.98,True,supported,0.992,,-0.005156586304022603,-0.519817167744214,
+1981,refined,table_2,gompertz,population,population_pct,98.79690299408298,,gompertz_free_correlation_coefficient,0.9868434136959774,correlation_coefficient >= 0.98,True,supported,98.9,,-0.10309700591702153,-0.1042436864681714,
+1981,refined,table_3,pareto,boundary,x_pmin,7.371242712382564,,pareto_ls_r2,0.9791595269776888,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,7.533,,-0.16175728761743624,-2.147315646056501,
+1981,refined,table_3,pareto,lsf,alpha,3.261436444754596,0.13726997657812265,pareto_ls_r2,0.9791595269776888,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,3.52,0.09,-0.258563555245404,-7.345555546744431,False
+1981,refined,table_3,pareto,lsf,beta,1210.2487513530125,580.4427735867147,pareto_ls_r2,0.9791595269776888,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,2071.0,781.0,-860.7512486469875,-41.56210761211915,False
+1981,refined,table_3,pareto,lsf,correlation_coefficient,0.9895248996249103,,pareto_ls_r2,0.9791595269776888,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,0.993,,-0.0034751003750896903,-0.349959755799566,
+1981,refined,table_3,pareto,mle,alpha,2.5583351172475197,0.033945581889405815,pareto_mle_r2,0.8597807241263933,finite direct MLE on observations x >= x_t,True,supported,2.84,0.11,-0.28166488275248014,-9.917777561707048,False
+1981,refined,table_3,pareto,mle_continuity,beta,243.90447582527037,16.53897461544156,pareto_mle_r2,0.8597807241263933,finite direct MLE on observations x >= x_t,True,supported,444.0,100.0,-200.09552417472963,-45.06655949881298,False
+1981,refined,table_3,pareto,population,population_pct,1.2030970059170094,,pareto_ls_r2,0.9791595269776888,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,1.1,,0.10309700591700932,9.372455083364482,
+1981,refined,table_3,transition,boundary,x_t,7.371242712382564,,pareto_ls_r2,0.9791595269776888,descriptive reproduction quantity,,descriptive,7.533,0.0,-0.16175728761743624,-2.147315646056501,False
+1981,refined,table_4,income_share,gompertz,share_pct,85.84720476113166,,,,descriptive reproduction quantity,,descriptive,87.7,,-1.8527952388683389,-2.11265135560814,
+1981,refined,table_4,income_share,pareto,share_pct,14.152795238868336,,,,descriptive reproduction quantity,,descriptive,12.3,,1.8527952388683353,15.063375925758823,
+1981,refined,table_4,inequality,lorenz,gini,0.5884866557212263,,,,descriptive reproduction quantity,,descriptive,0.574,,0.014486655721226316,2.5238076169383827,
+1982,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.052519138432306156,,delta_r2,0.052519138432306156,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1982,refined,table_1,annual_income,descriptive,mean_income_usd,244.13310723398158,,,,descriptive reproduction quantity,,descriptive,94.505,,149.62810723398158,158.32824425584,
+1982,refined,table_2,gompertz,boundary,x_gmax,7.849559609203476,,gompertz_free_correlation_coefficient,0.9916999997021271,correlation_coefficient >= 0.98,True,supported,7.473,,0.3765596092034764,5.038934955218472,
+1982,refined,table_2,gompertz,free_lsf,A,1.536240201198786,0.004610768854526819,gompertz_free_correlation_coefficient,0.9916999997021271,correlation_coefficient >= 0.98,True,supported,1.55,0.01,-0.01375979880121414,-0.8877289549170413,False
+1982,refined,table_2,gompertz,free_lsf,B,0.3302483095104128,0.015272896499915015,gompertz_free_correlation_coefficient,0.9916999997021271,correlation_coefficient >= 0.98,True,supported,0.34,0.02,-0.00975169048958724,-2.8681442616433053,True
+1982,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9916999997021271,,gompertz_free_correlation_coefficient,0.9916999997021271,correlation_coefficient >= 0.98,True,supported,0.993,,-0.0013000002978729164,-0.13091644490160287,
+1982,refined,table_2,gompertz,population,population_pct,98.76235828760666,,gompertz_free_correlation_coefficient,0.9916999997021271,correlation_coefficient >= 0.98,True,supported,98.9,,-0.13764171239334644,-0.13917261111561824,
+1982,refined,table_3,pareto,boundary,x_pmin,7.849559609203476,,pareto_ls_r2,0.9963078235845512,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.473,,0.3765596092034764,5.038934955218472,
+1982,refined,table_3,pareto,lsf,alpha,2.8754191059342347,0.04075159019273495,pareto_ls_r2,0.9963078235845512,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,2.53,0.04,0.34541910593423486,13.65292908830968,False
+1982,refined,table_3,pareto,lsf,beta,455.2882006757631,56.811074755737,pareto_ls_r2,0.9963078235845512,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,150.5,20.8,304.7882006757631,202.51707686097217,False
+1982,refined,table_3,pareto,lsf,correlation_coefficient,0.9981522046183894,,pareto_ls_r2,0.9963078235845512,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.997,,0.0011522046183893853,0.1155671633289253,
+1982,refined,table_3,pareto,mle,alpha,2.8848761334133064,0.057028506049511825,pareto_mle_r2,0.9910185019330612,finite direct MLE on observations x >= x_t,True,supported,2.68,0.06,0.20487613341330624,7.644631843780083,False
+1982,refined,table_3,pareto,mle_continuity,beta,541.7818676264861,63.661974865354566,pareto_mle_r2,0.9910185019330612,finite direct MLE on observations x >= x_t,True,supported,316.0,40.0,225.78186762648613,71.44995810964751,False
+1982,refined,table_3,pareto,population,population_pct,1.237641712393338,,pareto_ls_r2,0.9963078235845512,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.1,,0.137641712393338,12.512882944848908,
+1982,refined,table_3,transition,boundary,x_t,7.849559609203476,,pareto_ls_r2,0.9963078235845512,descriptive reproduction quantity,,descriptive,7.473,0.0,0.3765596092034764,5.038934955218472,False
+1982,refined,table_4,income_share,gompertz,share_pct,85.17953980734302,,,,descriptive reproduction quantity,,descriptive,87.2,,-2.0204601926569836,-2.3170415053405775,
+1982,refined,table_4,income_share,pareto,share_pct,14.82046019265698,,,,descriptive reproduction quantity,,descriptive,12.8,,2.02046019265698,15.784845255132657,
+1982,refined,table_4,inequality,lorenz,gini,0.5898439323148535,,,,descriptive reproduction quantity,,descriptive,0.581,,0.008843932314853586,1.522191448339688,
+1983,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,-0.03388736562547012,,delta_r2,-0.03388736562547012,gompertz_free_r2 > exponential_r2,False,rejected,,,,,
+1983,refined,table_1,annual_income,descriptive,mean_income_usd,62.32458268558594,,,,descriptive reproduction quantity,,descriptive,56.786,,5.538582685585936,9.753429869309224,
+1983,refined,table_2,gompertz,boundary,x_gmax,7.96710960176985,,gompertz_free_correlation_coefficient,0.9498409107606761,correlation_coefficient >= 0.98,False,weak,6.91,,1.0571096017698496,15.298257623297388,
+1983,refined,table_2,gompertz,free_lsf,A,1.5665094261996255,0.017696199684460193,gompertz_free_correlation_coefficient,0.9498409107606761,correlation_coefficient >= 0.98,False,weak,1.54,0.01,0.026509426199625485,1.7213913116639925,False
+1983,refined,table_2,gompertz,free_lsf,B,0.3862457931569002,0.04692471451010617,gompertz_free_correlation_coefficient,0.9498409107606761,correlation_coefficient >= 0.98,False,weak,0.33,0.01,0.0562457931569002,17.044179744515212,False
+1983,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9498409107606761,,gompertz_free_correlation_coefficient,0.9498409107606761,correlation_coefficient >= 0.98,False,weak,0.996,,-0.04615908923932388,-4.63444671077549,
+1983,refined,table_2,gompertz,population,population_pct,98.96437332180858,,gompertz_free_correlation_coefficient,0.9498409107606761,correlation_coefficient >= 0.98,False,weak,98.7,,0.2643733218085771,0.26785544256188154,
+1983,refined,table_3,pareto,boundary,x_pmin,7.96710960176985,,pareto_ls_r2,0.9947365799996454,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,6.91,,1.0571096017698496,15.298257623297388,
+1983,refined,table_3,pareto,lsf,alpha,2.776827850093007,0.058000727789324955,pareto_ls_r2,0.9947365799996454,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,3.03,0.08,-0.25317214990699277,-8.35551649858062,False
+1983,refined,table_3,pareto,lsf,beta,385.84190169478046,84.35427738229497,pareto_ls_r2,0.9947365799996454,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,655.6,186.6,-269.75809830521956,-41.146750809215916,False
+1983,refined,table_3,pareto,lsf,correlation_coefficient,0.9973648179074923,,pareto_ls_r2,0.9947365799996454,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.992,,0.005364817907492325,0.5408082568036618,
+1983,refined,table_3,pareto,mle,alpha,2.485291809431156,0.03454794371552518,pareto_mle_r2,0.9386967726368185,finite direct MLE on observations x >= x_t,True,supported,2.64,0.05,-0.1547081905688441,-5.860158733668337,False
+1983,refined,table_3,pareto,mle_continuity,beta,218.44929341007548,15.662399198066165,pareto_mle_r2,0.9386967726368185,finite direct MLE on observations x >= x_t,True,supported,263.0,26.0,-44.550706589924516,-16.939432163469398,False
+1983,refined,table_3,pareto,population,population_pct,1.035626678191415,,pareto_ls_r2,0.9947365799996454,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.3,,-0.2643733218085851,-20.33640936989116,
+1983,refined,table_3,transition,boundary,x_t,7.96710960176985,,pareto_ls_r2,0.9947365799996454,descriptive reproduction quantity,,descriptive,6.91,0.0,1.0571096017698496,15.298257623297388,False
+1983,refined,table_4,income_share,gompertz,share_pct,86.46612531340745,,,,descriptive reproduction quantity,,descriptive,85.5,,0.9661253134074457,1.129971126792334,
+1983,refined,table_4,income_share,pareto,share_pct,13.533874686592554,,,,descriptive reproduction quantity,,descriptive,14.5,,-0.9661253134074457,-6.662933195913419,
+1983,refined,table_4,inequality,lorenz,gini,0.5984475364063784,,,,descriptive reproduction quantity,,descriptive,0.584,,0.014447536406378414,2.4738932202702766,
+1984,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.020064172854477036,,delta_r2,0.020064172854477036,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1984,refined,table_1,annual_income,descriptive,mean_income_usd,56.15153919883118,,,,descriptive reproduction quantity,,descriptive,51.764,,4.387539198831178,8.476043580154505,
+1984,refined,table_2,gompertz,boundary,x_gmax,7.82329475179977,,gompertz_free_correlation_coefficient,0.9781250291430768,correlation_coefficient >= 0.98,False,weak,7.388,,0.43529475179976984,5.891915969136029,
+1984,refined,table_2,gompertz,free_lsf,A,1.5489594592064022,0.00835624678275171,gompertz_free_correlation_coefficient,0.9781250291430768,correlation_coefficient >= 0.98,False,weak,1.55,0.01,-0.0010405407935978328,-0.06713166410308599,True
+1984,refined,table_2,gompertz,free_lsf,B,0.3535904213867211,0.026731661692529208,gompertz_free_correlation_coefficient,0.9781250291430768,correlation_coefficient >= 0.98,False,weak,0.33,0.01,0.023590421386721072,7.148612541430627,False
+1984,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9781250291430768,,gompertz_free_correlation_coefficient,0.9781250291430768,correlation_coefficient >= 0.98,False,weak,0.994,,-0.015874970856923243,-1.5970795630707488,
+1984,refined,table_2,gompertz,population,population_pct,98.88783175754692,,gompertz_free_correlation_coefficient,0.9781250291430768,correlation_coefficient >= 0.98,False,weak,98.9,,-0.012168242453086009,-0.012303581853474225,
+1984,refined,table_3,pareto,boundary,x_pmin,7.82329475179977,,pareto_ls_r2,0.995345554408696,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.388,,0.43529475179976984,5.891915969136029,
+1984,refined,table_3,pareto,lsf,alpha,3.3576735676892526,0.0680839433240348,pareto_ls_r2,0.995345554408696,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,3.5,0.07,-0.14232643231074737,-4.066469494592782,False
+1984,refined,table_3,pareto,lsf,beta,1523.6631292059792,464.3088090616955,pareto_ls_r2,0.995345554408696,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1870.0,451.0,-346.3368707940208,-18.520688277755124,True
+1984,refined,table_3,pareto,lsf,correlation_coefficient,0.9976700629009051,,pareto_ls_r2,0.995345554408696,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.996,,0.0016700629009051005,0.16767699808284142,
+1984,refined,table_3,pareto,mle,alpha,2.664553489915974,0.03557484409109887,pareto_mle_r2,0.8566287181159283,finite direct MLE on observations x >= x_t,True,supported,2.84,0.11,-0.17544651008402568,-6.177694017043158,False
+1984,refined,table_3,pareto,mle_continuity,beta,324.80344071925725,23.769511319074272,pareto_mle_r2,0.8566287181159283,finite direct MLE on observations x >= x_t,True,supported,441.0,97.0,-116.19655928074275,-26.348426140757994,False
+1984,refined,table_3,pareto,population,population_pct,1.1121682424530732,,pareto_ls_r2,0.995345554408696,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.1,,0.01216824245307313,1.1062038593702845,
+1984,refined,table_3,transition,boundary,x_t,7.82329475179977,,pareto_ls_r2,0.995345554408696,descriptive reproduction quantity,,descriptive,7.388,0.0,0.43529475179976984,5.891915969136029,False
+1984,refined,table_4,income_share,gompertz,share_pct,86.46456768297374,,,,descriptive reproduction quantity,,descriptive,87.2,,-0.735432317026266,-0.843385684663149,
+1984,refined,table_4,income_share,pareto,share_pct,13.535432317026263,,,,descriptive reproduction quantity,,descriptive,12.8,,0.7354323170262624,5.745564976767675,
+1984,refined,table_4,inequality,lorenz,gini,0.5907641612178143,,,,descriptive reproduction quantity,,descriptive,0.576,,0.01476416121781432,2.5632224336483196,
+1985,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.0387219803437282,,delta_r2,0.0387219803437282,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1985,refined,table_1,annual_income,descriptive,mean_income_usd,63.34468599817367,,,,descriptive reproduction quantity,,descriptive,58.039,,5.305685998173665,9.14158755005025,
+1985,refined,table_2,gompertz,boundary,x_gmax,7.727884152904459,,gompertz_free_correlation_coefficient,0.9869963977218971,correlation_coefficient >= 0.98,True,supported,7.49,,0.23788415290445908,3.176023403263806,
+1985,refined,table_2,gompertz,free_lsf,A,1.541161690646545,0.005531054444435069,gompertz_free_correlation_coefficient,0.9869963977218971,correlation_coefficient >= 0.98,True,supported,1.54,0.01,0.0011616906465450327,0.07543445756785927,True
+1985,refined,table_2,gompertz,free_lsf,B,0.3406375005349404,0.0195745710347297,gompertz_free_correlation_coefficient,0.9869963977218971,correlation_coefficient >= 0.98,True,supported,0.33,0.01,0.010637500534940392,3.2234850105879973,False
+1985,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9869963977218971,,gompertz_free_correlation_coefficient,0.9869963977218971,correlation_coefficient >= 0.98,True,supported,0.996,,-0.009003602278102929,-0.9039761323396515,
+1985,refined,table_2,gompertz,population,population_pct,98.82657735195096,,gompertz_free_correlation_coefficient,0.9869963977218971,correlation_coefficient >= 0.98,True,supported,98.9,,-0.0734226480490463,-0.07423928013048159,
+1985,refined,table_3,pareto,boundary,x_pmin,7.727884152904459,,pareto_ls_r2,0.9884408834827724,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.49,,0.23788415290445908,3.176023403263806,
+1985,refined,table_3,pareto,lsf,alpha,2.845655510465797,0.08592776194869964,pareto_ls_r2,0.9884408834827724,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,3.15,0.1,-0.3043444895342029,-9.661729826482633,False
+1985,refined,table_3,pareto,lsf,beta,532.3840611677135,277.3016894878277,pareto_ls_r2,0.9884408834827724,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1112.0,382.0,-579.6159388322865,-52.12373550650058,False
+1985,refined,table_3,pareto,lsf,correlation_coefficient,0.9942036428633584,,pareto_ls_r2,0.9884408834827724,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.99,,0.004203642863358392,0.42461039023822145,
+1985,refined,table_3,pareto,mle,alpha,2.432809067459261,0.031324009962842445,pareto_mle_r2,0.8968263462294365,finite direct MLE on observations x >= x_t,True,supported,2.66,0.05,-0.22719093254073908,-8.541012501531544,False
+1985,refined,table_3,pareto,mle_continuity,beta,203.320902349396,13.023198930667078,pareto_mle_r2,0.8968263462294365,finite direct MLE on observations x >= x_t,True,supported,312.0,34.0,-108.679097650604,-34.833044118783334,False
+1985,refined,table_3,pareto,population,population_pct,1.1734226480490608,,pareto_ls_r2,0.9884408834827724,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.1,,0.07342264804906073,6.674786186278248,
+1985,refined,table_3,transition,boundary,x_t,7.727884152904459,,pareto_ls_r2,0.9884408834827724,descriptive reproduction quantity,,descriptive,7.49,0.0,0.23788415290445908,3.176023403263806,False
+1985,refined,table_4,income_share,gompertz,share_pct,84.87907535586164,,,,descriptive reproduction quantity,,descriptive,85.8,,-0.9209246441383527,-1.0733387460819963,
+1985,refined,table_4,income_share,pareto,share_pct,15.120924644138356,,,,descriptive reproduction quantity,,descriptive,14.2,,0.9209246441383563,6.485384817875749,
+1985,refined,table_4,inequality,lorenz,gini,0.6020969269730102,,,,descriptive reproduction quantity,,descriptive,0.589,,0.013096926973010237,2.223586922412604,
+1986,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.040387365444544465,,delta_r2,0.040387365444544465,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1986,refined,table_1,annual_income,descriptive,mean_income_usd,96.039309130723,,,,descriptive reproduction quantity,,descriptive,91.306,,4.733309130723001,5.184006670671151,
+1986,refined,table_2,gompertz,boundary,x_gmax,7.218092203968127,,gompertz_free_correlation_coefficient,0.9903133750538335,correlation_coefficient >= 0.98,True,supported,7.112,,0.10609220396812713,1.4917351514078618,
+1986,refined,table_2,gompertz,free_lsf,A,1.545451036552364,0.005733808357470791,gompertz_free_correlation_coefficient,0.9903133750538335,correlation_coefficient >= 0.98,True,supported,1.55,0.01,-0.004548963447636112,-0.2934815127507169,True
+1986,refined,table_2,gompertz,free_lsf,B,0.3442358578517291,0.016336865535174997,gompertz_free_correlation_coefficient,0.9903133750538335,correlation_coefficient >= 0.98,True,supported,0.34,0.01,0.004235857851729086,1.2458405446262015,True
+1986,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9903133750538335,,gompertz_free_correlation_coefficient,0.9903133750538335,correlation_coefficient >= 0.98,True,supported,0.995,,-0.004686624946166451,-0.47101758252929155,
+1986,refined,table_2,gompertz,population,population_pct,98.74956887753306,,gompertz_free_correlation_coefficient,0.9903133750538335,correlation_coefficient >= 0.98,True,supported,98.8,,-0.050431122466932266,-0.05104364622159136,
+1986,refined,table_3,pareto,boundary,x_pmin,7.218092203968127,,pareto_ls_r2,0.9754860241505304,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,7.112,,0.10609220396812713,1.4917351514078618,
+1986,refined,table_3,pareto,lsf,alpha,2.1326803653865243,0.05026199370320314,pareto_ls_r2,0.9754860241505304,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,2.11,0.07,0.022680365386524404,1.074898833484569,True
+1986,refined,table_3,pareto,lsf,beta,67.86447408669837,10.508838028847892,pareto_ls_r2,0.9754860241505304,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,57.84,12.52,10.024474086698362,17.331386733572547,True
+1986,refined,table_3,pareto,lsf,correlation_coefficient,0.9876669601391607,,pareto_ls_r2,0.9754860241505304,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,0.987,,0.0006669601391606772,0.06757448218446578,
+1986,refined,table_3,pareto,mle,alpha,2.3455771802487635,0.03935620662859007,pareto_mle_r2,0.9677904296933191,finite direct MLE on observations x >= x_t,True,supported,2.57,0.03,-0.22442281975123635,-8.732405437791298,False
+1986,refined,table_3,pareto,mle_continuity,beta,153.49949062927152,11.940895949970953,pareto_mle_r2,0.9677904296933191,finite direct MLE on observations x >= x_t,True,supported,234.0,17.0,-80.50050937072848,-34.4019270815079,False
+1986,refined,table_3,pareto,population,population_pct,1.2504311224669356,,pareto_ls_r2,0.9754860241505304,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,1.2,,0.050431122466935596,4.2025935389113,
+1986,refined,table_3,transition,boundary,x_t,7.218092203968127,,pareto_ls_r2,0.9754860241505304,descriptive reproduction quantity,,descriptive,7.112,0.0,0.10609220396812713,1.4917351514078618,False
+1986,refined,table_4,income_share,gompertz,share_pct,84.22080517992408,,,,descriptive reproduction quantity,,descriptive,85.2,,-0.979194820075918,-1.1492896949247864,
+1986,refined,table_4,income_share,pareto,share_pct,15.779194820075915,,,,descriptive reproduction quantity,,descriptive,14.8,,0.9791948200759144,6.616181216729151,
+1986,refined,table_4,inequality,lorenz,gini,0.5930790055734168,,,,descriptive reproduction quantity,,descriptive,0.58,,0.013079005573416791,2.2550009609339297,
+1987,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.04505593885708359,,delta_r2,0.04505593885708359,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1987,refined,table_1,annual_income,descriptive,mean_income_usd,80.22774437320022,,,,descriptive reproduction quantity,,descriptive,75.687,,4.540744373200226,5.99937158719493,
+1987,refined,table_2,gompertz,boundary,x_gmax,7.763947684149914,,gompertz_free_correlation_coefficient,0.9884267029083729,correlation_coefficient >= 0.98,True,supported,7.626,,0.1379476841499141,1.808912721609154,
+1987,refined,table_2,gompertz,free_lsf,A,1.5434750934624673,0.008509576811484712,gompertz_free_correlation_coefficient,0.9884267029083729,correlation_coefficient >= 0.98,True,supported,1.55,0.01,-0.006524906537532793,-0.4209617120988899,True
+1987,refined,table_2,gompertz,free_lsf,B,0.3422215782551636,0.01924164464006608,gompertz_free_correlation_coefficient,0.9884267029083729,correlation_coefficient >= 0.98,True,supported,0.34,0.02,0.0022215782551635588,0.6534053691657525,True
+1987,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9884267029083729,,gompertz_free_correlation_coefficient,0.9884267029083729,correlation_coefficient >= 0.98,True,supported,0.992,,-0.0035732970916271256,-0.36021140036563765,
+1987,refined,table_2,gompertz,population,population_pct,98.81790065444356,,gompertz_free_correlation_coefficient,0.9884267029083729,correlation_coefficient >= 0.98,True,supported,98.9,,-0.08209934555644338,-0.08301248286799127,
+1987,refined,table_3,pareto,boundary,x_pmin,7.763947684149914,,pareto_ls_r2,0.9889923196717456,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.626,,0.1379476841499141,1.808912721609154,
+1987,refined,table_3,pareto,lsf,alpha,2.6654433450411124,0.05591933663682319,pareto_ls_r2,0.9889923196717456,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,2.43,0.06,0.2354433450411122,9.689026544901736,False
+1987,refined,table_3,pareto,lsf,beta,325.89397091054065,64.61058672673262,pareto_ls_r2,0.9889923196717456,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,153.6,26.7,172.29397091054065,112.17055397821659,False
+1987,refined,table_3,pareto,lsf,correlation_coefficient,0.9944809297677586,,pareto_ls_r2,0.9889923196717456,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.996,,-0.001519070232241404,-0.15251709159050242,
+1987,refined,table_3,pareto,mle,alpha,2.384758946219901,0.04055383913030541,pareto_mle_r2,0.939798815270559,finite direct MLE on observations x >= x_t,True,supported,2.72,0.07,-0.3352410537800994,-12.325038741915417,False
+1987,refined,table_3,pareto,mle_continuity,beta,185.0902512345535,15.383725396980813,pareto_mle_r2,0.939798815270559,finite direct MLE on observations x >= x_t,True,supported,360.0,55.0,-174.9097487654465,-48.58604132373514,False
+1987,refined,table_3,pareto,population,population_pct,1.182099345556448,,pareto_ls_r2,0.9889923196717456,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.1,,0.08209934555644782,7.4635768687679835,
+1987,refined,table_3,transition,boundary,x_t,7.763947684149914,,pareto_ls_r2,0.9889923196717456,descriptive reproduction quantity,,descriptive,7.626,0.0,0.1379476841499141,1.808912721609154,False
+1987,refined,table_4,income_share,gompertz,share_pct,84.53158264435757,,,,descriptive reproduction quantity,,descriptive,85.9,,-1.3684173556424355,-1.5930353383497502,
+1987,refined,table_4,income_share,pareto,share_pct,15.46841735564243,,,,descriptive reproduction quantity,,descriptive,14.1,,1.3684173556424302,9.705087628669718,
+1987,refined,table_4,inequality,lorenz,gini,0.6046304992949822,,,,descriptive reproduction quantity,,descriptive,0.592,,0.012630499294982278,2.133530286314574,
+1988,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.03449509012297569,,delta_r2,0.03449509012297569,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1988,refined,table_1,annual_income,descriptive,mean_income_usd,91.58231158087649,,,,descriptive reproduction quantity,,descriptive,87.276,,4.306311580876496,4.934130323200532,
+1988,refined,table_2,gompertz,boundary,x_gmax,8.533216400084266,,gompertz_free_correlation_coefficient,0.9769291065997056,correlation_coefficient >= 0.98,False,weak,8.14,,0.39321640008426506,4.830668305703502,
+1988,refined,table_2,gompertz,free_lsf,A,1.541946388671655,0.01052489172354373,gompertz_free_correlation_coefficient,0.9769291065997056,correlation_coefficient >= 0.98,False,weak,1.54,0.01,0.001946388671654864,0.12638887478278338,True
+1988,refined,table_2,gompertz,free_lsf,B,0.3418336942446066,0.02693848409503928,gompertz_free_correlation_coefficient,0.9769291065997056,correlation_coefficient >= 0.98,False,weak,0.32,0.02,0.021833694244606572,6.823029451439553,False
+1988,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9769291065997056,,gompertz_free_correlation_coefficient,0.9769291065997056,correlation_coefficient >= 0.98,False,weak,0.992,,-0.015070893400294438,-1.5192432863200038,
+1988,refined,table_2,gompertz,population,population_pct,98.9158693933357,,gompertz_free_correlation_coefficient,0.9769291065997056,correlation_coefficient >= 0.98,False,weak,98.9,,0.015869393335691484,0.016045898216068232,
+1988,refined,table_3,pareto,boundary,x_pmin,8.533216400084266,,pareto_ls_r2,0.9948405114166048,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,8.14,,0.39321640008426506,4.830668305703502,
+1988,refined,table_3,pareto,lsf,alpha,2.5862880548958582,0.05366254147388431,pareto_ls_r2,0.9948405114166048,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,3.06,0.13,-0.47371194510414183,-15.480782519743197,False
+1988,refined,table_3,pareto,lsf,beta,315.46709804286985,70.21980606797065,pareto_ls_r2,0.9948405114166048,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,983.7,446.1,-668.2329019571303,-67.93055829593679,False
+1988,refined,table_3,pareto,lsf,correlation_coefficient,0.9974169195560123,,pareto_ls_r2,0.9948405114166048,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.991,,0.006416919556012313,0.647519632291858,
+1988,refined,table_3,pareto,mle,alpha,2.3587623013401595,0.04210062064457947,pareto_mle_r2,0.9448105142077785,finite direct MLE on observations x >= x_t,True,supported,2.87,0.12,-0.5112376986598406,-17.813160232050194,False
+1988,refined,table_3,pareto,mle_continuity,beta,203.03216629391005,18.326153223397814,pareto_mle_r2,0.9448105142077785,finite direct MLE on observations x >= x_t,True,supported,585.0,153.0,-381.96783370608995,-65.2936467873658,False
+1988,refined,table_3,pareto,population,population_pct,1.084130606664296,,pareto_ls_r2,0.9948405114166048,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.1,,-0.01586939333570414,-1.442672121427649,
+1988,refined,table_3,transition,boundary,x_t,8.533216400084266,,pareto_ls_r2,0.9948405114166048,descriptive reproduction quantity,,descriptive,8.14,0.0,0.39321640008426506,4.830668305703502,False
+1988,refined,table_4,income_share,gompertz,share_pct,84.28197881971927,,,,descriptive reproduction quantity,,descriptive,85.4,,-1.118021180280735,-1.3091582907268557,
+1988,refined,table_4,income_share,pareto,share_pct,15.71802118028073,,,,descriptive reproduction quantity,,descriptive,14.6,,1.1180211802807296,7.657679316991298,
+1988,refined,table_4,inequality,lorenz,gini,0.6245229030230508,,,,descriptive reproduction quantity,,descriptive,0.609,,0.015522903023050816,2.5489167525535,
+1989,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.057180270869222505,,delta_r2,0.057180270869222505,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1989,refined,table_1,annual_income,descriptive,mean_income_usd,906.0088728850883,,,,descriptive reproduction quantity,,descriptive,137.183,,768.8258728850883,560.4381540606987,
+1989,refined,table_2,gompertz,boundary,x_gmax,9.73777265679984,,gompertz_free_correlation_coefficient,0.9733928064391795,correlation_coefficient >= 0.98,False,weak,7.856,,1.881772656799841,23.9533179327882,
+1989,refined,table_2,gompertz,free_lsf,A,1.5299438140996071,0.01423882221077407,gompertz_free_correlation_coefficient,0.9733928064391795,correlation_coefficient >= 0.98,False,weak,1.53,0.01,-5.618590039291327e-05,-0.00367228107143224,True
+1989,refined,table_2,gompertz,free_lsf,B,0.3281218785877,0.027279967035683833,gompertz_free_correlation_coefficient,0.9733928064391795,correlation_coefficient >= 0.98,False,weak,0.32,0.01,0.008121878587699971,2.5380870586562407,True
+1989,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9733928064391795,,gompertz_free_correlation_coefficient,0.9733928064391795,correlation_coefficient >= 0.98,False,weak,0.995,,-0.021607193560820526,-2.17157724229352,
+1989,refined,table_2,gompertz,population,population_pct,98.94289892351874,,gompertz_free_correlation_coefficient,0.9733928064391795,correlation_coefficient >= 0.98,False,weak,98.8,,0.142898923518743,0.14463453797443623,
+1989,refined,table_3,pareto,boundary,x_pmin,9.73777265679984,,pareto_ls_r2,0.9891179393912272,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.856,,1.881772656799841,23.9533179327882,
+1989,refined,table_3,pareto,lsf,alpha,2.128381836883672,0.05296593500700105,pareto_ls_r2,0.9891179393912272,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,2.22,0.04,-0.09161816311632798,-4.126944284519278,False
+1989,refined,table_3,pareto,lsf,beta,158.99037859968124,33.520969445676165,pareto_ls_r2,0.9891179393912272,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,112.5,11.4,46.490378599681236,41.324780977494434,False
+1989,refined,table_3,pareto,lsf,correlation_coefficient,0.9945440861979057,,pareto_ls_r2,0.9891179393912272,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.997,,-0.0024559138020943116,-0.24633037132340138,
+1989,refined,table_3,pareto,mle,alpha,1.9303418859929515,0.055747383944478895,pareto_mle_r2,0.9573749282133136,finite direct MLE on observations x >= x_t,True,supported,2.78,0.09,-0.8496581140070483,-30.563241511044904,False
+1989,refined,table_3,pareto,mle_continuity,beta,97.8176051620286,12.411267727112271,pareto_mle_r2,0.9573749282133136,finite direct MLE on observations x >= x_t,True,supported,445.0,80.0,-347.1823948379714,-78.01851569392615,False
+1989,refined,table_3,pareto,population,population_pct,1.057101076481263,,pareto_ls_r2,0.9891179393912272,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.2,,-0.142898923518737,-11.908243626561417,
+1989,refined,table_3,transition,boundary,x_t,9.73777265679984,,pareto_ls_r2,0.9891179393912272,descriptive reproduction quantity,,descriptive,7.856,0.0,1.881772656799841,23.9533179327882,False
+1989,refined,table_4,income_share,gompertz,share_pct,79.49838606417381,,,,descriptive reproduction quantity,,descriptive,82.5,,-3.0016139358261853,-3.638319922213558,
+1989,refined,table_4,income_share,pareto,share_pct,20.501613935826185,,,,descriptive reproduction quantity,,descriptive,17.5,,3.0016139358261853,17.152079633292487,
+1989,refined,table_4,inequality,lorenz,gini,0.6849621476811574,,,,descriptive reproduction quantity,,descriptive,0.628,,0.05696214768115737,9.070405681712957,
+1990,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.07272450274105313,,delta_r2,0.07272450274105313,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1990,refined,table_1,annual_income,descriptive,mean_income_usd,1070.7340584371595,,,,descriptive reproduction quantity,,descriptive,161.516,,909.2180584371596,562.9275480058692,
+1990,refined,table_2,gompertz,boundary,x_gmax,8.665971226618906,,gompertz_free_correlation_coefficient,0.990684736503337,correlation_coefficient >= 0.98,True,supported,8.074,,0.5919712266189059,7.331820988591849,
+1990,refined,table_2,gompertz,free_lsf,A,1.5235920352618275,0.0066159189162336785,gompertz_free_correlation_coefficient,0.990684736503337,correlation_coefficient >= 0.98,True,supported,1.54,0.01,-0.01640796473817252,-1.0654522557254884,False
+1990,refined,table_2,gompertz,free_lsf,B,0.3131477373671628,0.014887110315332915,gompertz_free_correlation_coefficient,0.990684736503337,correlation_coefficient >= 0.98,True,supported,0.34,0.02,-0.026852262632837243,-7.897724303775659,False
+1990,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.990684736503337,,gompertz_free_correlation_coefficient,0.990684736503337,correlation_coefficient >= 0.98,True,supported,0.991,,-0.0003152634966629986,-0.03181266363905132,
+1990,refined,table_2,gompertz,population,population_pct,98.81909178209,,gompertz_free_correlation_coefficient,0.990684736503337,correlation_coefficient >= 0.98,True,supported,98.9,,-0.08090821791000735,-0.08180810708797508,
+1990,refined,table_3,pareto,boundary,x_pmin,8.665971226618906,,pareto_ls_r2,0.997370189614886,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,8.074,,0.5919712266189059,7.331820988591849,
+1990,refined,table_3,pareto,lsf,alpha,2.1249824940992967,0.032415772297808884,pareto_ls_r2,0.997370189614886,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,2.27,0.05,-0.14501750590070328,-6.388436383290894,False
+1990,refined,table_3,pareto,lsf,beta,117.39162807119398,15.669703664566317,pareto_ls_r2,0.997370189614886,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,91.35,16.73,26.041628071193983,28.507529360912955,False
+1990,refined,table_3,pareto,lsf,correlation_coefficient,0.998684229181019,,pareto_ls_r2,0.997370189614886,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.994,,0.004684229181018962,0.4712504206256501,
+1990,refined,table_3,pareto,mle,alpha,2.0432345604047604,0.055323662616502886,pareto_mle_r2,0.9677900893751529,finite direct MLE on observations x >= x_t,True,supported,2.64,0.05,-0.5967654395952398,-22.604751499819688,False
+1990,refined,table_3,pareto,mle_continuity,beta,111.64879743652094,13.338250699867656,pareto_mle_r2,0.9677900893751529,finite direct MLE on observations x >= x_t,True,supported,332.0,36.0,-220.35120256347906,-66.37084414562622,False
+1990,refined,table_3,pareto,population,population_pct,1.1809082179100088,,pareto_ls_r2,0.997370189614886,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.1,,0.08090821791000868,7.355292537273516,
+1990,refined,table_3,transition,boundary,x_t,8.665971226618906,,pareto_ls_r2,0.997370189614886,descriptive reproduction quantity,,descriptive,8.074,0.0,0.5919712266189059,7.331820988591849,False
+1990,refined,table_4,income_share,gompertz,share_pct,80.65472827104087,,,,descriptive reproduction quantity,,descriptive,85.9,,-5.245271728959139,-6.106253467938463,
+1990,refined,table_4,income_share,pareto,share_pct,19.345271728959133,,,,descriptive reproduction quantity,,descriptive,14.1,,5.245271728959134,37.20050871602223,
+1990,refined,table_4,inequality,lorenz,gini,0.6608834465792127,,,,descriptive reproduction quantity,,descriptive,0.605,,0.05588344657921274,9.236933318878139,
+1992,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.02537386277984177,,delta_r2,0.02537386277984177,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1992,refined,table_1,annual_income,descriptive,mean_income_usd,138.92961631256023,,,,descriptive reproduction quantity,,descriptive,111.906,,27.023616312560222,24.14849633849858,
+1992,refined,table_2,gompertz,boundary,x_gmax,7.465068963129983,,gompertz_free_correlation_coefficient,0.9844591830324164,correlation_coefficient >= 0.98,True,supported,7.635,,-0.16993103687001643,-2.225684831303424,
+1992,refined,table_2,gompertz,free_lsf,A,1.5518884750231396,0.005313378530900389,gompertz_free_correlation_coefficient,0.9844591830324164,correlation_coefficient >= 0.98,True,supported,1.56,0.01,-0.008111524976860407,-0.519969549798744,True
+1992,refined,table_2,gompertz,free_lsf,B,0.3698095738271282,0.02315292882933987,gompertz_free_correlation_coefficient,0.9844591830324164,correlation_coefficient >= 0.98,True,supported,0.36,0.02,0.009809573827128215,2.7248816186467266,True
+1992,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9844591830324164,,gompertz_free_correlation_coefficient,0.9844591830324164,correlation_coefficient >= 0.98,True,supported,0.989,,-0.004540816967583572,-0.45913215041289906,
+1992,refined,table_2,gompertz,population,population_pct,98.86221820981918,,gompertz_free_correlation_coefficient,0.9844591830324164,correlation_coefficient >= 0.98,True,supported,99.0,,-0.13778179018082426,-0.13917352543517603,
+1992,refined,table_3,pareto,boundary,x_pmin,7.465068963129983,,pareto_ls_r2,0.9949571247325956,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.635,,-0.16993103687001643,-2.225684831303424,
+1992,refined,table_3,pareto,lsf,alpha,2.2158432186449804,0.039557931374365723,pareto_ls_r2,0.9949571247325956,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,2.12,0.06,0.09584321864498024,4.520906539857559,False
+1992,refined,table_3,pareto,lsf,beta,87.83843088367644,11.132307387407431,pareto_ls_r2,0.9949571247325956,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,54.52,10.36,33.318430883676434,61.11230903095457,False
+1992,refined,table_3,pareto,lsf,correlation_coefficient,0.9974753755018695,,pareto_ls_r2,0.9949571247325956,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.99,,0.007475375501869497,0.7550884345322724,
+1992,refined,table_3,pareto,mle,alpha,2.385813881756108,0.08154538418873084,pareto_mle_r2,0.9890179694502839,finite direct MLE on observations x >= x_t,True,supported,2.64,0.05,-0.25418611824389226,-9.628262054692888,False
+1992,refined,table_3,pareto,mle_continuity,beta,164.2502638201749,26.924783364814733,pareto_mle_r2,0.9890179694502839,finite direct MLE on observations x >= x_t,True,supported,288.0,31.0,-123.7497361798251,-42.96865839577261,False
+1992,refined,table_3,pareto,population,population_pct,1.1377817901808236,,pareto_ls_r2,0.9949571247325956,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.0,,0.1377817901808236,13.778179018082358,
+1992,refined,table_3,transition,boundary,x_t,7.465068963129983,,pareto_ls_r2,0.9949571247325956,descriptive reproduction quantity,,descriptive,7.635,0.0,-0.16993103687001643,-2.225684831303424,False
+1992,refined,table_4,income_share,gompertz,share_pct,85.3053392507661,,,,descriptive reproduction quantity,,descriptive,87.0,,-1.694660749233904,-1.9478859186596598,
+1992,refined,table_4,income_share,pareto,share_pct,14.694660749233904,,,,descriptive reproduction quantity,,descriptive,13.0,,1.694660749233904,13.035851917183878,
+1992,refined,table_4,inequality,lorenz,gini,0.585684044253634,,,,descriptive reproduction quantity,,descriptive,0.578,,0.007684044253634004,1.3294194210439454,
+1993,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.059185355806486206,,delta_r2,0.059185355806486206,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1993,refined,table_1,annual_income,descriptive,mean_income_usd,159.48849024220473,,,,descriptive reproduction quantity,,descriptive,126.547,,32.941490242204736,26.03103213999916,
+1993,refined,table_2,gompertz,boundary,x_gmax,8.09189309790807,,gompertz_free_correlation_coefficient,0.9922244451589405,correlation_coefficient >= 0.98,True,supported,7.674,,0.4178930979080695,5.445570731145029,
+1993,refined,table_2,gompertz,free_lsf,A,1.5378937279822094,0.004509094511553245,gompertz_free_correlation_coefficient,0.9922244451589405,correlation_coefficient >= 0.98,True,supported,1.54,0.01,-0.002106272017790678,-0.1367709102461479,True
+1993,refined,table_2,gompertz,free_lsf,B,0.3392542185742204,0.01483965627640033,gompertz_free_correlation_coefficient,0.9922244451589405,correlation_coefficient >= 0.98,True,supported,0.33,0.01,0.009254218574220374,2.8043086588546586,True
+1993,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9922244451589405,,gompertz_free_correlation_coefficient,0.9922244451589405,correlation_coefficient >= 0.98,True,supported,0.997,,-0.004775554841059515,-0.4789924614904228,
+1993,refined,table_2,gompertz,population,population_pct,98.8153818115546,,gompertz_free_correlation_coefficient,0.9922244451589405,correlation_coefficient >= 0.98,True,supported,98.8,,0.015381811554604496,0.0155686351767252,
+1993,refined,table_3,pareto,boundary,x_pmin,8.09189309790807,,pareto_ls_r2,0.994233691028353,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.674,,0.4178930979080695,5.445570731145029,
+1993,refined,table_3,pareto,lsf,alpha,2.2247184517105785,0.044599626400658704,pareto_ls_r2,0.994233691028353,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,2.41,0.04,-0.18528154828942167,-7.6880310493535955,False
+1993,refined,table_3,pareto,lsf,beta,113.98906162573137,17.632611523526908,pareto_ls_r2,0.994233691028353,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,179.3,25.9,-65.31093837426864,-36.42550941119277,False
+1993,refined,table_3,pareto,lsf,correlation_coefficient,0.9971126771976941,,pareto_ls_r2,0.994233691028353,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.996,,0.0011126771976941452,0.11171457808174148,
+1993,refined,table_3,pareto,mle,alpha,2.30854639052865,0.07656960423122867,pareto_mle_r2,0.987049726439471,finite direct MLE on observations x >= x_t,True,supported,2.57,0.03,-0.26145360947134977,-10.173292197328784,False
+1993,refined,table_3,pareto,mle_continuity,beta,168.8108151264237,27.02602574215508,pareto_mle_r2,0.987049726439471,finite direct MLE on observations x >= x_t,True,supported,271.0,20.0,-102.1891848735763,-37.70818630021265,False
+1993,refined,table_3,pareto,population,population_pct,1.1846181884454163,,pareto_ls_r2,0.994233691028353,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.2,,-0.015381811554583624,-1.2818176295486354,
+1993,refined,table_3,transition,boundary,x_t,8.09189309790807,,pareto_ls_r2,0.994233691028353,descriptive reproduction quantity,,descriptive,7.674,0.0,0.4178930979080695,5.445570731145029,False
+1993,refined,table_4,income_share,gompertz,share_pct,83.22863737287796,,,,descriptive reproduction quantity,,descriptive,84.1,,-0.8713626271220392,-1.0361030049013547,
+1993,refined,table_4,income_share,pareto,share_pct,16.771362627122045,,,,descriptive reproduction quantity,,descriptive,15.9,,0.8713626271220445,5.480268095107198,
+1993,refined,table_4,inequality,lorenz,gini,0.6097346922973377,,,,descriptive reproduction quantity,,descriptive,0.599,,0.0107346922973377,1.7921022199228214,
+1995,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.00010653419916339946,,delta_r2,0.00010653419916339946,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1995,refined,table_1,annual_income,descriptive,mean_income_usd,267.49627117232905,,,,descriptive reproduction quantity,,descriptive,213.188,,54.30827117232906,25.474356517406733,
+1995,refined,table_2,gompertz,boundary,x_gmax,8.407876016545897,,gompertz_free_correlation_coefficient,0.9606335136620965,correlation_coefficient >= 0.98,False,weak,7.887,,0.5208760165458974,6.604235026574077,
+1995,refined,table_2,gompertz,free_lsf,A,1.5638883942401107,0.021474208806890976,gompertz_free_correlation_coefficient,0.9606335136620965,correlation_coefficient >= 0.98,False,weak,1.54,0.01,0.02388839424011069,1.5511944311760186,False
+1995,refined,table_2,gompertz,free_lsf,B,0.3747107840889911,0.040679842957713465,gompertz_free_correlation_coefficient,0.9606335136620965,correlation_coefficient >= 0.98,False,weak,0.33,0.01,0.044710784088991096,13.548722451209422,False
+1995,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9606335136620965,,gompertz_free_correlation_coefficient,0.9606335136620965,correlation_coefficient >= 0.98,False,weak,0.995,,-0.03436648633790351,-3.453918224914926,
+1995,refined,table_2,gompertz,population,population_pct,98.96043576587311,,gompertz_free_correlation_coefficient,0.9606335136620965,correlation_coefficient >= 0.98,False,weak,98.9,,0.06043576587310895,0.06110795336006971,
+1995,refined,table_3,pareto,boundary,x_pmin,8.407876016545897,,pareto_ls_r2,0.987033751215114,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.887,,0.5208760165458974,6.604235026574077,
+1995,refined,table_3,pareto,lsf,alpha,2.81498264520965,0.0833673123773054,pareto_ls_r2,0.987033751215114,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,3.21,0.1,-0.39501735479035016,-12.305836597830224,False
+1995,refined,table_3,pareto,lsf,beta,528.5096506593684,192.16178332172146,pareto_ls_r2,0.987033751215114,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1376.0,488.0,-847.4903493406316,-61.59086841138311,False
+1995,refined,table_3,pareto,lsf,correlation_coefficient,0.9934957227965876,,pareto_ls_r2,0.987033751215114,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.991,,0.002495722796587607,0.2518388291208484,
+1995,refined,table_3,pareto,mle,alpha,2.354246696428253,0.08056060838139996,pareto_mle_r2,0.8868724295627749,finite direct MLE on observations x >= x_t,True,supported,2.78,0.09,-0.4257533035717467,-15.314867034954917,False
+1995,refined,table_3,pareto,mle_continuity,beta,185.7015978628109,31.852864147496007,pareto_mle_r2,0.8868724295627749,finite direct MLE on observations x >= x_t,True,supported,437.0,79.0,-251.2984021371891,-57.505355180134806,False
+1995,refined,table_3,pareto,population,population_pct,1.0395642341268876,,pareto_ls_r2,0.987033751215114,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.1,,-0.0604357658731125,-5.494160533919318,
+1995,refined,table_3,transition,boundary,x_t,8.407876016545897,,pareto_ls_r2,0.987033751215114,descriptive reproduction quantity,,descriptive,7.887,0.0,0.5208760165458974,6.604235026574077,False
+1995,refined,table_4,income_share,gompertz,share_pct,85.36588839148008,,,,descriptive reproduction quantity,,descriptive,85.9,,-0.5341116085199218,-0.6217830134108518,
+1995,refined,table_4,income_share,pareto,share_pct,14.634111608519916,,,,descriptive reproduction quantity,,descriptive,14.1,,0.5341116085199165,3.788025592339833,
+1995,refined,table_4,inequality,lorenz,gini,0.6078148953935558,,,,descriptive reproduction quantity,,descriptive,0.596,,0.011814895393555847,1.9823649989187664,
+1996,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.02406554030310104,,delta_r2,0.02406554030310104,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1996,refined,table_1,annual_income,descriptive,mean_income_usd,284.14660715955756,,,,descriptive reproduction quantity,,descriptive,228.299,,55.847607159557555,24.462484355848055,
+1996,refined,table_2,gompertz,boundary,x_gmax,8.124437179052151,,gompertz_free_correlation_coefficient,0.9758985973427269,correlation_coefficient >= 0.98,False,weak,8.163,,-0.03856282094784902,-0.4724099099332233,
+1996,refined,table_2,gompertz,free_lsf,A,1.5561043976656594,0.014104378286274132,gompertz_free_correlation_coefficient,0.9758985973427269,correlation_coefficient >= 0.98,False,weak,1.55,0.01,0.0061043976656594,0.3938321074618968,True
+1996,refined,table_2,gompertz,free_lsf,B,0.3595423521420449,0.02981964633541936,gompertz_free_correlation_coefficient,0.9758985973427269,correlation_coefficient >= 0.98,False,weak,0.35,0.02,0.009542352142044908,2.7263863262985453,True
+1996,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9758985973427269,,gompertz_free_correlation_coefficient,0.9758985973427269,correlation_coefficient >= 0.98,False,weak,0.989,,-0.013101402657273109,-1.3247120988142678,
+1996,refined,table_2,gompertz,population,population_pct,98.91312411899992,,gompertz_free_correlation_coefficient,0.9758985973427269,correlation_coefficient >= 0.98,False,weak,99.0,,-0.0868758810000827,-0.0877534151515987,
+1996,refined,table_3,pareto,boundary,x_pmin,8.124437179052151,,pareto_ls_r2,0.9890732777606026,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,8.163,,-0.03856282094784902,-0.4724099099332233,
+1996,refined,table_3,pareto,lsf,alpha,2.768367752430817,0.07822217657323048,pareto_ls_r2,0.9890732777606026,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,3.2,0.12,-0.4316322475691834,-13.488507736536981,False
+1996,refined,table_3,pareto,lsf,beta,435.2511089992084,211.99174491720154,pareto_ls_r2,0.9890732777606026,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1331.0,616.0,-895.7488910007917,-67.29893997000688,False
+1996,refined,table_3,pareto,lsf,correlation_coefficient,0.9945216326257578,,pareto_ls_r2,0.9890732777606026,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.986,,0.00852163262575778,0.8642629437888215,
+1996,refined,table_3,pareto,mle,alpha,2.448438958003312,0.08263075902657449,pareto_mle_r2,0.896043333055594,finite direct MLE on observations x >= x_t,True,supported,2.75,0.08,-0.3015610419966879,-10.965856072606833,False
+1996,refined,table_3,pareto,mle_continuity,beta,219.50251986937064,37.9961565262037,pareto_mle_r2,0.896043333055594,finite direct MLE on observations x >= x_t,True,supported,421.0,71.0,-201.49748013062936,-47.86163423530388,False
+1996,refined,table_3,pareto,population,population_pct,1.0868758810000745,,pareto_ls_r2,0.9890732777606026,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.0,,0.08687588100007448,8.68758810000745,
+1996,refined,table_3,transition,boundary,x_t,8.124437179052151,,pareto_ls_r2,0.9890732777606026,descriptive reproduction quantity,,descriptive,8.163,0.0,-0.03856282094784902,-0.4724099099332233,False
+1996,refined,table_4,income_share,gompertz,share_pct,85.43391765590395,,,,descriptive reproduction quantity,,descriptive,86.7,,-1.2660823440960485,-1.4603025883460765,
+1996,refined,table_4,income_share,pareto,share_pct,14.566082344096046,,,,descriptive reproduction quantity,,descriptive,13.3,,1.266082344096045,9.519416121022894,
+1996,refined,table_4,inequality,lorenz,gini,0.6093421955328784,,,,descriptive reproduction quantity,,descriptive,0.598,,0.011342195532878407,1.8966882162004026,
+1997,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.05094677109609591,,delta_r2,0.05094677109609591,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1997,refined,table_1,annual_income,descriptive,mean_income_usd,276.20831413664615,,,,descriptive reproduction quantity,,descriptive,221.687,,54.52131413664614,24.5938255904253,
+1997,refined,table_2,gompertz,boundary,x_gmax,7.79009107647884,,gompertz_free_correlation_coefficient,0.9899185163405976,correlation_coefficient >= 0.98,True,supported,7.935,,-0.14490892352116003,-1.8261994142553248,
+1997,refined,table_2,gompertz,free_lsf,A,1.5425276410319324,0.0077819116144084806,gompertz_free_correlation_coefficient,0.9899185163405976,correlation_coefficient >= 0.98,True,supported,1.55,0.01,-0.007472358968067638,-0.48208767535920244,True
+1997,refined,table_2,gompertz,free_lsf,B,0.3402746256320458,0.017311546844393313,gompertz_free_correlation_coefficient,0.9899185163405976,correlation_coefficient >= 0.98,True,supported,0.34,0.02,0.0002746256320457774,0.08077224471934628,True
+1997,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9899185163405976,,gompertz_free_correlation_coefficient,0.9899185163405976,correlation_coefficient >= 0.98,True,supported,0.992,,-0.0020814836594024166,-0.20982698179459847,
+1997,refined,table_2,gompertz,population,population_pct,98.80426486574,,gompertz_free_correlation_coefficient,0.9899185163405976,correlation_coefficient >= 0.98,True,supported,99.0,,-0.19573513426000488,-0.19771225682828777,
+1997,refined,table_3,pareto,boundary,x_pmin,7.79009107647884,,pareto_ls_r2,0.9870747699933728,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.935,,-0.14490892352116003,-1.8261994142553248,
+1997,refined,table_3,pareto,lsf,alpha,2.4693767411230025,0.054178691161553404,pareto_ls_r2,0.9870747699933728,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,2.79,0.05,-0.3206232588769975,-11.491873078028584,False
+1997,refined,table_3,pareto,lsf,beta,194.4096133009451,36.076983028243106,pareto_ls_r2,0.9870747699933728,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,419.3,79.7,-224.89038669905491,-53.63472136872285,False
+1997,refined,table_3,pareto,lsf,correlation_coefficient,0.9935163662433412,,pareto_ls_r2,0.9870747699933728,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.995,,-0.001483633756658831,-0.1491089202672192,
+1997,refined,table_3,pareto,mle,alpha,2.32206788077656,0.07224778675436805,pareto_mle_r2,0.9500000834524635,finite direct MLE on observations x >= x_t,True,supported,2.62,0.04,-0.2979321192234403,-11.371454932192378,False
+1997,refined,table_3,pareto,mle_continuity,beta,164.29078928066536,24.366632888368986,pareto_mle_r2,0.9500000834524635,finite direct MLE on observations x >= x_t,True,supported,310.0,32.0,-145.70921071933464,-47.00297119978537,False
+1997,refined,table_3,pareto,population,population_pct,1.1957351342600089,,pareto_ls_r2,0.9870747699933728,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.0,,0.19573513426000888,19.573513426000886,
+1997,refined,table_3,transition,boundary,x_t,7.79009107647884,,pareto_ls_r2,0.9870747699933728,descriptive reproduction quantity,,descriptive,7.935,0.0,-0.14490892352116003,-1.8261994142553248,False
+1997,refined,table_4,income_share,gompertz,share_pct,84.06610600916461,,,,descriptive reproduction quantity,,descriptive,86.1,,-2.033893990835381,-2.362246214675239,
+1997,refined,table_4,income_share,pareto,share_pct,15.933893990835386,,,,descriptive reproduction quantity,,descriptive,13.9,,2.033893990835386,14.632330869319325,
+1997,refined,table_4,inequality,lorenz,gini,0.6087982134452723,,,,descriptive reproduction quantity,,descriptive,0.598,,0.01079821344527232,1.8057213119184483,
+1998,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.05494177836751524,,delta_r2,0.05494177836751524,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1998,refined,table_1,annual_income,descriptive,mean_income_usd,268.8479138612698,,,,descriptive reproduction quantity,,descriptive,213.902,,54.94591386126979,25.687424082649898,
+1998,refined,table_2,gompertz,boundary,x_gmax,8.15287296793561,,gompertz_free_correlation_coefficient,0.9885719122614395,correlation_coefficient >= 0.98,True,supported,7.628,,0.5248729679356092,6.880872678757331,
+1998,refined,table_2,gompertz,free_lsf,A,1.5426548530677415,0.008620164805843065,gompertz_free_correlation_coefficient,0.9885719122614395,correlation_coefficient >= 0.98,True,supported,1.54,0.01,0.0026548530677414917,0.1723930563468501,True
+1998,refined,table_2,gompertz,free_lsf,B,0.338650015834246,0.018445926305544164,gompertz_free_correlation_coefficient,0.9885719122614395,correlation_coefficient >= 0.98,True,supported,0.33,0.01,0.008650015834245961,2.621216919468473,True
+1998,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9885719122614395,,gompertz_free_correlation_coefficient,0.9885719122614395,correlation_coefficient >= 0.98,True,supported,0.997,,-0.008428087738560519,-0.8453448082808946,
+1998,refined,table_2,gompertz,population,population_pct,98.84310799954092,,gompertz_free_correlation_coefficient,0.9885719122614395,correlation_coefficient >= 0.98,True,supported,98.8,,0.04310799954092204,0.043631578482714616,
+1998,refined,table_3,pareto,boundary,x_pmin,8.15287296793561,,pareto_ls_r2,0.9947974353016932,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.628,,0.5248729679356092,6.880872678757331,
+1998,refined,table_3,pareto,lsf,alpha,2.5695625585912154,0.03479633586178199,pareto_ls_r2,0.9947974353016932,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,2.94,0.03,-0.37043744140878454,-12.599912973087909,False
+1998,refined,table_3,pareto,lsf,beta,261.69581960134343,27.876975175000357,pareto_ls_r2,0.9947974353016932,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,632.6,68.6,-370.9041803986566,-58.63170730298081,False
+1998,refined,table_3,pareto,lsf,correlation_coefficient,0.9973953254861851,,pareto_ls_r2,0.9947974353016932,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.998,,-0.0006046745138148513,-0.06058862863876265,
+1998,refined,table_3,pareto,mle,alpha,2.400075202667349,0.07563275161822863,pareto_mle_r2,0.96288365884382,finite direct MLE on observations x >= x_t,True,supported,2.68,0.06,-0.2799247973326513,-10.44495512435266,False
+1998,refined,table_3,pareto,mle_continuity,beta,207.7139817563189,32.96535662662559,pareto_mle_r2,0.96288365884382,finite direct MLE on observations x >= x_t,True,supported,335.0,40.0,-127.2860182436811,-37.99582634139735,False
+1998,refined,table_3,pareto,population,population_pct,1.156892000459084,,pareto_ls_r2,0.9947974353016932,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.2,,-0.04310799954091604,-3.592333295076337,
+1998,refined,table_3,transition,boundary,x_t,8.15287296793561,,pareto_ls_r2,0.9947974353016932,descriptive reproduction quantity,,descriptive,7.628,0.0,0.5248729679356092,6.880872678757331,False
+1998,refined,table_4,income_share,gompertz,share_pct,84.27008722170103,,,,descriptive reproduction quantity,,descriptive,84.5,,-0.22991277829896717,-0.2720861281644582,
+1998,refined,table_4,income_share,pareto,share_pct,15.729912778298967,,,,descriptive reproduction quantity,,descriptive,15.5,,0.22991277829896717,1.4833082470901107,
+1998,refined,table_4,inequality,lorenz,gini,0.6095628702928875,,,,descriptive reproduction quantity,,descriptive,0.597,,0.012562870292887496,2.1043333823932153,
+1999,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.01799512598084796,,delta_r2,0.01799512598084796,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+1999,refined,table_1,annual_income,descriptive,mean_income_usd,167.0691884244195,,,,descriptive reproduction quantity,,descriptive,133.631,,33.43818842441951,25.02277796650441,
+1999,refined,table_2,gompertz,boundary,x_gmax,8.176655455951684,,gompertz_free_correlation_coefficient,0.9711929484371838,correlation_coefficient >= 0.98,False,weak,7.811,,0.3656554559516838,4.681288643601124,
+1999,refined,table_2,gompertz,free_lsf,A,1.5581454602158464,0.016491983866291467,gompertz_free_correlation_coefficient,0.9711929484371838,correlation_coefficient >= 0.98,False,weak,1.54,0.01,0.0181454602158464,1.1782766373926232,False
+1999,refined,table_2,gompertz,free_lsf,B,0.3628508957227122,0.03296440480126647,gompertz_free_correlation_coefficient,0.9711929484371838,correlation_coefficient >= 0.98,False,weak,0.33,0.01,0.03285089572271216,9.95481688567035,False
+1999,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9711929484371838,,gompertz_free_correlation_coefficient,0.9711929484371838,correlation_coefficient >= 0.98,False,weak,0.994,,-0.02280705156281615,-2.2944719882108804,
+1999,refined,table_2,gompertz,population,population_pct,98.9288717744434,,gompertz_free_correlation_coefficient,0.9711929484371838,correlation_coefficient >= 0.98,False,weak,98.9,,0.028871774443388176,0.029192896302718072,
+1999,refined,table_3,pareto,boundary,x_pmin,8.176655455951684,,pareto_ls_r2,0.995133609758834,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.811,,0.3656554559516838,4.681288643601124,
+1999,refined,table_3,pareto,lsf,alpha,2.983033542269379,0.06971934282925767,pareto_ls_r2,0.995133609758834,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,3.1,0.07,-0.11696645773062109,-3.7731115396974544,False
+1999,refined,table_3,pareto,lsf,beta,764.9941340401873,285.6931001030419,pareto_ls_r2,0.995133609758834,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,867.5,205.5,-102.5058659598127,-11.816238150987054,True
+1999,refined,table_3,pareto,lsf,correlation_coefficient,0.9975638374353964,,pareto_ls_r2,0.995133609758834,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.996,,0.0015638374353964535,0.15701179070245516,
+1999,refined,table_3,pareto,mle,alpha,2.3343081813087214,0.07506625043660954,pareto_mle_r2,0.8241151536444582,finite direct MLE on observations x >= x_t,True,supported,2.78,0.09,-0.4456918186912784,-16.03207980903879,False
+1999,refined,table_3,pareto,mle_continuity,beta,173.5492168490256,27.374863959106495,pareto_mle_r2,0.8241151536444582,finite direct MLE on observations x >= x_t,True,supported,429.0,77.0,-255.4507831509744,-59.54563709812923,False
+1999,refined,table_3,pareto,population,population_pct,1.0711282255565884,,pareto_ls_r2,0.995133609758834,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.1,,-0.028871774443411713,-2.624706767582883,
+1999,refined,table_3,transition,boundary,x_t,8.176655455951684,,pareto_ls_r2,0.995133609758834,descriptive reproduction quantity,,descriptive,7.811,0.0,0.3656554559516838,4.681288643601124,False
+1999,refined,table_4,income_share,gompertz,share_pct,85.45847800549845,,,,descriptive reproduction quantity,,descriptive,86.0,,-0.5415219945015508,-0.6296767377925009,
+1999,refined,table_4,income_share,pareto,share_pct,14.54152199450155,,,,descriptive reproduction quantity,,descriptive,14.0,,0.5415219945015508,3.8680142464396488,
+1999,refined,table_4,inequality,lorenz,gini,0.6040101548852397,,,,descriptive reproduction quantity,,descriptive,0.59,,0.014010154885239712,2.374602522921985,
+2001,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,-0.025981431245627462,,delta_r2,-0.025981431245627462,gompertz_free_r2 > exponential_r2,False,rejected,,,,,
+2001,refined,table_1,annual_income,descriptive,mean_income_usd,137.6063483171984,,,,descriptive reproduction quantity,,descriptive,110.857,,26.74934831719841,24.129597875820572,
+2001,refined,table_2,gompertz,boundary,x_gmax,8.53395522561751,,gompertz_free_correlation_coefficient,0.9454975678420318,correlation_coefficient >= 0.98,False,weak,7.774,,0.7599552256175093,9.775601049877917,
+2001,refined,table_2,gompertz,free_lsf,A,1.570973831809025,0.02421602618326043,gompertz_free_correlation_coefficient,0.9454975678420318,correlation_coefficient >= 0.98,False,weak,1.54,0.01,0.03097383180902491,2.0112877798068123,False
+2001,refined,table_2,gompertz,free_lsf,B,0.3876160716148116,0.04855364463036956,gompertz_free_correlation_coefficient,0.9454975678420318,correlation_coefficient >= 0.98,False,weak,0.34,0.01,0.04761607161481157,14.004726945532814,False
+2001,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9454975678420318,,gompertz_free_correlation_coefficient,0.9454975678420318,correlation_coefficient >= 0.98,False,weak,0.996,,-0.050502432157968236,-5.070525317065084,
+2001,refined,table_2,gompertz,population,population_pct,98.9782796519922,,gompertz_free_correlation_coefficient,0.9454975678420318,correlation_coefficient >= 0.98,False,weak,98.9,,0.07827965199219022,0.07915030535105179,
+2001,refined,table_3,pareto,boundary,x_pmin,8.53395522561751,,pareto_ls_r2,0.9979796918398322,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.774,,0.7599552256175093,9.775601049877917,
+2001,refined,table_3,pareto,lsf,alpha,2.8589340101264087,0.06641919215447481,pareto_ls_r2,0.9979796918398322,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,3.23,0.2,-0.3710659898735913,-11.488111141597253,False
+2001,refined,table_3,pareto,lsf,beta,588.1840898676445,183.12690813332395,pareto_ls_r2,0.9979796918398322,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1588.0,1257.0,-999.8159101323555,-62.960699630500976,True
+2001,refined,table_3,pareto,lsf,correlation_coefficient,0.9989893351982453,,pareto_ls_r2,0.9979796918398322,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.973,,0.02598933519824531,2.6710519217107205,
+2001,refined,table_3,pareto,mle,alpha,2.3326399775766484,0.07318138938373077,pareto_mle_r2,0.857595733123401,finite direct MLE on observations x >= x_t,True,supported,2.72,0.07,-0.38736002242335177,-14.241177294976167,False
+2001,refined,table_3,pareto,mle_continuity,beta,178.48624529283995,28.005343788285636,pareto_mle_r2,0.857595733123401,finite direct MLE on observations x >= x_t,True,supported,372.0,54.0,-193.51375470716005,-52.019826534182805,False
+2001,refined,table_3,pareto,population,population_pct,1.021720348007796,,pareto_ls_r2,0.9979796918398322,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.1,,-0.07827965199220399,-7.116331999291272,
+2001,refined,table_3,transition,boundary,x_t,8.53395522561751,,pareto_ls_r2,0.9979796918398322,descriptive reproduction quantity,,descriptive,7.774,0.0,0.7599552256175093,9.775601049877917,False
+2001,refined,table_4,income_share,gompertz,share_pct,85.48947805531292,,,,descriptive reproduction quantity,,descriptive,85.2,,0.2894780553129124,0.3397629757193807,
+2001,refined,table_4,income_share,pareto,share_pct,14.510521944687085,,,,descriptive reproduction quantity,,descriptive,14.8,,-0.2894780553129159,-1.9559328061683507,
+2001,refined,table_4,inequality,lorenz,gini,0.6045135448171821,,,,descriptive reproduction quantity,,descriptive,0.592,,0.012513544817182143,2.1137744623618486,
+2002,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,-0.034331263450732674,,delta_r2,-0.034331263450732674,gompertz_free_r2 > exponential_r2,False,rejected,,,,,
+2002,refined,table_1,annual_income,descriptive,mean_income_usd,119.9483217666026,,,,descriptive reproduction quantity,,descriptive,97.532,,22.416321766602607,22.983555926877955,
+2002,refined,table_2,gompertz,boundary,x_gmax,8.319232469818342,,gompertz_free_correlation_coefficient,0.9443879675492436,correlation_coefficient >= 0.98,False,weak,7.878,,0.44123246981834185,5.600818352606523,
+2002,refined,table_2,gompertz,free_lsf,A,1.579903128241604,0.02328122068978588,gompertz_free_correlation_coefficient,0.9443879675492436,correlation_coefficient >= 0.98,False,weak,1.55,0.01,0.029903128241604016,1.9292340801034848,False
+2002,refined,table_2,gompertz,free_lsf,B,0.3991083328399447,0.05124605102526874,gompertz_free_correlation_coefficient,0.9443879675492436,correlation_coefficient >= 0.98,False,weak,0.34,0.02,0.059108332839944655,17.38480377645431,False
+2002,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9443879675492436,,gompertz_free_correlation_coefficient,0.9443879675492436,correlation_coefficient >= 0.98,False,weak,0.993,,-0.048612032450756404,-4.8954715458969185,
+2002,refined,table_2,gompertz,population,population_pct,98.97756097560976,,gompertz_free_correlation_coefficient,0.9443879675492436,correlation_coefficient >= 0.98,False,weak,99.0,,-0.022439024390237705,-0.02266568120226031,
+2002,refined,table_3,pareto,boundary,x_pmin,8.319232469818342,,pareto_ls_r2,0.9241051973459582,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,7.878,,0.44123246981834185,5.600818352606523,
+2002,refined,table_3,pareto,lsf,alpha,2.176593355147817,0.11335952398917931,pareto_ls_r2,0.9241051973459582,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,2.93,0.05,-0.7534066448521832,-25.713537366968712,False
+2002,refined,table_3,pareto,lsf,beta,67.85649439093883,18.358741036088112,pareto_ls_r2,0.9241051973459582,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,539.8,89.1,-471.9435056090611,-87.42932671527625,False
+2002,refined,table_3,pareto,lsf,correlation_coefficient,0.9613039047803552,,pareto_ls_r2,0.9241051973459582,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,0.996,,-0.034696095219644785,-3.4835436967514846,
+2002,refined,table_3,pareto,mle,alpha,2.4629528504269707,0.07611715709888209,pareto_mle_r2,0.8808882160424427,finite direct MLE on observations x >= x_t,True,supported,2.78,0.09,-0.31704714957302915,-11.40457372564853,False
+2002,refined,table_3,pareto,mle_continuity,beta,221.8493696609608,35.77532407641415,pareto_mle_r2,0.8808882160424427,finite direct MLE on observations x >= x_t,True,supported,426.0,79.0,-204.1506303390392,-47.92268317817822,False
+2002,refined,table_3,pareto,population,population_pct,1.022439024390244,,pareto_ls_r2,0.9241051973459582,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,1.0,,0.022439024390243922,2.2439024390243922,
+2002,refined,table_3,transition,boundary,x_t,8.319232469818342,,pareto_ls_r2,0.9241051973459582,descriptive reproduction quantity,,descriptive,7.878,0.0,0.44123246981834185,5.600818352606523,False
+2002,refined,table_4,income_share,gompertz,share_pct,85.90117034177302,,,,descriptive reproduction quantity,,descriptive,86.4,,-0.4988296582269811,-0.5773491414664133,
+2002,refined,table_4,income_share,pareto,share_pct,14.098829658226975,,,,descriptive reproduction quantity,,descriptive,13.6,,0.4988296582269758,3.6678651340218806,
+2002,refined,table_4,inequality,lorenz,gini,0.5972393646717101,,,,descriptive reproduction quantity,,descriptive,0.586,,0.011239364671710161,1.9179803194044645,
+2003,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.036210842453770486,,delta_r2,0.036210842453770486,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2003,refined,table_1,annual_income,descriptive,mean_income_usd,149.36087450742522,,,,descriptive reproduction quantity,,descriptive,122.815,,26.545874507425225,21.614521440724037,
+2003,refined,table_2,gompertz,boundary,x_gmax,7.988967241340482,,gompertz_free_correlation_coefficient,0.9827442886992148,correlation_coefficient >= 0.98,True,supported,7.374,,0.6149672413404828,8.339669668300553,
+2003,refined,table_2,gompertz,free_lsf,A,1.5556113011081452,0.010161705454980016,gompertz_free_correlation_coefficient,0.9827442886992148,correlation_coefficient >= 0.98,True,supported,1.54,0.01,0.015611301108145126,1.013720851178255,False
+2003,refined,table_2,gompertz,free_lsf,B,0.3612296875252681,0.024342477673039757,gompertz_free_correlation_coefficient,0.9827442886992148,correlation_coefficient >= 0.98,True,supported,0.33,0.01,0.031229687525268057,9.463541674323652,False
+2003,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9827442886992148,,gompertz_free_correlation_coefficient,0.9827442886992148,correlation_coefficient >= 0.98,True,supported,0.997,,-0.014255711300785179,-1.4298607122151634,
+2003,refined,table_2,gompertz,population,population_pct,98.88763904511936,,gompertz_free_correlation_coefficient,0.9827442886992148,correlation_coefficient >= 0.98,True,supported,98.8,,0.08763904511936005,0.08870348696291504,
+2003,refined,table_3,pareto,boundary,x_pmin,7.988967241340482,,pareto_ls_r2,0.9908262257379,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.374,,0.6149672413404828,8.339669668300553,
+2003,refined,table_3,pareto,lsf,alpha,2.9531524685684154,0.053996303781024255,pareto_ls_r2,0.9908262257379,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,3.18,0.06,-0.22684753143158476,-7.133570170804552,False
+2003,refined,table_3,pareto,lsf,beta,610.5721669447092,113.318919590212,pareto_ls_r2,0.9908262257379,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1017.0,227.0,-406.42783305529076,-39.96340541349958,False
+2003,refined,table_3,pareto,lsf,correlation_coefficient,0.995402544570738,,pareto_ls_r2,0.9908262257379,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.996,,-0.0005974554292620393,-0.0599854848656666,
+2003,refined,table_3,pareto,mle,alpha,2.5377393456340256,0.07463936464000452,pareto_mle_r2,0.916364416526956,finite direct MLE on observations x >= x_t,True,supported,2.78,0.09,-0.24226065436597422,-8.714412027553031,False
+2003,refined,table_3,pareto,mle_continuity,beta,255.93072022271943,39.69618290283651,pareto_mle_r2,0.916364416526956,finite direct MLE on observations x >= x_t,True,supported,387.0,68.0,-131.06927977728057,-33.8680309502017,False
+2003,refined,table_3,pareto,population,population_pct,1.11236095488064,,pareto_ls_r2,0.9908262257379,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.2,,-0.08763904511936005,-7.303253759946671,
+2003,refined,table_3,transition,boundary,x_t,7.988967241340482,,pareto_ls_r2,0.9908262257379,descriptive reproduction quantity,,descriptive,7.374,0.0,0.6149672413404828,8.339669668300553,False
+2003,refined,table_4,income_share,gompertz,share_pct,85.74923484000576,,,,descriptive reproduction quantity,,descriptive,85.4,,0.34923484000574945,0.40894009368354733,
+2003,refined,table_4,income_share,pareto,share_pct,14.250765159994245,,,,descriptive reproduction quantity,,descriptive,14.6,,-0.3492348400057548,-2.392019452094211,
+2003,refined,table_4,inequality,lorenz,gini,0.5883019899185813,,,,descriptive reproduction quantity,,descriptive,0.579,,0.009301989918581333,1.606561298545999,
+2004,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,-0.006659599499385327,,delta_r2,-0.006659599499385327,gompertz_free_r2 > exponential_r2,False,rejected,,,,,
+2004,refined,table_1,annual_income,descriptive,mean_income_usd,166.51175394703677,,,,descriptive reproduction quantity,,descriptive,148.468,,18.043753947036777,12.1532949504518,
+2004,refined,table_2,gompertz,boundary,x_gmax,8.29192947397243,,gompertz_free_correlation_coefficient,0.9581800033532449,correlation_coefficient >= 0.98,False,weak,7.653,,0.6389294739724312,8.348745249868434,
+2004,refined,table_2,gompertz,free_lsf,A,1.5886829114632903,0.0235169359439619,gompertz_free_correlation_coefficient,0.9581800033532449,correlation_coefficient >= 0.98,False,weak,1.55,0.01,0.03868291146329028,2.49567170730905,False
+2004,refined,table_2,gompertz,free_lsf,B,0.4019418270837376,0.04296930891228449,gompertz_free_correlation_coefficient,0.9581800033532449,correlation_coefficient >= 0.98,False,weak,0.34,0.02,0.06194182708373758,18.218184436393404,False
+2004,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9581800033532449,,gompertz_free_correlation_coefficient,0.9581800033532449,correlation_coefficient >= 0.98,False,weak,0.993,,-0.03481999664675506,-3.5065454830569043,
+2004,refined,table_2,gompertz,population,population_pct,98.96618782908617,,gompertz_free_correlation_coefficient,0.9581800033532449,correlation_coefficient >= 0.98,False,weak,98.9,,0.06618782908616083,0.06692399300926272,
+2004,refined,table_3,pareto,boundary,x_pmin,8.29192947397243,,pareto_ls_r2,0.9949197389324222,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.653,,0.6389294739724312,8.348745249868434,
+2004,refined,table_3,pareto,lsf,alpha,2.645936218717713,0.036563558865303325,pareto_ls_r2,0.9949197389324222,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,3.89,0.31,-1.244063781282287,-31.98107406895339,False
+2004,refined,table_3,pareto,lsf,beta,278.0960524090911,32.066428412065974,pareto_ls_r2,0.9949197389324222,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,5793.0,19036.0,-5514.9039475909085,-95.19944670448659,True
+2004,refined,table_3,pareto,lsf,correlation_coefficient,0.9974566351137388,,pareto_ls_r2,0.9949197389324222,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.962,,0.035456635113738866,3.685720905794061,
+2004,refined,table_3,pareto,mle,alpha,2.573640001430336,0.07669700970989833,pareto_mle_r2,0.9797963464618754,finite direct MLE on observations x >= x_t,True,supported,3.1,0.23,-0.5263599985696641,-16.979354792569808,False
+2004,refined,table_3,pareto,mle_continuity,beta,278.3240738480201,45.15414463190634,pareto_mle_r2,0.9797963464618754,finite direct MLE on observations x >= x_t,True,supported,785.0,364.0,-506.6759261519799,-64.54470396840509,False
+2004,refined,table_3,pareto,population,population_pct,1.0338121709138277,,pareto_ls_r2,0.9949197389324222,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.1,,-0.06618782908617238,-6.017075371470216,
+2004,refined,table_3,transition,boundary,x_t,8.29192947397243,,pareto_ls_r2,0.9949197389324222,descriptive reproduction quantity,,descriptive,7.653,0.0,0.6389294739724312,8.348745249868434,False
+2004,refined,table_4,income_share,gompertz,share_pct,86.13984885395026,,,,descriptive reproduction quantity,,descriptive,87.3,,-1.160151146049742,-1.3289245659218123,
+2004,refined,table_4,income_share,pareto,share_pct,13.860151146049745,,,,descriptive reproduction quantity,,descriptive,12.7,,1.1601511460497456,9.135048394092486,
+2004,refined,table_4,inequality,lorenz,gini,0.5835216952670556,,,,descriptive reproduction quantity,,descriptive,0.577,,0.006521695267055594,1.130276476092824,
+2005,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.05807260090445243,,delta_r2,0.05807260090445243,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2005,refined,table_1,annual_income,descriptive,mean_income_usd,232.72709389661185,,,,descriptive reproduction quantity,,descriptive,221.787,,10.940093896611842,4.932702952207227,
+2005,refined,table_2,gompertz,boundary,x_gmax,7.475625354864691,,gompertz_free_correlation_coefficient,0.99384293981407,correlation_coefficient >= 0.98,True,supported,7.403,,0.0726253548646918,0.9810260011440199,
+2005,refined,table_2,gompertz,free_lsf,A,1.547720159038835,0.006311206133123599,gompertz_free_correlation_coefficient,0.99384293981407,correlation_coefficient >= 0.98,True,supported,1.54,0.01,0.0077201590388349395,0.5013090284957753,True
+2005,refined,table_2,gompertz,free_lsf,B,0.3434116097002068,0.012991422580207166,gompertz_free_correlation_coefficient,0.99384293981407,correlation_coefficient >= 0.98,True,supported,0.33,0.01,0.013411609700206772,4.0641241515778095,False
+2005,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.99384293981407,,gompertz_free_correlation_coefficient,0.99384293981407,correlation_coefficient >= 0.98,True,supported,0.997,,-0.003157060185929983,-0.31665598655265625,
+2005,refined,table_2,gompertz,population,population_pct,98.73370807338316,,gompertz_free_correlation_coefficient,0.99384293981407,correlation_coefficient >= 0.98,True,supported,98.8,,-0.06629192661684158,-0.067097091717451,
+2005,refined,table_3,pareto,boundary,x_pmin,7.475625354864691,,pareto_ls_r2,0.9953284759168548,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,7.403,,0.0726253548646918,0.9810260011440199,
+2005,refined,table_3,pareto,lsf,alpha,2.719164043091664,0.03964872279571698,pareto_ls_r2,0.9953284759168548,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,2.59,0.09,0.1291640430916643,4.98702869079785,False
+2005,refined,table_3,pareto,lsf,beta,330.70483797948054,46.292150308139654,pareto_ls_r2,0.9953284759168548,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,172.7,50.8,158.00483797948056,91.49093108250177,False
+2005,refined,table_3,pareto,lsf,correlation_coefficient,0.9976615036758985,,pareto_ls_r2,0.9953284759168548,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,0.984,,0.013661503675898468,1.3883641947051288,
+2005,refined,table_3,pareto,mle,alpha,2.486302246959424,0.06565672882458637,pareto_mle_r2,0.9545485297547435,finite direct MLE on observations x >= x_t,True,supported,2.84,0.11,-0.35369775304057605,-12.454146233823101,False
+2005,refined,table_3,pareto,mle_continuity,beta,214.67449072919493,28.353822999036648,pareto_mle_r2,0.9545485297547435,finite direct MLE on observations x >= x_t,True,supported,441.0,97.0,-226.32550927080507,-51.32097715891272,False
+2005,refined,table_3,pareto,population,population_pct,1.2662919266168386,,pareto_ls_r2,0.9953284759168548,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,1.2,,0.06629192661683869,5.5243272180698915,
+2005,refined,table_3,transition,boundary,x_t,7.475625354864691,,pareto_ls_r2,0.9953284759168548,descriptive reproduction quantity,,descriptive,7.403,0.0,0.0726253548646918,0.9810260011440199,False
+2005,refined,table_4,income_share,gompertz,share_pct,84.48891766310027,,,,descriptive reproduction quantity,,descriptive,86.2,,-1.7110823368997359,-1.9850143119486494,
+2005,refined,table_4,income_share,pareto,share_pct,15.511082336899733,,,,descriptive reproduction quantity,,descriptive,13.8,,1.7110823368997323,12.39914736883864,
+2005,refined,table_4,inequality,lorenz,gini,0.5795971476217483,,,,descriptive reproduction quantity,,descriptive,0.58,,-0.0004028523782516613,-0.06945730659511402,
+2006,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,-0.05028443123748039,,delta_r2,-0.05028443123748039,gompertz_free_r2 > exponential_r2,False,rejected,,,,,
+2006,refined,table_1,annual_income,descriptive,mean_income_usd,273.6810418855517,,,,descriptive reproduction quantity,,descriptive,,,,,
+2006,refined,table_2,gompertz,boundary,x_gmax,8.137758270021328,,gompertz_free_correlation_coefficient,0.9361922554234743,correlation_coefficient >= 0.98,False,weak,,,,,
+2006,refined,table_2,gompertz,free_lsf,A,1.599618372080252,0.03050234531752932,gompertz_free_correlation_coefficient,0.9361922554234743,correlation_coefficient >= 0.98,False,weak,,,,,
+2006,refined,table_2,gompertz,free_lsf,B,0.4231159357741783,0.05795780644337953,gompertz_free_correlation_coefficient,0.9361922554234743,correlation_coefficient >= 0.98,False,weak,,,,,
+2006,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9361922554234743,,gompertz_free_correlation_coefficient,0.9361922554234743,correlation_coefficient >= 0.98,False,weak,,,,,
+2006,refined,table_2,gompertz,population,population_pct,98.98375394869302,,gompertz_free_correlation_coefficient,0.9361922554234743,correlation_coefficient >= 0.98,False,weak,,,,,
+2006,refined,table_3,pareto,boundary,x_pmin,8.137758270021328,,pareto_ls_r2,0.9855772669228956,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2006,refined,table_3,pareto,lsf,alpha,2.4936061600345814,0.06191728330267574,pareto_ls_r2,0.9855772669228956,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2006,refined,table_3,pareto,lsf,beta,165.47881893996944,32.10515054098462,pareto_ls_r2,0.9855772669228956,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2006,refined,table_3,pareto,lsf,correlation_coefficient,0.9927624423410142,,pareto_ls_r2,0.9855772669228956,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2006,refined,table_3,pareto,mle,alpha,2.549367027223952,0.07453139933615063,pareto_mle_r2,0.9759651970852777,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2006,refined,table_3,pareto,mle_continuity,beta,248.08718438687987,38.765155167353655,pareto_mle_r2,0.9759651970852777,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2006,refined,table_3,pareto,population,population_pct,1.016246051306974,,pareto_ls_r2,0.9855772669228956,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2006,refined,table_3,transition,boundary,x_t,8.137758270021328,,pareto_ls_r2,0.9855772669228956,descriptive reproduction quantity,,descriptive,,,,,
+2006,refined,table_4,income_share,gompertz,share_pct,86.56334029979217,,,,descriptive reproduction quantity,,descriptive,,,,,
+2006,refined,table_4,income_share,pareto,share_pct,13.436659700207827,,,,descriptive reproduction quantity,,descriptive,,,,,
+2006,refined,table_4,inequality,lorenz,gini,0.5716294678824336,,,,descriptive reproduction quantity,,descriptive,,,,,
+2007,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.04422268690645903,,delta_r2,0.04422268690645903,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2007,refined,table_1,annual_income,descriptive,mean_income_usd,336.2410442683789,,,,descriptive reproduction quantity,,descriptive,,,,,
+2007,refined,table_2,gompertz,boundary,x_gmax,7.561989889673862,,gompertz_free_correlation_coefficient,0.987927473773563,correlation_coefficient >= 0.98,True,supported,,,,,
+2007,refined,table_2,gompertz,free_lsf,A,1.5615717178126811,0.00983785867639362,gompertz_free_correlation_coefficient,0.987927473773563,correlation_coefficient >= 0.98,True,supported,,,,,
+2007,refined,table_2,gompertz,free_lsf,B,0.3682625679823328,0.02034804436386726,gompertz_free_correlation_coefficient,0.987927473773563,correlation_coefficient >= 0.98,True,supported,,,,,
+2007,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.987927473773563,,gompertz_free_correlation_coefficient,0.987927473773563,correlation_coefficient >= 0.98,True,supported,,,,,
+2007,refined,table_2,gompertz,population,population_pct,98.84385405534309,,gompertz_free_correlation_coefficient,0.987927473773563,correlation_coefficient >= 0.98,True,supported,,,,,
+2007,refined,table_3,pareto,boundary,x_pmin,7.561989889673862,,pareto_ls_r2,0.9953648978972988,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2007,refined,table_3,pareto,lsf,alpha,2.7680763424074604,0.0659981665469707,pareto_ls_r2,0.9953648978972988,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2007,refined,table_3,pareto,lsf,beta,363.8105866549157,88.91658621777829,pareto_ls_r2,0.9953648978972988,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2007,refined,table_3,pareto,lsf,correlation_coefficient,0.9976797571852898,,pareto_ls_r2,0.9953648978972988,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2007,refined,table_3,pareto,mle,alpha,2.4983016736591765,0.06907817896328373,pareto_mle_r2,0.9463356657036351,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2007,refined,table_3,pareto,mle_continuity,beta,212.3008832211264,29.669990615615166,pareto_mle_r2,0.9463356657036351,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2007,refined,table_3,pareto,population,population_pct,1.15614594465691,,pareto_ls_r2,0.9953648978972988,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2007,refined,table_3,transition,boundary,x_t,7.561989889673862,,pareto_ls_r2,0.9953648978972988,descriptive reproduction quantity,,descriptive,,,,,
+2007,refined,table_4,income_share,gompertz,share_pct,85.69564613046532,,,,descriptive reproduction quantity,,descriptive,,,,,
+2007,refined,table_4,income_share,pareto,share_pct,14.30435386953468,,,,descriptive reproduction quantity,,descriptive,,,,,
+2007,refined,table_4,inequality,lorenz,gini,0.5668787248530293,,,,descriptive reproduction quantity,,descriptive,,,,,
+2008,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.009144084742706116,,delta_r2,0.009144084742706116,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2008,refined,table_1,annual_income,descriptive,mean_income_usd,399.5807424559713,,,,descriptive reproduction quantity,,descriptive,,,,,
+2008,refined,table_2,gompertz,boundary,x_gmax,7.583022241382891,,gompertz_free_correlation_coefficient,0.9703931284045418,correlation_coefficient >= 0.98,False,weak,,,,,
+2008,refined,table_2,gompertz,free_lsf,A,1.5778398564924128,0.01926472658015932,gompertz_free_correlation_coefficient,0.9703931284045418,correlation_coefficient >= 0.98,False,weak,,,,,
+2008,refined,table_2,gompertz,free_lsf,B,0.3982760553035808,0.035717679483929246,gompertz_free_correlation_coefficient,0.9703931284045418,correlation_coefficient >= 0.98,False,weak,,,,,
+2008,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9703931284045418,,gompertz_free_correlation_coefficient,0.9703931284045418,correlation_coefficient >= 0.98,False,weak,,,,,
+2008,refined,table_2,gompertz,population,population_pct,98.93594475743072,,gompertz_free_correlation_coefficient,0.9703931284045418,correlation_coefficient >= 0.98,False,weak,,,,,
+2008,refined,table_3,pareto,boundary,x_pmin,7.583022241382891,,pareto_ls_r2,0.9874267536579238,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2008,refined,table_3,pareto,lsf,alpha,2.43783975909012,0.06174065849381084,pareto_ls_r2,0.9874267536579238,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2008,refined,table_3,pareto,lsf,beta,141.9256831691038,26.97112026730308,pareto_ls_r2,0.9874267536579238,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2008,refined,table_3,pareto,lsf,correlation_coefficient,0.9936934907998158,,pareto_ls_r2,0.9874267536579238,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2008,refined,table_3,pareto,mle,alpha,2.4048923170267744,0.0693078204913011,pareto_mle_r2,0.9705767929732421,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2008,refined,table_3,pareto,mle_continuity,beta,167.2693641277894,23.486547947674776,pareto_mle_r2,0.9705767929732421,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2008,refined,table_3,pareto,population,population_pct,1.064055242569274,,pareto_ls_r2,0.9874267536579238,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2008,refined,table_3,transition,boundary,x_t,7.583022241382891,,pareto_ls_r2,0.9874267536579238,descriptive reproduction quantity,,descriptive,,,,,
+2008,refined,table_4,income_share,gompertz,share_pct,86.38060474258788,,,,descriptive reproduction quantity,,descriptive,,,,,
+2008,refined,table_4,income_share,pareto,share_pct,13.619395257412123,,,,descriptive reproduction quantity,,descriptive,,,,,
+2008,refined,table_4,inequality,lorenz,gini,0.5606321190512241,,,,descriptive reproduction quantity,,descriptive,,,,,
+2009,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,-0.011535497697032993,,delta_r2,-0.011535497697032993,gompertz_free_r2 > exponential_r2,False,rejected,,,,,
+2009,refined,table_1,annual_income,descriptive,mean_income_usd,423.95920622848894,,,,descriptive reproduction quantity,,descriptive,,,,,
+2009,refined,table_2,gompertz,boundary,x_gmax,7.5750694401889955,,gompertz_free_correlation_coefficient,0.9615749399910576,correlation_coefficient >= 0.98,False,weak,,,,,
+2009,refined,table_2,gompertz,free_lsf,A,1.5911220471341934,0.02121725644015902,gompertz_free_correlation_coefficient,0.9615749399910576,correlation_coefficient >= 0.98,False,weak,,,,,
+2009,refined,table_2,gompertz,free_lsf,B,0.4142882375461025,0.043658452968363404,gompertz_free_correlation_coefficient,0.9615749399910576,correlation_coefficient >= 0.98,False,weak,,,,,
+2009,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9615749399910576,,gompertz_free_correlation_coefficient,0.9615749399910576,correlation_coefficient >= 0.98,False,weak,,,,,
+2009,refined,table_2,gompertz,population,population_pct,98.95268584017488,,gompertz_free_correlation_coefficient,0.9615749399910576,correlation_coefficient >= 0.98,False,weak,,,,,
+2009,refined,table_3,pareto,boundary,x_pmin,7.5750694401889955,,pareto_ls_r2,0.992619324611407,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2009,refined,table_3,pareto,lsf,alpha,2.5231159110849246,0.03822410754735639,pareto_ls_r2,0.992619324611407,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2009,refined,table_3,pareto,lsf,beta,168.59579493967658,18.857330153270016,pareto_ls_r2,0.992619324611407,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2009,refined,table_3,pareto,lsf,correlation_coefficient,0.9963028277644338,,pareto_ls_r2,0.992619324611407,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2009,refined,table_3,pareto,mle,alpha,2.4524042691549486,0.07032749190259155,pareto_mle_r2,0.9721555684775967,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2009,refined,table_3,pareto,mle_continuity,beta,179.71026334600543,25.591370911386733,pareto_mle_r2,0.9721555684775967,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2009,refined,table_3,pareto,population,population_pct,1.047314159825132,,pareto_ls_r2,0.992619324611407,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2009,refined,table_3,transition,boundary,x_t,7.5750694401889955,,pareto_ls_r2,0.992619324611407,descriptive reproduction quantity,,descriptive,,,,,
+2009,refined,table_4,income_share,gompertz,share_pct,86.84711182857939,,,,descriptive reproduction quantity,,descriptive,,,,,
+2009,refined,table_4,income_share,pareto,share_pct,13.152888171420614,,,,descriptive reproduction quantity,,descriptive,,,,,
+2009,refined,table_4,inequality,lorenz,gini,0.5559048100990898,,,,descriptive reproduction quantity,,descriptive,,,,,
+2011,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.035722666662049374,,delta_r2,0.035722666662049374,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2011,refined,table_1,annual_income,descriptive,mean_income_usd,523.0758695323985,,,,descriptive reproduction quantity,,descriptive,,,,,
+2011,refined,table_2,gompertz,boundary,x_gmax,7.023829110994125,,gompertz_free_correlation_coefficient,0.9882278473061185,correlation_coefficient >= 0.98,True,supported,,,,,
+2011,refined,table_2,gompertz,free_lsf,A,1.5675434524899858,0.009163936322434228,gompertz_free_correlation_coefficient,0.9882278473061185,correlation_coefficient >= 0.98,True,supported,,,,,
+2011,refined,table_2,gompertz,free_lsf,B,0.3804502288714771,0.020667006376991513,gompertz_free_correlation_coefficient,0.9882278473061185,correlation_coefficient >= 0.98,True,supported,,,,,
+2011,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9882278473061185,,gompertz_free_correlation_coefficient,0.9882278473061185,correlation_coefficient >= 0.98,True,supported,,,,,
+2011,refined,table_2,gompertz,population,population_pct,98.815116101436,,gompertz_free_correlation_coefficient,0.9882278473061185,correlation_coefficient >= 0.98,True,supported,,,,,
+2011,refined,table_3,pareto,boundary,x_pmin,7.023829110994125,,pareto_ls_r2,0.9893967681690792,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2011,refined,table_3,pareto,lsf,alpha,2.5598854058547005,0.04787950842416376,pareto_ls_r2,0.9893967681690792,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2011,refined,table_3,pareto,lsf,beta,162.55265686171265,23.589045711084687,pareto_ls_r2,0.9893967681690792,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2011,refined,table_3,pareto,lsf,correlation_coefficient,0.9946842555148238,,pareto_ls_r2,0.9893967681690792,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2011,refined,table_3,pareto,mle,alpha,2.450517447324005,0.06958999661885673,pareto_mle_r2,0.9600451923744922,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2011,refined,table_3,pareto,mle_continuity,beta,167.41728666517784,22.710552348724928,pareto_mle_r2,0.9600451923744922,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2011,refined,table_3,pareto,population,population_pct,1.1848838985640089,,pareto_ls_r2,0.9893967681690792,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2011,refined,table_3,transition,boundary,x_t,7.023829110994125,,pareto_ls_r2,0.9893967681690792,descriptive reproduction quantity,,descriptive,,,,,
+2011,refined,table_4,income_share,gompertz,share_pct,86.3139371399931,,,,descriptive reproduction quantity,,descriptive,,,,,
+2011,refined,table_4,income_share,pareto,share_pct,13.6860628600069,,,,descriptive reproduction quantity,,descriptive,,,,,
+2011,refined,table_4,inequality,lorenz,gini,0.5433294349758191,,,,descriptive reproduction quantity,,descriptive,,,,,
+2012,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.009832801606856734,,delta_r2,0.009832801606856734,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2012,refined,table_1,annual_income,descriptive,mean_income_usd,513.6876775103871,,,,descriptive reproduction quantity,,descriptive,,,,,
+2012,refined,table_2,gompertz,boundary,x_gmax,6.78783390498434,,gompertz_free_correlation_coefficient,0.9782134735172966,correlation_coefficient >= 0.98,False,weak,,,,,
+2012,refined,table_2,gompertz,free_lsf,A,1.5799485474366477,0.013452123676040099,gompertz_free_correlation_coefficient,0.9782134735172966,correlation_coefficient >= 0.98,False,weak,,,,,
+2012,refined,table_2,gompertz,free_lsf,B,0.4098960791860552,0.03150840779034724,gompertz_free_correlation_coefficient,0.9782134735172966,correlation_coefficient >= 0.98,False,weak,,,,,
+2012,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9782134735172966,,gompertz_free_correlation_coefficient,0.9782134735172966,correlation_coefficient >= 0.98,False,weak,,,,,
+2012,refined,table_2,gompertz,population,population_pct,98.88184936230472,,gompertz_free_correlation_coefficient,0.9782134735172966,correlation_coefficient >= 0.98,False,weak,,,,,
+2012,refined,table_3,pareto,boundary,x_pmin,6.78783390498434,,pareto_ls_r2,0.9675490289878674,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2012,refined,table_3,pareto,lsf,alpha,1.889736743787944,0.07051272251081966,pareto_ls_r2,0.9675490289878674,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2012,refined,table_3,pareto,lsf,beta,29.202044252908895,5.940626054002758,pareto_ls_r2,0.9675490289878674,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2012,refined,table_3,pareto,lsf,correlation_coefficient,0.9836407011647431,,pareto_ls_r2,0.9675490289878674,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2012,refined,table_3,pareto,mle,alpha,2.244601076165799,0.06439481220202102,pareto_mle_r2,0.9167115367853803,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2012,refined,table_3,pareto,mle_continuity,beta,100.87964718567598,12.440937863635861,pareto_mle_r2,0.9167115367853803,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2012,refined,table_3,pareto,population,population_pct,1.1181506376952857,,pareto_ls_r2,0.9675490289878674,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2012,refined,table_3,transition,boundary,x_t,6.78783390498434,,pareto_ls_r2,0.9675490289878674,descriptive reproduction quantity,,descriptive,,,,,
+2012,refined,table_4,income_share,gompertz,share_pct,86.15610334869736,,,,descriptive reproduction quantity,,descriptive,,,,,
+2012,refined,table_4,income_share,pareto,share_pct,13.843896651302643,,,,descriptive reproduction quantity,,descriptive,,,,,
+2012,refined,table_4,inequality,lorenz,gini,0.5401214311993621,,,,descriptive reproduction quantity,,descriptive,,,,,
+2013,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.03705943603946593,,delta_r2,0.03705943603946593,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2013,refined,table_1,annual_income,descriptive,mean_income_usd,498.40046177352565,,,,descriptive reproduction quantity,,descriptive,,,,,
+2013,refined,table_2,gompertz,boundary,x_gmax,6.874046452162832,,gompertz_free_correlation_coefficient,0.9906535004888598,correlation_coefficient >= 0.98,True,supported,,,,,
+2013,refined,table_2,gompertz,free_lsf,A,1.5668512251190392,0.007742484832295992,gompertz_free_correlation_coefficient,0.9906535004888598,correlation_coefficient >= 0.98,True,supported,,,,,
+2013,refined,table_2,gompertz,free_lsf,B,0.3816868014217775,0.018594267125182206,gompertz_free_correlation_coefficient,0.9906535004888598,correlation_coefficient >= 0.98,True,supported,,,,,
+2013,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9906535004888598,,gompertz_free_correlation_coefficient,0.9906535004888598,correlation_coefficient >= 0.98,True,supported,,,,,
+2013,refined,table_2,gompertz,population,population_pct,98.77829218106996,,gompertz_free_correlation_coefficient,0.9906535004888598,correlation_coefficient >= 0.98,True,supported,,,,,
+2013,refined,table_3,pareto,boundary,x_pmin,6.874046452162832,,pareto_ls_r2,0.994649147222878,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2013,refined,table_3,pareto,lsf,alpha,2.6710596130596254,0.04884096256038069,pareto_ls_r2,0.994649147222878,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2013,refined,table_3,pareto,lsf,beta,208.41955765171448,27.431304158725457,pareto_ls_r2,0.994649147222878,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2013,refined,table_3,pareto,lsf,correlation_coefficient,0.9973209850508902,,pareto_ls_r2,0.994649147222878,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2013,refined,table_3,pareto,mle,alpha,2.6118322718975944,0.07164446937856409,pareto_mle_r2,0.9774978626488616,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2013,refined,table_3,pareto,mle_continuity,beta,220.3557404677898,30.43395628838806,pareto_mle_r2,0.9774978626488616,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2013,refined,table_3,pareto,population,population_pct,1.2217078189300412,,pareto_ls_r2,0.994649147222878,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2013,refined,table_3,transition,boundary,x_t,6.874046452162832,,pareto_ls_r2,0.994649147222878,descriptive reproduction quantity,,descriptive,,,,,
+2013,refined,table_4,income_share,gompertz,share_pct,86.60743269827107,,,,descriptive reproduction quantity,,descriptive,,,,,
+2013,refined,table_4,income_share,pareto,share_pct,13.392567301728931,,,,descriptive reproduction quantity,,descriptive,,,,,
+2013,refined,table_4,inequality,lorenz,gini,0.5363271946845327,,,,descriptive reproduction quantity,,descriptive,,,,,
+2014,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.01670212332863641,,delta_r2,0.01670212332863641,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2014,refined,table_1,annual_income,descriptive,mean_income_usd,528.9462970299539,,,,descriptive reproduction quantity,,descriptive,,,,,
+2014,refined,table_2,gompertz,boundary,x_gmax,6.934216319838362,,gompertz_free_correlation_coefficient,0.9812474695075,correlation_coefficient >= 0.98,True,supported,,,,,
+2014,refined,table_2,gompertz,free_lsf,A,1.5776187546000444,0.01182602940869583,gompertz_free_correlation_coefficient,0.9812474695075,correlation_coefficient >= 0.98,True,supported,,,,,
+2014,refined,table_2,gompertz,free_lsf,B,0.4047554600567314,0.02837909040947034,gompertz_free_correlation_coefficient,0.9812474695075,correlation_coefficient >= 0.98,True,supported,,,,,
+2014,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9812474695075,,gompertz_free_correlation_coefficient,0.9812474695075,correlation_coefficient >= 0.98,True,supported,,,,,
+2014,refined,table_2,gompertz,population,population_pct,98.87779129719272,,gompertz_free_correlation_coefficient,0.9812474695075,correlation_coefficient >= 0.98,True,supported,,,,,
+2014,refined,table_3,pareto,boundary,x_pmin,6.934216319838362,,pareto_ls_r2,0.9530158708231165,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2014,refined,table_3,pareto,lsf,alpha,2.374721488741135,0.11004542874630137,pareto_ls_r2,0.9530158708231165,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2014,refined,table_3,pareto,lsf,beta,81.89621741135032,20.479567678661464,pareto_ls_r2,0.9530158708231165,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2014,refined,table_3,pareto,lsf,correlation_coefficient,0.9762253176511642,,pareto_ls_r2,0.9530158708231165,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2014,refined,table_3,pareto,mle,alpha,2.5220158412745253,0.07046494432732697,pareto_mle_r2,0.9260057093871468,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2014,refined,table_3,pareto,mle_continuity,beta,179.4831475694265,24.491034197990025,pareto_mle_r2,0.9260057093871468,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2014,refined,table_3,pareto,population,population_pct,1.1222087028072725,,pareto_ls_r2,0.9530158708231165,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2014,refined,table_3,transition,boundary,x_t,6.934216319838362,,pareto_ls_r2,0.9530158708231165,descriptive reproduction quantity,,descriptive,,,,,
+2014,refined,table_4,income_share,gompertz,share_pct,87.30346337074751,,,,descriptive reproduction quantity,,descriptive,,,,,
+2014,refined,table_4,income_share,pareto,share_pct,12.696536629252492,,,,descriptive reproduction quantity,,descriptive,,,,,
+2014,refined,table_4,inequality,lorenz,gini,0.5259931339361601,,,,descriptive reproduction quantity,,descriptive,,,,,
+2015,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.03690281486711744,,delta_r2,0.03690281486711744,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2015,refined,table_1,annual_income,descriptive,mean_income_usd,321.89841072537615,,,,descriptive reproduction quantity,,descriptive,,,,,
+2015,refined,table_2,gompertz,boundary,x_gmax,6.731204508147656,,gompertz_free_correlation_coefficient,0.9900659487526062,correlation_coefficient >= 0.98,True,supported,,,,,
+2015,refined,table_2,gompertz,free_lsf,A,1.567841874248928,0.010288320643602623,gompertz_free_correlation_coefficient,0.9900659487526062,correlation_coefficient >= 0.98,True,supported,,,,,
+2015,refined,table_2,gompertz,free_lsf,B,0.384669109089362,0.019533656746826153,gompertz_free_correlation_coefficient,0.9900659487526062,correlation_coefficient >= 0.98,True,supported,,,,,
+2015,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9900659487526062,,gompertz_free_correlation_coefficient,0.9900659487526062,correlation_coefficient >= 0.98,True,supported,,,,,
+2015,refined,table_2,gompertz,population,population_pct,99.94692929415962,,gompertz_free_correlation_coefficient,0.9900659487526062,correlation_coefficient >= 0.98,True,supported,,,,,
+2015,refined,table_3,pareto,boundary,x_pmin,34.022673168642875,,pareto_ls_r2,0.9812191475374712,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2015,refined,table_3,pareto,lsf,alpha,1.5661632405659829,0.12395584775468586,pareto_ls_r2,0.9812191475374712,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2015,refined,table_3,pareto,lsf,beta,1.5181594632801765,1.2201528160473116,pareto_ls_r2,0.9812191475374712,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2015,refined,table_3,pareto,lsf,correlation_coefficient,0.9905650647673131,,pareto_ls_r2,0.9812191475374712,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2015,refined,table_3,pareto,mle,alpha,3.510728865211774,0.4531722414458646,pareto_mle_r2,-3.337721644773918,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2015,refined,table_3,pareto,mle_continuity,beta,39539.32155242876,54012.45819978417,pareto_mle_r2,-3.337721644773918,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2015,refined,table_3,pareto,population,population_pct,0.0530707058403876,,pareto_ls_r2,0.9812191475374712,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2015,refined,table_3,transition,boundary,x_t,20.376938838395265,,pareto_ls_r2,0.9812191475374712,descriptive reproduction quantity,,descriptive,,,,,
+2015,refined,table_4,income_share,gompertz,share_pct,98.45919613147181,,,,descriptive reproduction quantity,,descriptive,,,,,
+2015,refined,table_4,income_share,pareto,share_pct,1.5408038685281866,,,,descriptive reproduction quantity,,descriptive,,,,,
+2015,refined,table_4,inequality,lorenz,gini,0.5234182113695935,,,,descriptive reproduction quantity,,descriptive,,,,,
+2016,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,-0.02240296222802529,,delta_r2,-0.02240296222802529,gompertz_free_r2 > exponential_r2,False,rejected,,,,,
+2016,refined,table_1,annual_income,descriptive,mean_income_usd,545.3153761609155,,,,descriptive reproduction quantity,,descriptive,,,,,
+2016,refined,table_2,gompertz,boundary,x_gmax,6.291988037056107,,gompertz_free_correlation_coefficient,0.9648913253506843,correlation_coefficient >= 0.98,False,weak,,,,,
+2016,refined,table_2,gompertz,free_lsf,A,1.5996113238607212,0.020585591577663008,gompertz_free_correlation_coefficient,0.9648913253506843,correlation_coefficient >= 0.98,False,weak,,,,,
+2016,refined,table_2,gompertz,free_lsf,B,0.4577498202064483,0.04392169352634693,gompertz_free_correlation_coefficient,0.9648913253506843,correlation_coefficient >= 0.98,False,weak,,,,,
+2016,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9648913253506843,,gompertz_free_correlation_coefficient,0.9648913253506843,correlation_coefficient >= 0.98,False,weak,,,,,
+2016,refined,table_2,gompertz,population,population_pct,98.90251382188796,,gompertz_free_correlation_coefficient,0.9648913253506843,correlation_coefficient >= 0.98,False,weak,,,,,
+2016,refined,table_3,pareto,boundary,x_pmin,6.291988037056107,,pareto_ls_r2,0.9881235021067072,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2016,refined,table_3,pareto,lsf,alpha,3.156133005419333,0.08785854625695903,pareto_ls_r2,0.9881235021067072,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2016,refined,table_3,pareto,lsf,beta,522.7383578611588,202.13309832510336,pareto_ls_r2,0.9881235021067072,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2016,refined,table_3,pareto,lsf,correlation_coefficient,0.9940440141697485,,pareto_ls_r2,0.9881235021067072,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2016,refined,table_3,pareto,mle,alpha,2.2761945933851075,0.0453248955763939,pareto_mle_r2,0.7248171630115786,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2016,refined,table_3,pareto,mle_continuity,beta,88.52819141666514,7.380156374725494,pareto_mle_r2,0.7248171630115786,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2016,refined,table_3,pareto,population,population_pct,1.0974861781120453,,pareto_ls_r2,0.9881235021067072,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2016,refined,table_3,transition,boundary,x_t,6.291988037056107,,pareto_ls_r2,0.9881235021067072,descriptive reproduction quantity,,descriptive,,,,,
+2016,refined,table_4,income_share,gompertz,share_pct,88.5307960531686,,,,descriptive reproduction quantity,,descriptive,,,,,
+2016,refined,table_4,income_share,pareto,share_pct,11.4692039468314,,,,descriptive reproduction quantity,,descriptive,,,,,
+2016,refined,table_4,inequality,lorenz,gini,0.485711493215849,,,,descriptive reproduction quantity,,descriptive,,,,,
+2017,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,-0.020614871936463497,,delta_r2,-0.020614871936463497,gompertz_free_r2 > exponential_r2,False,rejected,,,,,
+2017,refined,table_1,annual_income,descriptive,mean_income_usd,600.4296973942885,,,,descriptive reproduction quantity,,descriptive,,,,,
+2017,refined,table_2,gompertz,boundary,x_gmax,6.584126780086462,,gompertz_free_correlation_coefficient,0.964669220487339,correlation_coefficient >= 0.98,False,weak,,,,,
+2017,refined,table_2,gompertz,free_lsf,A,1.598262522990916,0.021621885898872522,gompertz_free_correlation_coefficient,0.964669220487339,correlation_coefficient >= 0.98,False,weak,,,,,
+2017,refined,table_2,gompertz,free_lsf,B,0.4600903473906572,0.04461500725401729,gompertz_free_correlation_coefficient,0.964669220487339,correlation_coefficient >= 0.98,False,weak,,,,,
+2017,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.964669220487339,,gompertz_free_correlation_coefficient,0.964669220487339,correlation_coefficient >= 0.98,False,weak,,,,,
+2017,refined,table_2,gompertz,population,population_pct,98.93509970861808,,gompertz_free_correlation_coefficient,0.964669220487339,correlation_coefficient >= 0.98,False,weak,,,,,
+2017,refined,table_3,pareto,boundary,x_pmin,6.584126780086462,,pareto_ls_r2,0.991461586562817,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2017,refined,table_3,pareto,lsf,alpha,2.8093978015839256,0.05842388243277885,pareto_ls_r2,0.991461586562817,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2017,refined,table_3,pareto,lsf,beta,264.8939854537866,54.22612477211004,pareto_ls_r2,0.991461586562817,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2017,refined,table_3,pareto,lsf,correlation_coefficient,0.995721641103987,,pareto_ls_r2,0.991461586562817,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2017,refined,table_3,pareto,mle,alpha,2.277093183090916,0.04616466751329646,pareto_mle_r2,0.8532063861044061,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2017,refined,table_3,pareto,mle_continuity,beta,94.30679881976496,8.205142437677196,pareto_mle_r2,0.8532063861044061,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2017,refined,table_3,pareto,population,population_pct,1.0649002913819203,,pareto_ls_r2,0.991461586562817,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2017,refined,table_3,transition,boundary,x_t,6.584126780086462,,pareto_ls_r2,0.991461586562817,descriptive reproduction quantity,,descriptive,,,,,
+2017,refined,table_4,income_share,gompertz,share_pct,88.1965314398841,,,,descriptive reproduction quantity,,descriptive,,,,,
+2017,refined,table_4,income_share,pareto,share_pct,11.803468560115903,,,,descriptive reproduction quantity,,descriptive,,,,,
+2017,refined,table_4,inequality,lorenz,gini,0.4936706007513877,,,,descriptive reproduction quantity,,descriptive,,,,,
+2018,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.015668774245242933,,delta_r2,0.015668774245242933,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2018,refined,table_1,annual_income,descriptive,mean_income_usd,479.6604078587014,,,,descriptive reproduction quantity,,descriptive,,,,,
+2018,refined,table_2,gompertz,boundary,x_gmax,6.904001551784726,,gompertz_free_correlation_coefficient,0.9806692155248299,correlation_coefficient >= 0.98,True,supported,,,,,
+2018,refined,table_2,gompertz,free_lsf,A,1.5917023028863695,0.014845384062716745,gompertz_free_correlation_coefficient,0.9806692155248299,correlation_coefficient >= 0.98,True,supported,,,,,
+2018,refined,table_2,gompertz,free_lsf,B,0.4417035143211394,0.028735605290931766,gompertz_free_correlation_coefficient,0.9806692155248299,correlation_coefficient >= 0.98,True,supported,,,,,
+2018,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9806692155248299,,gompertz_free_correlation_coefficient,0.9806692155248299,correlation_coefficient >= 0.98,True,supported,,,,,
+2018,refined,table_2,gompertz,population,population_pct,98.89160231447867,,gompertz_free_correlation_coefficient,0.9806692155248299,correlation_coefficient >= 0.98,True,supported,,,,,
+2018,refined,table_3,pareto,boundary,x_pmin,6.904001551784726,,pareto_ls_r2,0.995443466020587,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2018,refined,table_3,pareto,lsf,alpha,2.709398446583406,0.036381860729455234,pareto_ls_r2,0.995443466020587,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2018,refined,table_3,pareto,lsf,beta,223.9889040820571,32.53204303224141,pareto_ls_r2,0.995443466020587,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2018,refined,table_3,pareto,lsf,correlation_coefficient,0.9977191318304901,,pareto_ls_r2,0.995443466020587,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2018,refined,table_3,pareto,mle,alpha,2.5219259477400926,0.050257911004847375,pareto_mle_r2,0.9570923210165696,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2018,refined,table_3,pareto,mle_continuity,beta,167.23522917570097,16.239104182459105,pareto_mle_r2,0.9570923210165696,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2018,refined,table_3,pareto,population,population_pct,1.1083976855213078,,pareto_ls_r2,0.995443466020587,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2018,refined,table_3,transition,boundary,x_t,6.904001551784726,,pareto_ls_r2,0.995443466020587,descriptive reproduction quantity,,descriptive,,,,,
+2018,refined,table_4,income_share,gompertz,share_pct,87.5919942444681,,,,descriptive reproduction quantity,,descriptive,,,,,
+2018,refined,table_4,income_share,pareto,share_pct,12.408005755531903,,,,descriptive reproduction quantity,,descriptive,,,,,
+2018,refined,table_4,inequality,lorenz,gini,0.5021849620620875,,,,descriptive reproduction quantity,,descriptive,,,,,
+2019,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.03753373623305012,,delta_r2,0.03753373623305012,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2019,refined,table_1,annual_income,descriptive,mean_income_usd,498.0070088495061,,,,descriptive reproduction quantity,,descriptive,,,,,
+2019,refined,table_2,gompertz,boundary,x_gmax,7.071965865410624,,gompertz_free_correlation_coefficient,0.9878072221872523,correlation_coefficient >= 0.98,True,supported,,,,,
+2019,refined,table_2,gompertz,free_lsf,A,1.5760587171355993,0.010167251865104638,gompertz_free_correlation_coefficient,0.9878072221872523,correlation_coefficient >= 0.98,True,supported,,,,,
+2019,refined,table_2,gompertz,free_lsf,B,0.4136913395564351,0.02078180884438316,gompertz_free_correlation_coefficient,0.9878072221872523,correlation_coefficient >= 0.98,True,supported,,,,,
+2019,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9878072221872523,,gompertz_free_correlation_coefficient,0.9878072221872523,correlation_coefficient >= 0.98,True,supported,,,,,
+2019,refined,table_2,gompertz,population,population_pct,98.84691036803852,,gompertz_free_correlation_coefficient,0.9878072221872523,correlation_coefficient >= 0.98,True,supported,,,,,
+2019,refined,table_3,pareto,boundary,x_pmin,7.071965865410624,,pareto_ls_r2,0.9865230977186336,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2019,refined,table_3,pareto,lsf,alpha,2.6376038319717225,0.06489139721898989,pareto_ls_r2,0.9865230977186336,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2019,refined,table_3,pareto,lsf,beta,175.2704409661659,34.46910609336879,pareto_ls_r2,0.9865230977186336,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2019,refined,table_3,pareto,lsf,correlation_coefficient,0.993238691211047,,pareto_ls_r2,0.9865230977186336,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2019,refined,table_3,pareto,mle,alpha,2.7349561108774663,0.053678205067727344,pareto_mle_r2,0.982342633205013,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2019,refined,table_3,pareto,mle_continuity,beta,276.18788698806657,29.000281467542596,pareto_mle_r2,0.982342633205013,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2019,refined,table_3,pareto,population,population_pct,1.1530896319614956,,pareto_ls_r2,0.9865230977186336,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2019,refined,table_3,transition,boundary,x_t,7.071965865410624,,pareto_ls_r2,0.9865230977186336,descriptive reproduction quantity,,descriptive,,,,,
+2019,refined,table_4,income_share,gompertz,share_pct,87.2056474449249,,,,descriptive reproduction quantity,,descriptive,,,,,
+2019,refined,table_4,income_share,pareto,share_pct,12.794352555075093,,,,descriptive reproduction quantity,,descriptive,,,,,
+2019,refined,table_4,inequality,lorenz,gini,0.5041439174187351,,,,descriptive reproduction quantity,,descriptive,,,,,
+2020,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,-0.009169787156262377,,delta_r2,-0.009169787156262377,gompertz_free_r2 > exponential_r2,False,rejected,,,,,
+2020,refined,table_1,annual_income,descriptive,mean_income_usd,420.83509942223543,,,,descriptive reproduction quantity,,descriptive,,,,,
+2020,refined,table_2,gompertz,boundary,x_gmax,6.7728468769621095,,gompertz_free_correlation_coefficient,0.9651567006445774,correlation_coefficient >= 0.98,False,weak,,,,,
+2020,refined,table_2,gompertz,free_lsf,A,1.5900330186177685,0.022579989840350843,gompertz_free_correlation_coefficient,0.9651567006445774,correlation_coefficient >= 0.98,False,weak,,,,,
+2020,refined,table_2,gompertz,free_lsf,B,0.4255568281924823,0.04354826041806758,gompertz_free_correlation_coefficient,0.9651567006445774,correlation_coefficient >= 0.98,False,weak,,,,,
+2020,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9651567006445774,,gompertz_free_correlation_coefficient,0.9651567006445774,correlation_coefficient >= 0.98,False,weak,,,,,
+2020,refined,table_2,gompertz,population,population_pct,98.92905758571676,,gompertz_free_correlation_coefficient,0.9651567006445774,correlation_coefficient >= 0.98,False,weak,,,,,
+2020,refined,table_3,pareto,boundary,x_pmin,6.7728468769621095,,pareto_ls_r2,0.9845061962324818,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2020,refined,table_3,pareto,lsf,alpha,2.629709335732263,0.07223129665495237,pareto_ls_r2,0.9845061962324818,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2020,refined,table_3,pareto,lsf,beta,173.18315628828353,40.56589452810545,pareto_ls_r2,0.9845061962324818,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2020,refined,table_3,pareto,lsf,correlation_coefficient,0.992222856132876,,pareto_ls_r2,0.9845061962324818,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2020,refined,table_3,pareto,mle,alpha,2.293995749149122,0.06081210709723882,pareto_mle_r2,0.8736186925168651,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2020,refined,table_3,pareto,mle_continuity,beta,107.66400844322028,12.52442359872163,pareto_mle_r2,0.8736186925168651,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2020,refined,table_3,pareto,population,population_pct,1.070942414283243,,pareto_ls_r2,0.9845061962324818,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2020,refined,table_3,transition,boundary,x_t,6.7728468769621095,,pareto_ls_r2,0.9845061962324818,descriptive reproduction quantity,,descriptive,,,,,
+2020,refined,table_4,income_share,gompertz,share_pct,87.84086380761086,,,,descriptive reproduction quantity,,descriptive,,,,,
+2020,refined,table_4,income_share,pareto,share_pct,12.159136192389141,,,,descriptive reproduction quantity,,descriptive,,,,,
+2020,refined,table_4,inequality,lorenz,gini,0.5038942501318829,,,,descriptive reproduction quantity,,descriptive,,,,,
+2021,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.04104921730804023,,delta_r2,0.04104921730804023,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2021,refined,table_1,annual_income,descriptive,mean_income_usd,417.3386605820958,,,,descriptive reproduction quantity,,descriptive,,,,,
+2021,refined,table_2,gompertz,boundary,x_gmax,6.418770551983073,,gompertz_free_correlation_coefficient,0.994102372034415,correlation_coefficient >= 0.98,True,supported,,,,,
+2021,refined,table_2,gompertz,free_lsf,A,1.5719317152598122,0.00604579525977087,gompertz_free_correlation_coefficient,0.994102372034415,correlation_coefficient >= 0.98,True,supported,,,,,
+2021,refined,table_2,gompertz,free_lsf,B,0.3981739582663453,0.013272548330575517,gompertz_free_correlation_coefficient,0.994102372034415,correlation_coefficient >= 0.98,True,supported,,,,,
+2021,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.994102372034415,,gompertz_free_correlation_coefficient,0.994102372034415,correlation_coefficient >= 0.98,True,supported,,,,,
+2021,refined,table_2,gompertz,population,population_pct,98.69399958282152,,gompertz_free_correlation_coefficient,0.994102372034415,correlation_coefficient >= 0.98,True,supported,,,,,
+2021,refined,table_3,pareto,boundary,x_pmin,6.418770551983073,,pareto_ls_r2,0.9956515939422572,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2021,refined,table_3,pareto,lsf,alpha,2.5338834982075005,0.03173298522946753,pareto_ls_r2,0.9956515939422572,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2021,refined,table_3,pareto,lsf,beta,132.88457636920228,13.78885655000738,pareto_ls_r2,0.9956515939422572,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2021,refined,table_3,pareto,lsf,correlation_coefficient,0.9978234282388128,,pareto_ls_r2,0.9956515939422572,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2021,refined,table_3,pareto,mle,alpha,2.5457442750088872,0.05363325278924399,pareto_mle_r2,0.9860897958633824,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2021,refined,table_3,pareto,mle_continuity,beta,167.74950120382383,16.727371337005327,pareto_mle_r2,0.9860897958633824,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2021,refined,table_3,pareto,population,population_pct,1.306000417178483,,pareto_ls_r2,0.9956515939422572,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2021,refined,table_3,transition,boundary,x_t,6.418770551983073,,pareto_ls_r2,0.9956515939422572,descriptive reproduction quantity,,descriptive,,,,,
+2021,refined,table_4,income_share,gompertz,share_pct,86.3597867801851,,,,descriptive reproduction quantity,,descriptive,,,,,
+2021,refined,table_4,income_share,pareto,share_pct,13.640213219814896,,,,descriptive reproduction quantity,,descriptive,,,,,
+2021,refined,table_4,inequality,lorenz,gini,0.4938250450432762,,,,descriptive reproduction quantity,,descriptive,,,,,
+2022,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,-0.0100516360462104,,delta_r2,-0.0100516360462104,gompertz_free_r2 > exponential_r2,False,rejected,,,,,
+2022,refined,table_1,annual_income,descriptive,mean_income_usd,481.10368704565656,,,,descriptive reproduction quantity,,descriptive,,,,,
+2022,refined,table_2,gompertz,boundary,x_gmax,6.97099909126432,,gompertz_free_correlation_coefficient,0.9653856806785163,correlation_coefficient >= 0.98,False,weak,,,,,
+2022,refined,table_2,gompertz,free_lsf,A,1.595649240151502,0.02019609072868005,gompertz_free_correlation_coefficient,0.9653856806785163,correlation_coefficient >= 0.98,False,weak,,,,,
+2022,refined,table_2,gompertz,free_lsf,B,0.44985098438388,0.04333936679100122,gompertz_free_correlation_coefficient,0.9653856806785163,correlation_coefficient >= 0.98,False,weak,,,,,
+2022,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9653856806785163,,gompertz_free_correlation_coefficient,0.9653856806785163,correlation_coefficient >= 0.98,False,weak,,,,,
+2022,refined,table_2,gompertz,population,population_pct,98.94419526543652,,gompertz_free_correlation_coefficient,0.9653856806785163,correlation_coefficient >= 0.98,False,weak,,,,,
+2022,refined,table_3,pareto,boundary,x_pmin,6.97099909126432,,pareto_ls_r2,0.9674623842902136,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2022,refined,table_3,pareto,lsf,alpha,2.2727469890666696,0.08653077724318736,pareto_ls_r2,0.9674623842902136,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2022,refined,table_3,pareto,lsf,beta,64.51775333834532,15.105934669850278,pareto_ls_r2,0.9674623842902136,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2022,refined,table_3,pareto,lsf,correlation_coefficient,0.9835966573195608,,pareto_ls_r2,0.9674623842902136,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2022,refined,table_3,pareto,mle,alpha,2.509453456091568,0.05390755605789933,pareto_mle_r2,0.9434662084711657,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2022,refined,table_3,pareto,mle_continuity,beta,164.15739069628884,17.183250090723263,pareto_mle_r2,0.9434662084711657,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2022,refined,table_3,pareto,population,population_pct,1.0558047345634822,,pareto_ls_r2,0.9674623842902136,pareto_ls_r2 >= 0.98 and selected tail supported,False,fallback,,,,,
+2022,refined,table_3,transition,boundary,x_t,6.97099909126432,,pareto_ls_r2,0.9674623842902136,descriptive reproduction quantity,,descriptive,,,,,
+2022,refined,table_4,income_share,gompertz,share_pct,87.79553091607798,,,,descriptive reproduction quantity,,descriptive,,,,,
+2022,refined,table_4,income_share,pareto,share_pct,12.204469083922021,,,,descriptive reproduction quantity,,descriptive,,,,,
+2022,refined,table_4,inequality,lorenz,gini,0.4989927307926434,,,,descriptive reproduction quantity,,descriptive,,,,,
+2023,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.014188424766533037,,delta_r2,0.014188424766533037,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2023,refined,table_1,annual_income,descriptive,mean_income_usd,553.9672847992404,,,,descriptive reproduction quantity,,descriptive,,,,,
+2023,refined,table_2,gompertz,boundary,x_gmax,7.250082108139716,,gompertz_free_correlation_coefficient,0.9759194305601013,correlation_coefficient >= 0.98,False,weak,,,,,
+2023,refined,table_2,gompertz,free_lsf,A,1.598887941668528,0.017419372291252257,gompertz_free_correlation_coefficient,0.9759194305601013,correlation_coefficient >= 0.98,False,weak,,,,,
+2023,refined,table_2,gompertz,free_lsf,B,0.4524028865170309,0.03407324673778745,gompertz_free_correlation_coefficient,0.9759194305601013,correlation_coefficient >= 0.98,False,weak,,,,,
+2023,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9759194305601013,,gompertz_free_correlation_coefficient,0.9759194305601013,correlation_coefficient >= 0.98,False,weak,,,,,
+2023,refined,table_2,gompertz,population,population_pct,98.91606971237206,,gompertz_free_correlation_coefficient,0.9759194305601013,correlation_coefficient >= 0.98,False,weak,,,,,
+2023,refined,table_3,pareto,boundary,x_pmin,7.250082108139716,,pareto_ls_r2,0.9912476049947352,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2023,refined,table_3,pareto,lsf,alpha,2.703084307487321,0.0873426019090067,pareto_ls_r2,0.9912476049947352,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2023,refined,table_3,pareto,lsf,beta,198.36470946756927,74.1546999823591,pareto_ls_r2,0.9912476049947352,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2023,refined,table_3,pareto,lsf,correlation_coefficient,0.9956141848099268,,pareto_ls_r2,0.9912476049947352,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2023,refined,table_3,pareto,mle,alpha,3.158714570386808,0.06754387100134644,pareto_mle_r2,0.9590859249619585,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2023,refined,table_3,pareto,mle_continuity,beta,636.6069454840821,85.18136588860041,pareto_mle_r2,0.9590859249619585,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2023,refined,table_3,pareto,population,population_pct,1.0839302876279364,,pareto_ls_r2,0.9912476049947352,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2023,refined,table_3,transition,boundary,x_t,7.250082108139716,,pareto_ls_r2,0.9912476049947352,descriptive reproduction quantity,,descriptive,,,,,
+2023,refined,table_4,income_share,gompertz,share_pct,88.2276515281268,,,,descriptive reproduction quantity,,descriptive,,,,,
+2023,refined,table_4,income_share,pareto,share_pct,11.772348471873201,,,,descriptive reproduction quantity,,descriptive,,,,,
+2023,refined,table_4,inequality,lorenz,gini,0.4944539194462264,,,,descriptive reproduction quantity,,descriptive,,,,,
+2024,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,0.04341112293863292,,delta_r2,0.04341112293863292,gompertz_free_r2 > exponential_r2,True,supported,,,,,
+2024,refined,table_1,annual_income,descriptive,mean_income_usd,536.145516230212,,,,descriptive reproduction quantity,,descriptive,,,,,
+2024,refined,table_2,gompertz,boundary,x_gmax,6.673786621279553,,gompertz_free_correlation_coefficient,0.9929817673203067,correlation_coefficient >= 0.98,True,supported,,,,,
+2024,refined,table_2,gompertz,free_lsf,A,1.5738853528109495,0.007665536396489727,gompertz_free_correlation_coefficient,0.9929817673203067,correlation_coefficient >= 0.98,True,supported,,,,,
+2024,refined,table_2,gompertz,free_lsf,B,0.4020443736146902,0.015266806314293448,gompertz_free_correlation_coefficient,0.9929817673203067,correlation_coefficient >= 0.98,True,supported,,,,,
+2024,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9929817673203067,,gompertz_free_correlation_coefficient,0.9929817673203067,correlation_coefficient >= 0.98,True,supported,,,,,
+2024,refined,table_2,gompertz,population,population_pct,98.70909204380158,,gompertz_free_correlation_coefficient,0.9929817673203067,correlation_coefficient >= 0.98,True,supported,,,,,
+2024,refined,table_3,pareto,boundary,x_pmin,6.673786621279553,,pareto_ls_r2,0.9885509787830792,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2024,refined,table_3,pareto,lsf,alpha,3.060869306181078,0.05794464470037896,pareto_ls_r2,0.9885509787830792,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2024,refined,table_3,pareto,lsf,beta,486.28192157889913,110.4685555606847,pareto_ls_r2,0.9885509787830792,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2024,refined,table_3,pareto,lsf,correlation_coefficient,0.9942590099079209,,pareto_ls_r2,0.9885509787830792,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2024,refined,table_3,pareto,mle,alpha,2.9511456285176307,0.05692145315220626,pareto_mle_r2,0.979557198674496,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2024,refined,table_3,pareto,mle_continuity,beta,382.1840659924779,41.294065596269235,pareto_mle_r2,0.979557198674496,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2024,refined,table_3,pareto,population,population_pct,1.2909079561984225,,pareto_ls_r2,0.9885509787830792,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2024,refined,table_3,transition,boundary,x_t,6.673786621279553,,pareto_ls_r2,0.9885509787830792,descriptive reproduction quantity,,descriptive,,,,,
+2024,refined,table_4,income_share,gompertz,share_pct,86.85967644889973,,,,descriptive reproduction quantity,,descriptive,,,,,
+2024,refined,table_4,income_share,pareto,share_pct,13.140323551100266,,,,descriptive reproduction quantity,,descriptive,,,,,
+2024,refined,table_4,inequality,lorenz,gini,0.4947102938359283,,,,descriptive reproduction quantity,,descriptive,,,,,
+2025,refined,model_test,gompertz_vs_exponential,r2_comparison,delta_r2,-0.059546209643466685,,delta_r2,-0.059546209643466685,gompertz_free_r2 > exponential_r2,False,rejected,,,,,
+2025,refined,table_1,annual_income,descriptive,mean_income_usd,607.1456706011436,,,,descriptive reproduction quantity,,descriptive,,,,,
+2025,refined,table_2,gompertz,boundary,x_gmax,6.285762219142245,,gompertz_free_correlation_coefficient,0.9450809333611514,correlation_coefficient >= 0.98,False,weak,,,,,
+2025,refined,table_2,gompertz,free_lsf,A,1.59721054005827,0.026967233768907698,gompertz_free_correlation_coefficient,0.9450809333611514,correlation_coefficient >= 0.98,False,weak,,,,,
+2025,refined,table_2,gompertz,free_lsf,B,0.4493104048320405,0.05767726255852585,gompertz_free_correlation_coefficient,0.9450809333611514,correlation_coefficient >= 0.98,False,weak,,,,,
+2025,refined,table_2,gompertz,free_lsf,correlation_coefficient,0.9450809333611514,,gompertz_free_correlation_coefficient,0.9450809333611514,correlation_coefficient >= 0.98,False,weak,,,,,
+2025,refined,table_2,gompertz,population,population_pct,98.94849237482882,,gompertz_free_correlation_coefficient,0.9450809333611514,correlation_coefficient >= 0.98,False,weak,,,,,
+2025,refined,table_3,pareto,boundary,x_pmin,6.285762219142245,,pareto_ls_r2,0.9910365422197732,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2025,refined,table_3,pareto,lsf,alpha,2.732498893867131,0.059463147802074554,pareto_ls_r2,0.9910365422197732,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2025,refined,table_3,pareto,lsf,beta,197.32005689800576,43.84314022099055,pareto_ls_r2,0.9910365422197732,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2025,refined,table_3,pareto,lsf,correlation_coefficient,0.9955081828994542,,pareto_ls_r2,0.9910365422197732,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2025,refined,table_3,pareto,mle,alpha,2.18748611289623,0.04597344525327517,pareto_mle_r2,0.8055289254738218,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2025,refined,table_3,pareto,mle_continuity,beta,76.21995712403282,6.441530882438575,pareto_mle_r2,0.8055289254738218,finite direct MLE on observations x >= x_t,True,supported,,,,,
+2025,refined,table_3,pareto,population,population_pct,1.0515076251711892,,pareto_ls_r2,0.9910365422197732,pareto_ls_r2 >= 0.98 and selected tail supported,True,supported,,,,,
+2025,refined,table_3,transition,boundary,x_t,6.285762219142245,,pareto_ls_r2,0.9910365422197732,descriptive reproduction quantity,,descriptive,,,,,
+2025,refined,table_4,income_share,gompertz,share_pct,88.66186095147972,,,,descriptive reproduction quantity,,descriptive,,,,,
+2025,refined,table_4,income_share,pareto,share_pct,11.338139048520276,,,,descriptive reproduction quantity,,descriptive,,,,,
+2025,refined,table_4,inequality,lorenz,gini,0.4927457265214714,,,,descriptive reproduction quantity,,descriptive,,,,,

@@ -1,0 +1,60 @@
+name: Build PNAD analytics dataset
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/stage_04_build_analytic_pnad.py"
+      - "data/trusted/**"
+      - "requirements.txt"
+      - ".github/workflows/build_analytics.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pnad-analytics-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analytics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Ensure trusted datasets exist
+        shell: bash
+        run: |
+          if ! compgen -G "data/trusted/pnad_trusted_*.parquet" > /dev/null; then
+            echo "Trusted datasets are required to build the analytics layer."
+            echo "Persistent files matching data/trusted/pnad_trusted_*.parquet must be present."
+            exit 1
+          fi
+          echo "Trusted datasets are present."
+
+      - name: Build concatenated trusted analytics parquet
+        run: python src/stage_04_build_analytic_pnad.py
+
+      - name: Commit analytics dataset
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data/analytics
+          if git diff --cached --quiet; then
+            echo "No analytics changes to commit."
+          else
+            git commit -m "generate PNAD analytics dataset"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi

@@ -1,6 +1,6 @@
 # Source modules
 
-The `src` directory contains the canonical scientific workflow of the project. Stages 00–02 build metadata and refined/trusted data layers; Stage 03 performs the complete empirical analysis; Stage 05 and the paper helper modules generate publication assets.
+The `src` directory contains the canonical scientific workflow of the project. Stages 00–02 build metadata and refined/trusted data layers; Stage 03 performs the complete empirical analysis; Stage 04 consolidates the trusted annual microdata into one cross-year analytical Parquet; Stage 05 and the paper helper modules generate publication assets.
 
 ## Scientific pipeline
 
@@ -10,6 +10,7 @@ The `src` directory contains the canonical scientific workflow of the project. S
 | 01 | `stage_01_build_refined_pnad.py` | Harmonizes original survey records into annual income datasets | `data/refined/pnad_refined_YYYY.parquet` |
 | 02 | `stage_02_build_trusted_pnad.py` | Applies deterministic upper-tail treatment and distribution-level validation | `data/trusted/pnad_trusted_YYYY.parquet` and trusted audit tables |
 | 03 | `stage_03_pnad_analysis.py` | Complete descriptive, inequality and Gompertz–Pareto analysis for refined and trusted datasets | analytical CSV and PNG assets |
+| 04 | `stage_04_build_analytic_pnad.py` | Concatenates all trusted annual microdata into one validated cross-year dataset | `data/analytics/pnad_analytics_all.parquet` |
 | 05 | `stage_05_moura_ribeiro.py` | Moura Jr.–Ribeiro replication and extension through 2025 | publication fits and figures |
 | — | `paper_figures.py` | Finalizes publication figures | `assets/figures_paper/` |
 | — | `paper_tables.py` | Consolidates publication tables | `assets/tables_paper/` |
@@ -132,6 +133,12 @@ The canonical Stage-03 tables are:
 - `gompertz_pareto_curves.csv`: empirical CCDF and fitted Gompertz/Pareto curves on the common normalized-income grid.
 
 Histogram and descriptive CCDF datasets are built directly from the annual Parquet files for plotting but are not persisted as separate CSV tables.
+
+## Stage 04: concatenated trusted analytics dataset
+
+`stage_04_build_analytic_pnad.py` creates a single cross-year microdata product from the annual trusted files. It performs no new statistical transformation: the trusted columns and values are preserved, the annual datasets are ordered by `ano`, and the output is written to `data/analytics/pnad_analytics_all.parquet`.
+
+Before writing, Stage 04 verifies that every annual file contains `renda` and `ano`, that the year stored in the data matches the year encoded in the filename, and that trusted income remains finite and non-negative. The annual schemas must also agree. Each survey year is written as one Parquet row group so that the combined file remains efficient for year-level filtering.
 
 ## Stage 05: Moura Jr.–Ribeiro replication and extension
 

@@ -1,6 +1,6 @@
 # Source modules
 
-The `src` directory contains the canonical scientific workflow of the project. Stages 00–02 build metadata and refined/trusted data layers; Stage 03 performs the complete empirical analysis; Stage 04 consolidates the trusted annual microdata into one cross-year analytical Parquet; Stage 05 and the paper helper modules generate publication assets.
+The `src` directory contains the canonical scientific workflow of the project. Stages 00–02 build metadata and refined/trusted data layers; Stage 03 performs the complete empirical analysis; Stage 04 consolidates the trusted annual microdata into one cross-year analytical Parquet; Stage 05 generates the publication figures; and `paper_tables.py` produces the canonical publication tables.
 
 ## Scientific pipeline
 
@@ -11,9 +11,8 @@ The `src` directory contains the canonical scientific workflow of the project. S
 | 02 | `stage_02_build_trusted_pnad.py` | Applies deterministic upper-tail treatment and distribution-level validation | `data/trusted/pnad_trusted_YYYY.parquet` and trusted audit tables |
 | 03 | `stage_03_pnad_analysis.py` | Complete descriptive, inequality and Gompertz–Pareto analysis for refined and trusted datasets | analytical CSV and PNG assets |
 | 04 | `stage_04_build_analytic_pnad.py` | Concatenates all trusted annual microdata into one validated cross-year dataset | `data/analytics/pnad_analytics_all.parquet` |
-| 05 | `stage_05_moura_ribeiro.py` | Moura Jr.–Ribeiro replication and extension through 2025 | publication fits and figures |
-| — | `paper_figures.py` | Finalizes publication figures | `assets/figures_paper/` |
-| — | `paper_tables.py` | Consolidates publication tables | `assets/tables_paper/` |
+| 05 | `stage_05_moura_ribeiro.py` | Trusted-data publication layer and Moura Jr.–Ribeiro replication/extension through 2025 | `assets/figures_paper/` and bootstrap uncertainty metrics |
+| — | `paper_tables.py` | Consolidates the four canonical publication tables directly from current trusted Stage-03 outputs | `assets/tables_paper/` |
 
 ## Stage 02: trusted distributions
 
@@ -140,9 +139,15 @@ Histogram and descriptive CCDF datasets are built directly from the annual Parqu
 
 Before writing, Stage 04 verifies that every annual file contains `renda` and `ano`, that the year stored in the data matches the year encoded in the filename, and that trusted income remains finite and non-negative. The annual schemas must also agree. Each survey year is written as one Parquet row group so that the combined file remains efficient for year-level filtering.
 
-## Stage 05: Moura Jr.–Ribeiro replication and extension
+## Stage 05: publication layer
 
-`stage_05_moura_ribeiro.py` is a publication layer. It does not import Stage 03 as a Python module; it consumes persisted trusted analytical outputs and reads trusted annual Parquet files where individual observations are required. `paper_figures.py` finalizes publication figures and `paper_tables.py` consolidates the four canonical publication tables.
+`stage_05_moura_ribeiro.py` consumes persisted canonical trusted Stage-03 outputs and reads trusted annual Parquet files only where individual observations are required. It owns the complete paper-figure set. Publication figures therefore do not require a separate figure-postprocessing module.
+
+`paper_tables.py` reads the current canonical trusted Stage-03 tables directly: `statistics_annual.csv`, `gompertz_annual.csv`, `pareto_annual.csv` and `gompertz_pareto_curves.csv`. It combines them with Stage-05 bootstrap uncertainties and trusted microdata to produce exactly four paper-facing tables.
+
+## Historical notebooks
+
+The notebooks under `notebook/` are intentionally retained in the repository as historical and pedagogical artifacts. They are not the authoritative implementation of the current pipeline; the source modules under `src/` are canonical.
 
 ## Dependencies and tests
 

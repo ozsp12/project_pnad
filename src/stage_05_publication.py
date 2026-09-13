@@ -7,8 +7,6 @@ bootstrap or likelihood uncertainties itself.
 
 from __future__ import annotations
 
-import pandas as pd
-
 try:  # package import used by tests
     from . import stage_05_moura_ribeiro as figures
     from . import stage_05_tables as tables
@@ -17,25 +15,13 @@ except ImportError:  # direct execution: python src/stage_05_publication.py
     import stage_05_tables as tables
 
 
-def _year_filter(frame):
-    out = frame.copy()
-    out["year"] = pd.to_numeric(out["year"], errors="coerce").astype("Int64")
-    return out[(out["year"] >= figures.START_YEAR) & (out["year"] <= figures.END_YEAR)].copy()
-
-
 def main():
     figures.PAPER_TABLES.mkdir(parents=True, exist_ok=True)
     figures.clean_figures()
     stats, lorenz, annual, curves, meta = figures.load_inputs()
     years = figures.years_of(annual["year"].dropna())
 
-    bootstrap = _year_filter(
-        pd.read_csv(figures.TABLES / "moura_ribeiro_bootstrap_annual.csv")
-    )
-    reproduction = _year_filter(
-        pd.read_csv(figures.TABLES / "moura_ribeiro_reproduction_annual.csv")
-    )
-    exponential = reproduction[
+    exponential = annual[
         ["year", "exponential_intercept", "exponential_alpha", "exponential_r2", "gompertz_x_gmax"]
     ].rename(
         columns={
@@ -45,7 +31,7 @@ def main():
             "gompertz_x_gmax": "xg",
         }
     )
-    shares = reproduction[
+    shares = annual[
         ["year", "gompertz_income_share_pct", "pareto_income_share_pct"]
     ].copy()
 
@@ -55,9 +41,9 @@ def main():
     figures.plot_lorenz(lorenz, stats, years)
     figures.line_figure(stats, "gini", [("Gini", "Gini")], "Gini coefficient")
     figures.plot_exponential(curves, exponential, years)
-    figures.plot_gompertz(curves, annual, bootstrap, years)
-    figures.plot_pareto(curves, annual, bootstrap, years, "ls")
-    figures.plot_pareto(curves, annual, bootstrap, years, "mle")
+    figures.plot_gompertz(curves, annual, annual, years)
+    figures.plot_pareto(curves, annual, annual, years, "ls")
+    figures.plot_pareto(curves, annual, annual, years, "mle")
     figures.line_figure(
         stats,
         "top_income_shares",

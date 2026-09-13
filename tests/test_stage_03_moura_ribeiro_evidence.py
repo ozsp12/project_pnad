@@ -2,6 +2,7 @@ from pathlib import Path
 import sys
 
 import numpy as np
+import pandas as pd
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -39,3 +40,23 @@ def test_likelihood_width_agrees_with_large_sample_fisher_limit():
     fisher = alpha_hat / np.sqrt(n)
     likelihood = evidence.likelihood_alpha_se(tail, xt)
     assert likelihood == pytest.approx(fisher, rel=0.04)
+
+
+def test_analysis_metadata_documents_all_six_canonical_tables():
+    frames = {
+        name: pd.DataFrame(columns=["year", f"field_{i}"])
+        for i, name in enumerate(evidence.ANALYSIS_TABLES)
+    }
+    metadata = evidence.build_metadata_table(frames)
+    documented_tables = set(metadata["table_name"])
+    assert set(evidence.ANALYSIS_TABLES).issubset(documented_tables)
+    assert evidence.METADATA_FILE in documented_tables
+    assert {
+        "table_name", "table_description", "column_name",
+        "description", "unit", "source",
+    } == set(metadata.columns)
+
+
+def test_canonical_analysis_file_set_is_six_tables_plus_metadata():
+    assert len(evidence.ANALYSIS_TABLES) == 6
+    assert evidence.CANONICAL_FILES == set(evidence.ANALYSIS_TABLES) | {"metadata.csv"}

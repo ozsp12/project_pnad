@@ -1,20 +1,13 @@
-"""Moura Jr.--Ribeiro (2009) reproduction diagnostics for Stage 03.
+"""Augment the canonical Stage-03 tables with Moura Jr.--Ribeiro diagnostics.
 
-This analytical module reads the canonical Stage-03 outputs for the refined
-and trusted layers, reproduces the main statistical quantities used by Moura
-Jr. and Ribeiro (EPJ B 67, 101--120, 2009), and quantifies uncertainty.
+The baseline (refined) and benchmark (trusted) analytical layers deliberately
+share the same table names and schemas.  This module computes the bootstrap,
+likelihood-width and reproduction diagnostics required by the 2009 method, but
+stores them directly in ``gompertz_annual.csv`` and ``pareto_annual.csv``.
+No separate bootstrap or reproduction CSV is persisted.
 
-Two files are produced in each Stage-03 table directory:
-
-- ``moura_ribeiro_bootstrap_annual.csv``: current-model bootstrap uncertainties
-  plus free-intercept Gompertz bootstrap diagnostics;
-- ``moura_ribeiro_reproduction_annual.csv``: one annual row collecting the
-  quantities needed to reproduce the published tables and main fit tests.
-
-The current project model keeps A = ln[ln(100)] fixed. The free-intercept
-Gompertz estimates are retained separately because the 2009 paper reports A and
-B from an unconstrained least-squares fit after using A approximately 1.53 as a
-boundary diagnostic.
+Each analytical layer therefore contains the same six scientific tables plus a
+``metadata.csv`` data dictionary.
 """
 
 from __future__ import annotations
@@ -36,16 +29,83 @@ LIKELIHOOD_GRID_SIZE = 12001
 
 LAYER_CONFIG = {
     "refined": {
+        "role": "baseline",
         "data": ROOT / "data" / "refined",
         "tables": ROOT / "assets" / "tables_analysis_refined",
         "pattern": "pnad_refined_{year}.parquet",
     },
     "trusted": {
+        "role": "benchmark",
         "data": ROOT / "data" / "trusted",
         "tables": ROOT / "assets" / "tables_analysis_trusted",
         "pattern": "pnad_trusted_{year}.parquet",
     },
 }
+
+ANALYSIS_TABLES = (
+    "statistics_annual.csv",
+    "geometric_bins.csv",
+    "gompertz_annual.csv",
+    "pareto_annual.csv",
+    "gompertz_pareto_curves.csv",
+    "lorenz.csv",
+)
+METADATA_FILE = "metadata.csv"
+CANONICAL_FILES = set(ANALYSIS_TABLES) | {METADATA_FILE}
+
+TABLE_DESCRIPTIONS = {
+    "statistics_annual.csv": (
+        "Annual descriptive statistics, inequality indices, concentration measures, "
+        "and external Gini validation for the analytical income sample."
+    ),
+    "geometric_bins.csv": (
+        "Geometric-bin summaries of annual adjusted income distributions using the "
+        "canonical bin ratio 1.10."
+    ),
+    "gompertz_annual.csv": (
+        "Annual Gompertz-regime estimates, boundary diagnostics, bootstrap "
+        "uncertainties, exponential comparison diagnostics, and regime income share."
+    ),
+    "pareto_annual.csv": (
+        "Annual Pareto-tail estimates from log-log least squares and direct maximum "
+        "likelihood, including bootstrap and likelihood-width uncertainties."
+    ),
+    "gompertz_pareto_curves.csv": (
+        "Binned empirical CCDF and fitted Gompertz/Pareto curves used for regime "
+        "selection, estimation, diagnostics, and figures."
+    ),
+    "lorenz.csv": (
+        "Annual Lorenz-curve coordinates on the common population-share grid."
+    ),
+    METADATA_FILE: (
+        "Data dictionary describing every canonical Stage-03 analytical table and "
+        "column."
+    ),
+}
+
+GOMPERTZ_DIAGNOSTIC_COLUMNS = [
+    "bootstrap_reps",
+    "gompertz_B_bootstrap_se",
+    "gompertz_A_free_bootstrap_se",
+    "gompertz_B_free_bootstrap_se",
+    "exponential_intercept",
+    "exponential_alpha",
+    "exponential_r2",
+    "gompertz_income_share_pct",
+]
+
+PARETO_DIAGNOSTIC_COLUMNS = [
+    "bootstrap_reps",
+    "pareto_alpha_ls_bootstrap_se",
+    "pareto_beta_ls_bootstrap_se",
+    "pareto_alpha_mle_likelihood_se",
+    "pareto_alpha_mle_bootstrap_se",
+    "pareto_beta_mle_likelihood_se",
+    "pareto_beta_mle_bootstrap_se",
+    "pareto_mle_r2",
+    "pareto_supported",
+    "pareto_income_share_pct",
+]
 
 
 def years_of(values) -> list[int]:
@@ -76,7 +136,7 @@ def r2_log(observed, fitted) -> float:
 
 
 def bootstrap_line(x, y, rng, reps=BOOTSTRAP_REPS):
-    """Bootstrap an unconstrained line y = intercept + slope*x."""
+    """Bootstrap an unconstrained line ``y = intercept + slope*x``."""
     x = np.asarray(x, float)
     y = np.asarray(y, float)
     mask = np.isfinite(x) & np.isfinite(y)
@@ -86,10 +146,8 @@ def bootstrap_line(x, y, rng, reps=BOOTSTRAP_REPS):
         return nan.copy(), nan.copy()
 
     idx = rng.integers(0, len(x), size=(reps, len(x)))
-    xb = x[idx]
-    yb = y[idx]
-    xm = xb.mean(axis=1)
-    ym = yb.mean(axis=1)
+    xb, yb = x[idx], y[idx]
+    xm, ym = xb.mean(axis=1), yb.mean(axis=1)
     den = ((xb - xm[:, None]) ** 2).sum(axis=1)
     slope = np.divide(
         ((xb - xm[:, None]) * (yb - ym[:, None])).sum(axis=1),
@@ -97,12 +155,11 @@ def bootstrap_line(x, y, rng, reps=BOOTSTRAP_REPS):
         out=np.full(reps, np.nan),
         where=den > 0,
     )
-    intercept = ym - slope * xm
-    return intercept, slope
+    return ym - slope * xm, slope
 
 
 def bootstrap_fixed_gompertz_B(x, y, A, rng, reps=BOOTSTRAP_REPS):
-    """Bootstrap B in y=A-Bx while preserving the theoretical fixed A."""
+    """Bootstrap ``B`` in ``y=A-Bx`` while preserving the theoretical fixed A."""
     x = np.asarray(x, float)
     y = np.asarray(y, float)
     mask = np.isfinite(x) & np.isfinite(y)
@@ -111,8 +168,7 @@ def bootstrap_fixed_gompertz_B(x, y, A, rng, reps=BOOTSTRAP_REPS):
         return np.full(reps, np.nan)
 
     idx = rng.integers(0, len(x), size=(reps, len(x)))
-    xb = x[idx]
-    yb = y[idx]
+    xb, yb = x[idx], y[idx]
     den = (xb**2).sum(axis=1)
     num = (xb * (float(A) - yb)).sum(axis=1)
     return np.divide(
@@ -157,7 +213,6 @@ def _load_layer(layer: str):
     cfg = LAYER_CONFIG[layer]
     tables = cfg["tables"]
 
-    stats = pd.read_csv(tables / "statistics_annual.csv")
     gompertz = pd.read_csv(tables / "gompertz_annual.csv")
     pareto = pd.read_csv(tables / "pareto_annual.csv")
     curves = pd.read_csv(tables / "gompertz_pareto_curves.csv")
@@ -170,11 +225,11 @@ def _load_layer(layer: str):
     )
     metadata = pd.read_excel(METADATA).rename(columns={"ano": "year"})
 
-    for frame in (stats, annual, curves, metadata):
+    for frame in (gompertz, pareto, annual, curves, metadata):
         frame["year"] = pd.to_numeric(frame["year"], errors="coerce").astype("Int64")
 
     years = years_of(annual["year"].dropna())
-    return cfg, stats, annual, curves, metadata, years
+    return cfg, gompertz, pareto, annual, curves, metadata, years
 
 
 def _income(year: int, cfg, positive=True) -> np.ndarray:
@@ -194,8 +249,8 @@ def _normalized_income(year: int, cfg) -> np.ndarray:
 
 
 def build_bootstrap_uncertainties(layer: str) -> pd.DataFrame:
-    """Build annual uncertainty diagnostics for one Stage-03 data layer."""
-    cfg, _, annual, curves, _, years = _load_layer(layer)
+    """Compute annual bootstrap uncertainties without persisting a separate CSV."""
+    cfg, _, _, annual, curves, _, years = _load_layer(layer)
     annual_i = annual.set_index("year")
     rows = []
 
@@ -211,7 +266,6 @@ def build_bootstrap_uncertainties(layer: str) -> pd.DataFrame:
         ]
         xg = g["income_normalized"].to_numpy(float)
         yg = g["gompertz_transform"].to_numpy(float)
-
         fixed_B = bootstrap_fixed_gompertz_B(
             xg, yg, float(fit["gompertz_A"]), rng
         )
@@ -262,7 +316,6 @@ def build_bootstrap_uncertainties(layer: str) -> pd.DataFrame:
         rows.append(
             {
                 "year": year,
-                "layer": layer,
                 "bootstrap_reps": BOOTSTRAP_REPS,
                 "gompertz_B_bootstrap_se": sd(fixed_B),
                 "gompertz_A_free_bootstrap_se": sd(free_A),
@@ -308,30 +361,14 @@ def _mle_r2(curves, fit, year):
     )
 
 
-def build_reproduction_annual(layer: str, bootstrap=None) -> pd.DataFrame:
-    """Collect the annual quantities required for a 2009-paper reproduction."""
-    cfg, stats, annual, curves, metadata, years = _load_layer(layer)
-    if bootstrap is None:
-        bootstrap = build_bootstrap_uncertainties(layer)
-
+def build_diagnostics_annual(layer: str) -> pd.DataFrame:
+    """Compute non-bootstrap annual diagnostics required downstream."""
+    cfg, _, _, annual, curves, _, years = _load_layer(layer)
     annual_i = annual.set_index("year")
-    stats_i = stats.set_index("year")
-    metadata_i = metadata.set_index("year")
-    boot_i = bootstrap.set_index("year")
     rows = []
 
     for year in years:
         fit = annual_i.loc[year]
-        stat = stats_i.loc[year]
-        meta = metadata_i.loc[year]
-        boot = boot_i.loc[year]
-
-        nominal = _income(year, cfg, positive=True)
-        exchange = float(meta["Exchange"])
-        if not np.isfinite(exchange) or exchange <= 0:
-            raise ValueError(f"{year}: invalid Exchange")
-        mean_income_usd_current_date = float(np.mean(nominal) / exchange)
-
         x = _normalized_income(year, cfg)
         x_t = float(fit["transition_x_t"])
         tail = x[x >= x_t]
@@ -349,14 +386,6 @@ def build_reproduction_annual(layer: str, bootstrap=None) -> pd.DataFrame:
         exp_intercept, exp_alpha, exp_r2 = _exponential_diagnostics(
             curves, fit, year
         )
-        mle_r2 = _mle_r2(curves, fit, year)
-
-        free_A = float(fit["gompertz_boundary_A_free"])
-        free_B = float(fit["gompertz_boundary_B_free"])
-        free_r2 = float(fit["gompertz_boundary_r2_free"])
-        free_corr = np.sqrt(np.clip(free_r2, 0.0, 1.0))
-        ls_r2 = float(fit["pareto_ls_r2"])
-        ls_corr = np.sqrt(np.clip(ls_r2, 0.0, 1.0))
         pareto_supported = (
             str(fit["pareto_selection_status"])
             == "earliest_tail_start_with_r2_ge_0.98"
@@ -365,90 +394,247 @@ def build_reproduction_annual(layer: str, bootstrap=None) -> pd.DataFrame:
         rows.append(
             {
                 "year": year,
-                "layer": layer,
-                "mean_income_usd_current_date": mean_income_usd_current_date,
                 "exponential_intercept": exp_intercept,
                 "exponential_alpha": exp_alpha,
                 "exponential_r2": exp_r2,
-                "gompertz_A_fixed": float(fit["gompertz_A"]),
-                "gompertz_B_fixed": float(fit["gompertz_B"]),
-                "gompertz_B_fixed_bootstrap_se": float(
-                    boot["gompertz_B_bootstrap_se"]
-                ),
-                "gompertz_A_free": free_A,
-                "gompertz_A_free_bootstrap_se": float(
-                    boot["gompertz_A_free_bootstrap_se"]
-                ),
-                "gompertz_B_free": free_B,
-                "gompertz_B_free_bootstrap_se": float(
-                    boot["gompertz_B_free_bootstrap_se"]
-                ),
-                "gompertz_x_gmax": float(fit["gompertz_x_gmax"]),
-                "gompertz_free_r2": free_r2,
-                "gompertz_free_correlation_coefficient": float(free_corr),
-                "gompertz_population_pct": float(fit["gompertz_population_pct"]),
-                "pareto_x_pmin": float(fit["pareto_x_pmin"]),
-                "transition_x_t": x_t,
-                "transition_delta_x_t": float(fit["transition_delta_x_t"]),
-                "pareto_alpha_ls": float(fit["pareto_alpha_ls"]),
-                "pareto_alpha_ls_bootstrap_se": float(
-                    boot["pareto_alpha_ls_bootstrap_se"]
-                ),
-                "pareto_beta_ls": float(fit["pareto_beta_ls"]),
-                "pareto_beta_ls_bootstrap_se": float(
-                    boot["pareto_beta_ls_bootstrap_se"]
-                ),
-                "pareto_ls_r2": ls_r2,
-                "pareto_ls_correlation_coefficient": float(ls_corr),
-                "pareto_alpha_mle": float(fit["pareto_alpha_mle"]),
-                "pareto_alpha_mle_fisher_se": float(
-                    fit["pareto_alpha_mle_fisher_se"]
-                ),
-                "pareto_alpha_mle_likelihood_se": likelihood_se,
-                "pareto_alpha_mle_bootstrap_se": float(
-                    boot["pareto_alpha_mle_bootstrap_se"]
-                ),
-                "pareto_beta_mle_continuity": beta_mle,
-                "pareto_beta_mle_likelihood_se": beta_likelihood_se,
-                "pareto_beta_mle_bootstrap_se": float(
-                    boot["pareto_beta_mle_bootstrap_se"]
-                ),
-                "pareto_mle_r2": mle_r2,
-                "pareto_population_pct": float(fit["pareto_population_pct"]),
-                "pareto_supported": bool(pareto_supported),
                 "gompertz_income_share_pct": gompertz_income_share,
+                "pareto_alpha_mle_likelihood_se": likelihood_se,
+                "pareto_beta_mle_likelihood_se": beta_likelihood_se,
+                "pareto_mle_r2": _mle_r2(curves, fit, year),
+                "pareto_supported": bool(pareto_supported),
                 "pareto_income_share_pct": pareto_income_share,
-                "gini": float(stat["Gini"]),
             }
         )
 
     return pd.DataFrame(rows).sort_values("year").reset_index(drop=True)
 
 
+def _description(column: str) -> str:
+    explicit = {
+        "year": "Survey/reference year.",
+        "bootstrap_reps": "Number of bootstrap replications.",
+        "gompertz_A": "Canonical Gompertz A fixed at ln[ln(100)].",
+        "gompertz_B": "Canonical Gompertz B estimated by least squares with A fixed.",
+        "gompertz_B_bootstrap_se": "Bootstrap standard error of canonical fixed-A Gompertz B.",
+        "gompertz_boundary_A_free": "Free-intercept Gompertz A used for boundary and reproduction diagnostics.",
+        "gompertz_boundary_B_free": "Free-intercept Gompertz B used for boundary and reproduction diagnostics.",
+        "gompertz_A_free_bootstrap_se": "Bootstrap standard error of free-intercept Gompertz A.",
+        "gompertz_B_free_bootstrap_se": "Bootstrap standard error of free-intercept Gompertz B.",
+        "gompertz_x_gmax": "Upper normalized-income boundary of the selected Gompertz regime.",
+        "gompertz_income_share_pct": "Percentage of total income below the Gompertz-Pareto transition threshold.",
+        "pareto_x_pmin": "Lower normalized-income boundary of the selected Pareto tail.",
+        "transition_x_t": "Normalized-income transition threshold between Gompertz and Pareto regimes.",
+        "transition_delta_x_t": "Half-width of the transition interval when regime boundaries differ.",
+        "pareto_alpha_ls": "Pareto exponent estimated by log-log least squares.",
+        "pareto_beta_ls": "Pareto amplitude estimated by log-log least squares.",
+        "pareto_alpha_mle": "Pareto exponent estimated by direct maximum likelihood above x_t.",
+        "pareto_alpha_mle_fisher_se": "Fisher-information standard error of the direct-MLE Pareto exponent.",
+        "pareto_alpha_mle_likelihood_se": "Likelihood-width standard error of the direct-MLE Pareto exponent.",
+        "pareto_alpha_mle_bootstrap_se": "Bootstrap standard error of the direct-MLE Pareto exponent.",
+        "pareto_beta_mle_continuity": "Pareto amplitude obtained by Gompertz-Pareto continuity at x_t.",
+        "pareto_beta_mle_likelihood_se": "Uncertainty propagated to continuity-based Pareto beta from the likelihood-width alpha error.",
+        "pareto_beta_mle_bootstrap_se": "Bootstrap standard error of continuity-based Pareto beta.",
+        "pareto_income_share_pct": "Percentage of total income at or above the transition threshold.",
+        "pareto_supported": "Whether the selected Pareto tail satisfies the configured support criterion.",
+        "exponential_intercept": "Intercept of the exponential-body diagnostic fitted on the selected Gompertz interval.",
+        "exponential_alpha": "Positive decay coefficient of the exponential-body diagnostic.",
+        "exponential_r2": "Coefficient of determination of the exponential-body diagnostic.",
+        "population_share": "Cumulative population share on the Lorenz grid.",
+        "income_share": "Cumulative income share on the Lorenz grid.",
+        "bin_left": "Left boundary of the geometric income bin.",
+        "bin_right": "Right boundary of the geometric income bin.",
+        "bin_center_geo": "Geometric center of the income bin.",
+        "N_bin": "Number of observations in the geometric income bin.",
+        "income_normalized": "Income normalized by the annual positive-income mean.",
+        "empirical_ccdf_percent": "Empirical complementary cumulative distribution in percent.",
+        "empirical_ccdf_probability": "Empirical complementary cumulative distribution as a probability.",
+        "gompertz_transform": "Transformed empirical CCDF ln[ln(F)] on the percent scale.",
+        "regime": "Regime label assigned relative to the Gompertz-Pareto transition.",
+    }
+    if column in explicit:
+        return explicit[column]
+    if column.endswith("_r2") or column.endswith("_r2_free"):
+        return "Coefficient of determination for the indicated fit."
+    if column.endswith("_sse"):
+        return "Sum of squared errors for the indicated fit."
+    if column.endswith("_pct"):
+        return column.replace("_", " ").capitalize() + "."
+    return column.replace("_", " ").capitalize() + "."
+
+
+def _unit(column: str) -> str:
+    if column == "year":
+        return "year"
+    if column in {"regime", "gompertz_selection_status", "pareto_selection_status", "transition_rule"}:
+        return "text"
+    if column == "pareto_supported":
+        return "boolean"
+    if column.endswith("_pct") or column == "empirical_ccdf_percent":
+        return "%"
+    if column.endswith("_n") or column in {"N", "N_valid", "N_bin", "bootstrap_reps", "observations_in_bin", "positive_income_observation_n", "gompertz_point_n", "pareto_population_n", "gompertz_population_n"}:
+        return "count"
+    if "2025_usd" in column or column.endswith("_income_adj") or column == "income_adj_2025_usd":
+        return "2025 US$"
+    if column in {"income_normalized", "bin_right_normalized", "gompertz_x_gmax", "pareto_x_pmin", "transition_x_t", "transition_delta_x_t", "cutoff_normalized"}:
+        return "normalized income"
+    if column in {"population_share", "income_share", "ccdf", "empirical_ccdf_probability", "top_10", "top_1", "top_01"}:
+        return "fraction"
+    if "beta" in column and "gompertz" not in column:
+        return "CCDF-percent scale"
+    return "dimensionless"
+
+
+def build_metadata_table(frames: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    rows = []
+    for table_name in ANALYSIS_TABLES:
+        frame = frames[table_name]
+        for column in frame.columns:
+            rows.append(
+                {
+                    "table_name": table_name,
+                    "table_description": TABLE_DESCRIPTIONS[table_name],
+                    "column_name": column,
+                    "description": _description(column),
+                    "unit": _unit(column),
+                    "source": "Stage 03 analytical pipeline",
+                }
+            )
+
+    metadata_columns = {
+        "table_name": "Canonical Stage-03 table containing the documented field.",
+        "table_description": "Human-readable description of the table as a whole.",
+        "column_name": "Column documented by this metadata row.",
+        "description": "Human-readable definition of the column.",
+        "unit": "Measurement unit or scale.",
+        "source": "Primary source or derivation.",
+    }
+    for column, description in metadata_columns.items():
+        rows.append(
+            {
+                "table_name": METADATA_FILE,
+                "table_description": TABLE_DESCRIPTIONS[METADATA_FILE],
+                "column_name": column,
+                "description": description,
+                "unit": "text",
+                "source": "Stage 03 metadata schema",
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def run_layer(layer: str):
-    cfg, _, _, _, _, _ = _load_layer(layer)
+    cfg, gompertz, pareto, _, _, _, _ = _load_layer(layer)
     bootstrap = build_bootstrap_uncertainties(layer)
-    reproduction = build_reproduction_annual(layer, bootstrap)
+    diagnostics = build_diagnostics_annual(layer)
+
+    g_extra = bootstrap[
+        [
+            "year",
+            "bootstrap_reps",
+            "gompertz_B_bootstrap_se",
+            "gompertz_A_free_bootstrap_se",
+            "gompertz_B_free_bootstrap_se",
+        ]
+    ].merge(
+        diagnostics[
+            [
+                "year",
+                "exponential_intercept",
+                "exponential_alpha",
+                "exponential_r2",
+                "gompertz_income_share_pct",
+            ]
+        ],
+        on="year",
+        validate="one_to_one",
+    )
+    p_extra = bootstrap[
+        [
+            "year",
+            "bootstrap_reps",
+            "pareto_alpha_ls_bootstrap_se",
+            "pareto_beta_ls_bootstrap_se",
+            "pareto_alpha_mle_bootstrap_se",
+            "pareto_beta_mle_bootstrap_se",
+        ]
+    ].merge(
+        diagnostics[
+            [
+                "year",
+                "pareto_alpha_mle_likelihood_se",
+                "pareto_beta_mle_likelihood_se",
+                "pareto_mle_r2",
+                "pareto_supported",
+                "pareto_income_share_pct",
+            ]
+        ],
+        on="year",
+        validate="one_to_one",
+    )
+
+    gompertz = (
+        gompertz.drop(columns=GOMPERTZ_DIAGNOSTIC_COLUMNS, errors="ignore")
+        .merge(g_extra, on="year", how="left", validate="one_to_one")
+        .sort_values("year")
+        .reset_index(drop=True)
+    )
+    pareto = (
+        pareto.drop(columns=PARETO_DIAGNOSTIC_COLUMNS, errors="ignore")
+        .merge(p_extra, on="year", how="left", validate="one_to_one")
+        .sort_values("year")
+        .reset_index(drop=True)
+    )
 
     tables = cfg["tables"]
     tables.mkdir(parents=True, exist_ok=True)
-    bootstrap.to_csv(tables / "moura_ribeiro_bootstrap_annual.csv", index=False)
-    reproduction.to_csv(
-        tables / "moura_ribeiro_reproduction_annual.csv", index=False
-    )
-    return {
-        "bootstrap": bootstrap,
-        "reproduction": reproduction,
+    gompertz.to_csv(tables / "gompertz_annual.csv", index=False)
+    pareto.to_csv(tables / "pareto_annual.csv", index=False)
+
+    for path in tables.glob("*.csv"):
+        if path.name not in CANONICAL_FILES:
+            path.unlink()
+
+    frames = {
+        name: (
+            gompertz
+            if name == "gompertz_annual.csv"
+            else pareto
+            if name == "pareto_annual.csv"
+            else pd.read_csv(tables / name)
+        )
+        for name in ANALYSIS_TABLES
     }
+    metadata = build_metadata_table(frames)
+    metadata.to_csv(tables / METADATA_FILE, index=False)
+
+    return {"gompertz": gompertz, "pareto": pareto, "metadata": metadata}
+
+
+def validate_parallel_schemas():
+    """Require baseline and benchmark analytical directories to be structurally identical."""
+    refined = LAYER_CONFIG["refined"]["tables"]
+    trusted = LAYER_CONFIG["trusted"]["tables"]
+    refined_names = {p.name for p in refined.glob("*.csv")}
+    trusted_names = {p.name for p in trusted.glob("*.csv")}
+    if refined_names != CANONICAL_FILES or trusted_names != CANONICAL_FILES:
+        raise AssertionError(
+            "Refined/trusted analytical file sets must equal the canonical set: "
+            f"refined={sorted(refined_names)}, trusted={sorted(trusted_names)}"
+        )
+    for name in sorted(CANONICAL_FILES):
+        r_cols = list(pd.read_csv(refined / name, nrows=0).columns)
+        t_cols = list(pd.read_csv(trusted / name, nrows=0).columns)
+        if r_cols != t_cols:
+            raise AssertionError(f"Schema mismatch for {name}: {r_cols} != {t_cols}")
 
 
 def main():
     results = {layer: run_layer(layer) for layer in ("trusted", "refined")}
+    validate_parallel_schemas()
     for layer, result in results.items():
-        years = result["reproduction"]["year"]
         print(
-            f"Stage 03 Moura-Ribeiro reproduction ({layer}): "
-            f"{len(years)} survey years."
+            f"Stage 03 diagnostics ({layer}, {LAYER_CONFIG[layer]['role']}): "
+            f"{len(result['gompertz'])} survey years; canonical schemas validated."
         )
     return results
 

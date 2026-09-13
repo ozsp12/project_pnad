@@ -30,6 +30,7 @@ jobs:
           python scripts/refactor_stage05.py
           python scripts/refactor_docs_tests.py
           python scripts/fix_refactor_tests.py
+          git restore --source=HEAD -- .github/workflows/build_paper_assets.yml .github/workflows/run_analysis.yml
           python -m compileall -q src
           pytest -q
       - name: Commit generated refactor

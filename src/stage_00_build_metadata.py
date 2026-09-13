@@ -180,20 +180,26 @@ def build_metadata_df():
     return df_metadata
 
 
-def save_metadata(df_metadata, output_path=DEFAULT_OUTPUT_PATH):
-    """Save ``df_metadata`` to the repository metadata directory."""
+def save_metadata(df_metadata, output_path=DEFAULT_OUTPUT_PATH, csv_output_path=None):
+    """Save ``df_metadata`` as Excel and CSV in the metadata directory."""
     output_path = Path(output_path)
-    if not output_path.parent.is_dir():
-        raise FileNotFoundError(
-            f"Pasta de metadata não encontrada: {output_path.parent}"
-        )
+    csv_output_path = (
+        output_path.with_suffix(".csv")
+        if csv_output_path is None
+        else Path(csv_output_path)
+    )
+
+    for parent in {output_path.parent, csv_output_path.parent}:
+        if not parent.is_dir():
+            raise FileNotFoundError(f"Pasta de metadata não encontrada: {parent}")
 
     df_metadata.to_excel(output_path, index=False)
+    df_metadata.to_csv(csv_output_path, index=False)
     return output_path
 
 
 def main(output_path=DEFAULT_OUTPUT_PATH):
-    """Build, validate, and save ``df_metadata``."""
+    """Build, validate, and save ``df_metadata`` in Excel and CSV formats."""
     df_metadata = build_metadata_df()
     output_path = save_metadata(df_metadata, output_path)
     return df_metadata, output_path
@@ -202,4 +208,5 @@ def main(output_path=DEFAULT_OUTPUT_PATH):
 if __name__ == "__main__":
     df_metadata, output_path = main()
     print(f"df_metadata saved to: {output_path}")
+    print(f"df_metadata CSV saved to: {output_path.with_suffix('.csv')}")
     print(df_metadata)

@@ -3,8 +3,8 @@
 Stage 02 reads the annual refined Parquet files created by
 `stage_01_build_refined_pnad.py`, removes structurally invalid income values,
 applies the deterministic upper-tail log-MAD rule used in the project
-notebook, validates the resulting annual distributions, and writes both
-trusted datasets and analytical audit tables.
+notebook, validates the resulting annual distributions, and writes trusted
+datasets plus validation/audit tables.
 
 The statistical transformation is
 
@@ -33,7 +33,7 @@ from tqdm.auto import tqdm
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REFINED_PATH = REPO_ROOT / "data" / "refined"
 TRUSTED_PATH = REPO_ROOT / "data" / "trusted"
-TABLES_ANALYSIS_PATH = REPO_ROOT / "assets" / "tables_analysis_trusted"
+VALIDATION_TABLES_PATH = REPO_ROOT / "assets" / "tables_validation"
 
 REFINED_PATTERN = "pnad_refined_*.parquet"
 MAD_CONSISTENCY = 1.4826
@@ -41,8 +41,8 @@ MAD_THRESHOLD = 6.0
 PARQUET_ENGINE = "pyarrow"
 PARQUET_COMPRESSION = "snappy"
 
-AUDIT_FILE = TABLES_ANALYSIS_PATH / "trusted_trim_audit_annual.csv"
-TESTS_FILE = TABLES_ANALYSIS_PATH / "trusted_distribution_tests_annual.csv"
+AUDIT_FILE = VALIDATION_TABLES_PATH / "trusted_trim_audit_annual.csv"
+TESTS_FILE = VALIDATION_TABLES_PATH / "trusted_distribution_tests_annual.csv"
 
 
 def year_from_filename(path: Path) -> int:
@@ -358,11 +358,11 @@ def trim_refined_year(
 def build_trusted_datasets(
     refined_path: Path = REFINED_PATH,
     trusted_path: Path = TRUSTED_PATH,
-    tables_path: Path = TABLES_ANALYSIS_PATH,
+    tables_path: Path = VALIDATION_TABLES_PATH,
     threshold: float = MAD_THRESHOLD,
     consistency: float = MAD_CONSISTENCY,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Build all trusted PNAD datasets and persist quality-control tables."""
+    """Build all trusted PNAD datasets and persist validation/audit tables."""
     files_by_year = discover_refined_files(refined_path)
 
     trusted_path.mkdir(parents=True, exist_ok=True)

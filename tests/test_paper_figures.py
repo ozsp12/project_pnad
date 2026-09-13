@@ -7,6 +7,7 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import pytest
+from matplotlib.colors import to_rgb
 from matplotlib.ticker import NullFormatter
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -42,6 +43,26 @@ def test_log_grid_suppresses_minor_tick_labels():
         assert isinstance(ax.yaxis.get_minor_formatter(), NullFormatter)
     finally:
         plt.close(fig)
+
+
+def test_publication_palette_is_strictly_monochrome():
+    colors = matplotlib.rcParams["axes.prop_cycle"].by_key()["color"]
+    assert tuple(colors) == stage_05.MONOCHROME_COLORS
+    for color in colors:
+        red, green, blue = to_rgb(color)
+        assert red == pytest.approx(green)
+        assert green == pytest.approx(blue)
+
+
+def test_series_template_uses_distinct_nonchromatic_encodings():
+    assert len(set(stage_05.LINE_STYLES)) == len(stage_05.LINE_STYLES)
+    assert len(set(stage_05.MARKERS)) == len(stage_05.MARKERS)
+    for index in range(len(stage_05.MONOCHROME_COLORS)):
+        spec = stage_05.series_style(index)
+        assert spec["markerfacecolor"] == "white"
+        red, green, blue = to_rgb(spec["color"])
+        assert red == pytest.approx(green)
+        assert green == pytest.approx(blue)
 
 
 def test_save_figure_writes_only_png(tmp_path, monkeypatch):

@@ -39,29 +39,24 @@ def test_gompertz_paper_schema_does_not_report_fixed_A_standard_error():
     assert "gompertz_A_free_bootstrap_se" in result.columns
 
 
-def test_metadata_table_documents_all_data_columns():
-    evidence = pd.DataFrame(columns=[
-        "year", "layer", "paper_table", "test", "estimator", "parameter",
-        "estimate", "standard_error", "fit_metric", "fit_value", "criterion",
-        "passed", "evidence_status", "paper_2009_value",
-        "paper_2009_standard_error", "difference_from_2009",
-        "relative_difference_pct", "within_paper_1se",
-    ])
-    metadata = tables.build_metadata_table({tables.EVIDENCE_OUT.name: evidence})
+def test_metadata_table_documents_all_data_columns_and_tables():
+    gompertz = pd.DataFrame(columns=["year", "gompertz_A", "gompertz_B"])
+    metadata = tables.build_metadata_table({tables.GOMPERTZ_OUT.name: gompertz})
     documented = set(zip(metadata["table_name"], metadata["column_name"]))
-    assert all((tables.EVIDENCE_OUT.name, c) in documented for c in evidence.columns)
-    assert {"description", "unit", "source"}.issubset(metadata.columns)
+    assert all((tables.GOMPERTZ_OUT.name, c) in documented for c in gompertz.columns)
+    assert {
+        "table_name", "table_description", "column_name", "description", "unit", "source"
+    }.issubset(metadata.columns)
+    descriptions = metadata.loc[
+        metadata["table_name"] == tables.GOMPERTZ_OUT.name, "table_description"
+    ]
+    assert descriptions.notna().all()
+    assert descriptions.str.len().gt(0).all()
 
 
-def test_validate_tables_requires_both_evidence_layers():
+def test_validate_tables_rejects_inconsistent_regime_shares():
     gompertz = pd.DataFrame({"year": [2005], "gompertz_income_share_pct": [86.0]})
-    pareto = pd.DataFrame({"year": [2005], "pareto_income_share_pct": [14.0]})
+    pareto = pd.DataFrame({"year": [2005], "pareto_income_share_pct": [13.0]})
     economic = pd.DataFrame({"year": [2005]})
-    evidence = pd.DataFrame({
-        "year": [2005], "layer": ["trusted"], "test": ["gompertz"],
-        "estimator": ["free_lsf"], "parameter": ["A"], "estimate": [1.54],
-        "criterion": ["test"], "evidence_status": ["supported"],
-        "paper_2009_value": [1.54], "difference_from_2009": [0.0],
-    })
-    with pytest.raises(AssertionError, match="refined and trusted"):
-        tables.validate_tables(gompertz, pareto, economic, evidence)
+    with pytest.raises(AssertionError, match="sum to 100%"):
+        tables.validate_tables(gompertz, pareto, economic)

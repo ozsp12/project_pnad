@@ -79,10 +79,16 @@ def test_metadata_merge_preserves_one_row_per_year():
 def test_save_metadata_roundtrip(tmp_path):
     metadata = stage_00.build_metadata_df()
     output = tmp_path / "df_metadata.xlsx"
+    csv_output = tmp_path / "df_metadata.csv"
 
     saved = stage_00.save_metadata(metadata, output)
-    restored = pd.read_excel(saved)
+    restored_xlsx = pd.read_excel(saved)
+    restored_csv = pd.read_csv(csv_output)
 
     assert saved == output
-    assert restored["ano"].tolist() == metadata["ano"].tolist()
-    assert list(restored.columns) == list(metadata.columns)
+    assert output.is_file()
+    assert csv_output.is_file()
+    assert restored_xlsx["ano"].tolist() == metadata["ano"].tolist()
+    assert restored_csv["ano"].tolist() == metadata["ano"].tolist()
+    assert list(restored_xlsx.columns) == list(metadata.columns)
+    assert list(restored_csv.columns) == list(metadata.columns)

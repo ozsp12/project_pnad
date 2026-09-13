@@ -21,20 +21,22 @@ def test_band_record_is_nonoverlapping_summary():
 
 def test_gompertz_paper_schema_does_not_report_fixed_A_standard_error():
     annual = pd.DataFrame([{
-        "year": 2005, "gompertz_A": 1.527, "gompertz_B": .34,
-        "gompertz_boundary_A_free": 1.54, "gompertz_boundary_B_free": .33,
-        "gompertz_x_gmax": 7.4, "transition_x_t": 7.4,
-        "gompertz_r2": .99, "gompertz_population_pct": 98.8,
+        "year": 2005,
+        "gompertz_A": 1.527,
+        "gompertz_B": .34,
+        "gompertz_B_bootstrap_se": .01,
+        "gompertz_boundary_A_free": 1.54,
+        "gompertz_A_free_bootstrap_se": .01,
+        "gompertz_boundary_B_free": .33,
+        "gompertz_B_free_bootstrap_se": .01,
+        "gompertz_x_gmax": 7.4,
+        "transition_x_t": 7.4,
+        "gompertz_r2": .99,
+        "gompertz_population_pct": 98.8,
+        "gompertz_income_share_pct": 86.2,
+        "bootstrap_reps": 1000,
     }])
-    bootstrap = pd.DataFrame([{
-        "year": 2005, "bootstrap_reps": 1000, "gompertz_B_bootstrap_se": .01,
-        "gompertz_A_free_bootstrap_se": .01, "gompertz_B_free_bootstrap_se": .01,
-    }])
-    regime = pd.DataFrame([{
-        "year": 2005, "gompertz_income_share_pct": 86.2,
-        "pareto_income_share_pct": 13.8,
-    }])
-    result = tables.build_gompertz_table(annual, bootstrap, regime)
+    result = tables.build_gompertz_table(annual)
     assert "gompertz_A_bootstrap_se" not in result.columns
     assert "gompertz_A_free_bootstrap_se" in result.columns
 
@@ -60,3 +62,17 @@ def test_validate_tables_rejects_inconsistent_regime_shares():
     economic = pd.DataFrame({"year": [2005]})
     with pytest.raises(AssertionError, match="sum to 100%"):
         tables.validate_tables(gompertz, pareto, economic)
+
+
+def test_persisted_regime_shares_must_match_recomputed_values():
+    annual = pd.DataFrame({
+        "year": [2005],
+        "gompertz_income_share_pct": [86.2],
+        "pareto_income_share_pct": [13.8],
+    })
+    recomputed = annual.copy()
+    tables.validate_persisted_regime_shares(annual, recomputed)
+
+    recomputed.loc[0, "pareto_income_share_pct"] = 14.0
+    with pytest.raises(AssertionError, match="Pareto|pareto"):
+        tables.validate_persisted_regime_shares(annual, recomputed)

@@ -6,7 +6,6 @@ on:
     branches: [main]
     paths:
       - "src/stage_03_pnad_analysis.py"
-      - "src/stage_03_moura_ribeiro_evidence.py"
       - "data/metadata/df_metadata.xlsx"
       - "data/auxiliary/**"
       - "data/refined/**"
@@ -61,12 +60,10 @@ jobs:
           rm -f assets/figures_analysis_trusted/ccdf_lnln.png
           rm -f assets/figures_analysis_refined/ccdf_lnln.png
 
-      - name: Run complete PNAD analysis
+      - name: Run complete PNAD Stage 03
         env:
           MPLBACKEND: Agg
-        run: |
-          python src/stage_03_pnad_analysis.py
-          python src/stage_03_moura_ribeiro_evidence.py
+        run: python src/stage_03_pnad_analysis.py
 
       - name: Commit analytical assets
         run: |

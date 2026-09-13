@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src import stage_03_moura_ribeiro_evidence as evidence
+from src import stage_03_pnad_analysis as evidence
 
 
 def test_fixed_gompertz_bootstrap_recovers_exact_B():

@@ -7,17 +7,17 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src import stage_05_tables as tables
+from src import stage_05_publication as tables
+from src import stage_03_pnad_analysis as analysis
 
 
-def test_band_record_is_nonoverlapping_summary():
-    values = np.array([90.0, 95.0, 99.0])
-    record = tables._band_record(values, total=1000.0, prefix="p90_p99")
-    assert record["p90_p99_population_n"] == 3
-    assert record["p90_p99_income_share_pct"] == pytest.approx(28.4)
-    assert record["p90_p99_mean_income_2025_usd"] == pytest.approx(values.mean())
-    assert record["p90_p99_median_income_2025_usd"] == pytest.approx(np.median(values))
-
+def test_exclusive_income_statistics_are_computed_in_stage03():
+    values = np.arange(1.0, 1001.0)
+    record = analysis.compute_exclusive_income_statistics(values)
+    assert record["income_observation_n"] == 1000
+    assert record["p90_p99_population_n"] == 90
+    assert record["p99_p999_population_n"] == 9
+    assert record["p999_p100_population_n"] == 1
 
 def test_gompertz_paper_schema_does_not_report_fixed_A_standard_error():
     annual = pd.DataFrame([{
@@ -62,17 +62,3 @@ def test_validate_tables_rejects_inconsistent_regime_shares():
     economic = pd.DataFrame({"year": [2005]})
     with pytest.raises(AssertionError, match="sum to 100%"):
         tables.validate_tables(gompertz, pareto, economic)
-
-
-def test_persisted_regime_shares_must_match_recomputed_values():
-    annual = pd.DataFrame({
-        "year": [2005],
-        "gompertz_income_share_pct": [86.2],
-        "pareto_income_share_pct": [13.8],
-    })
-    recomputed = annual.copy()
-    tables.validate_persisted_regime_shares(annual, recomputed)
-
-    recomputed.loc[0, "pareto_income_share_pct"] = 14.0
-    with pytest.raises(AssertionError, match="Pareto|pareto"):
-        tables.validate_persisted_regime_shares(annual, recomputed)

@@ -11,7 +11,7 @@ from matplotlib.ticker import NullFormatter
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src import stage_05_moura_ribeiro as stage_05
+from src import stage_05_publication as stage_05
 
 
 def test_year_groups_use_at_most_twelve_panels():

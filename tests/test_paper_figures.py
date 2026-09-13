@@ -63,3 +63,15 @@ def test_clean_figures_removes_obsolete_formats(tmp_path, monkeypatch):
     stage_05.clean_figures()
 
     assert sorted(path.name for path in tmp_path.iterdir()) == [".gitkeep"]
+
+
+def test_stage_05_contains_no_scientific_reestimation_routines():
+    forbidden = {
+        "bootstrap",
+        "bootstrap_line",
+        "bootstrap_fixed_gompertz_B",
+        "exponential_fits",
+        "regime_shares",
+        "r2_log",
+    }
+    assert forbidden.isdisjoint(vars(stage_05))

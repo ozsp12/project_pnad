@@ -2,7 +2,7 @@
 
 Stage 05 consumes scientific results already produced by Stage 03. It creates
 paper figures and consolidates the paper-facing tables; it does not estimate
-bootstrap or likelihood uncertainties itself.
+bootstrap, likelihood, or model parameters itself.
 """
 
 from __future__ import annotations
@@ -41,9 +41,9 @@ def main():
     figures.plot_lorenz(lorenz, stats, years)
     figures.line_figure(stats, "gini", [("Gini", "Gini")], "Gini coefficient")
     figures.plot_exponential(curves, exponential, years)
-    figures.plot_gompertz(curves, annual, annual, years)
-    figures.plot_pareto(curves, annual, annual, years, "ls")
-    figures.plot_pareto(curves, annual, annual, years, "mle")
+    figures.plot_gompertz(curves, annual, years)
+    figures.plot_pareto(curves, annual, years, "ls")
+    figures.plot_pareto(curves, annual, years, "mle")
     figures.line_figure(
         stats,
         "top_income_shares",

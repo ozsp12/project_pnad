@@ -13,8 +13,8 @@ The `src` directory contains the canonical scientific workflow. Stages 00–02 b
 | 03 | `stage_03_moura_ribeiro_evidence.py` | 2009-method uncertainty and reproduction diagnostics consolidated into canonical tables |
 | 04 | `stage_04_build_analytic_pnad.py` | concatenated trusted analytical Parquet |
 | 05 | `stage_05_publication.py` | canonical paper-asset entry point |
-| 05 | `stage_05_moura_ribeiro.py` | publication figure routines |
-| 05 | `stage_05_tables.py` | publication-table consolidation |
+| 05 | `stage_05_moura_ribeiro.py` | publication figure routines only |
+| 05 | `stage_05_tables.py` | publication-table consolidation only |
 
 ## Stage 03
 
@@ -41,7 +41,7 @@ The `refined` layer is the analytical baseline and the `trusted` layer is the be
 - `gompertz_pareto_curves.csv`;
 - `lorenz.csv`.
 
-Each directory also contains `metadata.csv`, which documents the purpose of every table and the meaning, unit, and source of every column.
+Each directory also contains `metadata.csv`, which documents the purpose of every table and the scientific meaning, unit/scale, and source of every column.
 
 `stage_03_moura_ribeiro_evidence.py` computes the simulation/inference quantities needed to reproduce Moura Jr. and Ribeiro (2009): fixed-`A` and free-intercept Gompertz bootstrap diagnostics, Pareto LSF/MLE bootstrap uncertainties, the paper-style likelihood width for the MLE exponent, exponential-vs-Gompertz diagnostics, and regime income shares. These quantities are written directly into `gompertz_annual.csv` and `pareto_annual.csv`; no separate bootstrap or reproduction CSVs are persisted.
 
@@ -53,7 +53,9 @@ The 2009 numerical reference dataset remains in `data/auxiliary/moura_ribeiro_20
 
 ## Stage 05
 
-Stage 05 is publication-only. `stage_05_publication.py` is the canonical executable. It reads the consolidated trusted Stage-03 outputs, calls the figure routines in `stage_05_moura_ribeiro.py`, and calls `stage_05_tables.py` to write four canonical tables. The former standalone `paper_tables.py` module has been assimilated into Stage 05.
+Stage 05 is strictly publication-only. `stage_05_publication.py` is the canonical executable. It reads the consolidated trusted Stage-03 outputs, calls the figure routines in `stage_05_moura_ribeiro.py`, and calls `stage_05_tables.py` to write four canonical tables.
+
+All fitted parameters, bootstrap standard errors, likelihood-width uncertainties, model-comparison diagnostics, Pareto support diagnostics, and Gompertz/Pareto regime income shares are computed and persisted in Stage 03. Stage 05 does not re-estimate any of these quantities; figure annotations and publication tables consume the persisted values directly.
 
 The fixed normalization parameter `A` has no paper-facing standard error because it is not estimated in the current model. The free-intercept `A` and `B` estimates and their bootstrap uncertainties are retained explicitly as Moura–Ribeiro replication diagnostics. `table_04_metadata.csv` documents both the purpose of each table and the meaning, unit, and source of every paper-facing column.
 
@@ -63,4 +65,4 @@ The notebooks under `notebook/` remain intentionally as historical and pedagogic
 
 ## Tests
 
-The test suite covers Stages 00–04, mathematical/regime routines, Moura–Ribeiro bootstrap and likelihood calculations, Stage-03 baseline/benchmark schema symmetry, and Stage-05 figure/table construction. GitHub Actions installs the pinned `requirements.txt`, compiles `src`, and runs `pytest`.
+The test suite covers Stages 00–04, mathematical/regime routines, Moura–Ribeiro bootstrap and likelihood calculations, Stage-03 baseline/benchmark schema symmetry, metadata definitions, and Stage-05 figure/table construction. GitHub Actions installs the pinned `requirements.txt`, compiles `src`, and runs `pytest`.

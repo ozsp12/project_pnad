@@ -60,3 +60,27 @@ def test_analysis_metadata_documents_all_six_canonical_tables():
 def test_canonical_analysis_file_set_is_six_tables_plus_metadata():
     assert len(evidence.ANALYSIS_TABLES) == 6
     assert evidence.CANONICAL_FILES == set(evidence.ANALYSIS_TABLES) | {"metadata.csv"}
+
+
+def test_metadata_uses_scientific_definitions_and_units():
+    assert evidence._description("Gini") == (
+        "Gini coefficient computed from the annual analytical income distribution."
+    )
+    assert evidence._description("mean") == (
+        "Arithmetic mean income converted to constant 2025 US$."
+    )
+    assert evidence._description("gompertz_ccdf_at_x_t_percent").startswith(
+        "Gompertz CCDF evaluated at the transition threshold"
+    )
+    assert evidence._unit("mean") == "2025 US$"
+    assert evidence._unit("bin_left") == "2025 US$"
+    assert evidence._unit("n_zero") == "count"
+    assert evidence._unit("gompertz_ccdf_at_x_t_percent") == "%"
+    assert evidence._unit("pareto_fitted_ccdf_percent_mle") == "%"
+
+
+def test_metadata_sources_distinguish_external_and_inference_fields():
+    assert "IPEA" in evidence._source("IPEA")
+    assert "World Bank" in evidence._source("Banco_Mundial")
+    assert "bootstrap" in evidence._source("gompertz_B_bootstrap_se").lower()
+    assert "likelihood" in evidence._source("pareto_alpha_mle_likelihood_se").lower()

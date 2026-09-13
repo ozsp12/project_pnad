@@ -1,7 +1,7 @@
 """Augment the canonical Stage-03 tables with Moura Jr.--Ribeiro diagnostics.
 
 The baseline (refined) and benchmark (trusted) analytical layers deliberately
-share the same table names and schemas.  This module computes the bootstrap,
+share the same table names and schemas. This module computes the bootstrap,
 likelihood-width and reproduction diagnostics required by the 2009 method, but
 stores them directly in ``gompertz_annual.csv`` and ``pareto_annual.csv``.
 No separate bootstrap or reproduction CSV is persisted.
@@ -55,31 +55,30 @@ CANONICAL_FILES = set(ANALYSIS_TABLES) | {METADATA_FILE}
 
 TABLE_DESCRIPTIONS = {
     "statistics_annual.csv": (
-        "Annual descriptive statistics, inequality indices, concentration measures, "
-        "and external Gini validation for the analytical income sample."
+        "Annual sample counts, nominal and 2025-US$ income statistics, inequality "
+        "indices, top-income shares, and external Gini comparisons."
     ),
     "geometric_bins.csv": (
-        "Geometric-bin summaries of annual adjusted income distributions using the "
-        "canonical bin ratio 1.10."
+        "Geometric-bin summaries of annual income expressed in constant 2025 US$, "
+        "using the canonical multiplicative bin ratio 1.10."
     ),
     "gompertz_annual.csv": (
-        "Annual Gompertz-regime estimates, boundary diagnostics, bootstrap "
-        "uncertainties, exponential comparison diagnostics, and regime income share."
+        "Annual Gompertz-body estimates, free-intercept diagnostics, bootstrap "
+        "uncertainties, exponential comparison diagnostics, and body population/income shares."
     ),
     "pareto_annual.csv": (
-        "Annual Pareto-tail estimates from log-log least squares and direct maximum "
-        "likelihood, including bootstrap and likelihood-width uncertainties."
+        "Annual Pareto-tail boundaries and estimates from log-log least squares and "
+        "direct maximum likelihood, with Fisher, likelihood-width, and bootstrap uncertainties."
     ),
     "gompertz_pareto_curves.csv": (
-        "Binned empirical CCDF and fitted Gompertz/Pareto curves used for regime "
-        "selection, estimation, diagnostics, and figures."
+        "Binned empirical CCDF coordinates and fitted Gompertz/Pareto curves used for "
+        "regime selection, estimation, diagnostics, and publication figures."
     ),
     "lorenz.csv": (
-        "Annual Lorenz-curve coordinates on the common population-share grid."
+        "Annual Lorenz-curve coordinates giving cumulative population and income shares."
     ),
     METADATA_FILE: (
-        "Data dictionary describing every canonical Stage-03 analytical table and "
-        "column."
+        "Data dictionary describing every canonical Stage-03 analytical table and column."
     ),
 }
 
@@ -106,6 +105,190 @@ PARETO_DIAGNOSTIC_COLUMNS = [
     "pareto_supported",
     "pareto_income_share_pct",
 ]
+
+COLUMN_DESCRIPTIONS = {
+    "year": "PNAD or PNAD Contínua survey/reference year.",
+    "N": "Total number of observations in the analytical annual sample.",
+    "N_valid": "Number of observations with valid finite income values used in annual statistics.",
+    "n_nan": "Number of observations with missing or non-numeric income.",
+    "n_zero": "Number of observations with zero income.",
+    "n_negative": "Number of observations with negative income.",
+    "xmin_positive_nominal": "Smallest strictly positive income in the original nominal monetary scale.",
+    "xmax_nominal": "Largest income in the original nominal monetary scale.",
+    "mean_nominal": "Arithmetic mean income in the original nominal monetary scale.",
+    "median_nominal": "Median income in the original nominal monetary scale.",
+    "std_nominal": "Sample standard deviation of income in the original nominal monetary scale.",
+    "income_sum_nominal": "Sum of income in the original nominal monetary scale.",
+    "xmin_positive": "Smallest strictly positive income converted to constant 2025 US$.",
+    "xmax": "Largest income converted to constant 2025 US$.",
+    "mean": "Arithmetic mean income converted to constant 2025 US$.",
+    "median": "Median income converted to constant 2025 US$.",
+    "std": "Sample standard deviation of income converted to constant 2025 US$.",
+    "income_sum": "Sum of income converted to constant 2025 US$.",
+    "Gini": "Gini coefficient computed from the annual analytical income distribution.",
+    "Pietra": "Pietra index computed from the annual Lorenz curve.",
+    "Kolkata": "Kolkata index as a population fraction, defined by the Lorenz-curve crossing condition.",
+    "Kolkata_pct": "Kolkata index expressed as a percentage of the population.",
+    "Zanardi": "Zanardi inequality index computed from the annual income distribution.",
+    "top_10": "Fraction of total income received by the top 10% of observations ranked by income.",
+    "top_1": "Fraction of total income received by the top 1% of observations ranked by income.",
+    "top_01": "Fraction of total income received by the top 0.1% of observations ranked by income.",
+    "IPEA": "External IPEA Gini coefficient for the corresponding year, when available.",
+    "Banco_Mundial": "External World Bank Gini coefficient for the corresponding year, when available.",
+    "diff_IPEA": "Difference between the Stage-03 Gini estimate and the IPEA Gini value.",
+    "diff_Banco_Mundial": "Difference between the Stage-03 Gini estimate and the World Bank Gini value.",
+    "bin_left": "Lower boundary of the geometric income bin in constant 2025 US$.",
+    "bin_right": "Upper boundary of the geometric income bin in constant 2025 US$.",
+    "bin_center_geo": "Geometric center of the income bin in constant 2025 US$.",
+    "N_bin": "Number of observations assigned to the geometric income bin.",
+    "geometric_mean": "Geometric mean income within the bin in constant 2025 US$.",
+    "ccdf": "Empirical complementary cumulative distribution evaluated at the bin threshold as a probability.",
+    "log_bin_ratio": "Multiplicative ratio between consecutive geometric-bin boundaries; fixed at 1.10 in the canonical analysis.",
+    "normalization_mean_income_adj_2025_usd": "Annual positive-income mean in constant 2025 US$, used to normalize income before regime fitting.",
+    "positive_income_observation_n": "Number of strictly positive income observations entering the normalized distribution analysis.",
+    "gompertz_A": "Canonical Gompertz parameter A fixed by G(0)=100, so A=ln[ln(100)].",
+    "gompertz_B": "Canonical Gompertz slope parameter B estimated by least squares with A fixed.",
+    "gompertz_r2": "Coefficient of determination of the selected fixed-A Gompertz fit in transformed coordinates.",
+    "gompertz_sse": "Sum of squared residuals of the selected fixed-A Gompertz fit in transformed coordinates.",
+    "gompertz_x_gmax": "Upper normalized-income boundary of the selected Gompertz regime.",
+    "gompertz_point_n": "Number of binned CCDF points used in the selected Gompertz fit.",
+    "gompertz_selection_status": "Rule/status describing how the upper Gompertz boundary was selected.",
+    "gompertz_boundary_A_free": "Intercept A from the unconstrained Gompertz linearization used as a boundary and 2009-method diagnostic.",
+    "gompertz_boundary_B_free": "Slope parameter B from the unconstrained Gompertz linearization used as a boundary and 2009-method diagnostic.",
+    "gompertz_boundary_r2_free": "Coefficient of determination of the unconstrained free-intercept Gompertz diagnostic fit.",
+    "gompertz_population_n": "Number of observations assigned below the Gompertz-Pareto transition threshold.",
+    "gompertz_population_pct": "Percentage of observations assigned below the Gompertz-Pareto transition threshold.",
+    "gompertz_ccdf_at_x_t_percent": "Gompertz CCDF evaluated at the transition threshold, expressed in percent.",
+    "bootstrap_reps": "Number of bootstrap resamples used to estimate the reported bootstrap standard errors.",
+    "gompertz_B_bootstrap_se": "Bootstrap standard error of the canonical fixed-A Gompertz B estimate.",
+    "gompertz_A_free_bootstrap_se": "Bootstrap standard error of the free-intercept Gompertz A diagnostic.",
+    "gompertz_B_free_bootstrap_se": "Bootstrap standard error of the free-intercept Gompertz B diagnostic.",
+    "exponential_intercept": "Intercept of the comparison fit ln F(x)=c-alpha x over the selected Gompertz interval.",
+    "exponential_alpha": "Positive decay coefficient alpha of the comparison exponential-body fit.",
+    "exponential_r2": "Coefficient of determination of the comparison exponential-body fit.",
+    "gompertz_income_share_pct": "Percentage of total income received by observations below the transition threshold.",
+    "pareto_x_pmin": "Lower normalized-income boundary selected for the Pareto tail.",
+    "pareto_selection_alpha": "Pareto exponent from the candidate tail fit used during threshold selection.",
+    "pareto_selection_r2": "Coefficient of determination of the candidate log-log Pareto fit used during threshold selection.",
+    "pareto_selection_status": "Rule/status describing how the lower Pareto boundary was selected.",
+    "transition_x_t": "Normalized-income threshold joining the Gompertz body and Pareto tail.",
+    "transition_delta_x_t": "Half-width of the gap between selected Gompertz and Pareto boundaries when they do not coincide.",
+    "transition_rule": "Rule used to define x_t from the selected Gompertz and Pareto boundaries.",
+    "pareto_population_n": "Number of observations assigned at or above the Pareto transition threshold.",
+    "pareto_population_pct": "Percentage of observations assigned at or above the Pareto transition threshold.",
+    "pareto_alpha_ls": "Pareto exponent alpha estimated by log-log least squares.",
+    "pareto_beta_ls": "Pareto amplitude beta estimated by log-log least squares on the percent-scale CCDF.",
+    "pareto_ls_r2": "Coefficient of determination of the selected log-log least-squares Pareto fit.",
+    "pareto_ls_sse": "Sum of squared residuals of the selected log-log least-squares Pareto fit.",
+    "pareto_alpha_mle": "Pareto exponent alpha estimated directly by maximum likelihood above x_t.",
+    "pareto_alpha_mle_fisher_se": "Asymptotic Fisher-information standard error of the direct-MLE Pareto exponent.",
+    "pareto_beta_mle_continuity": "Pareto amplitude beta determined by enforcing Gompertz-Pareto continuity at x_t.",
+    "cutoff_normalized": "Normalized-income cutoff associated with the selected transition/tail analysis.",
+    "cutoff_income_adj": "Monetary value of the cutoff converted to constant 2025 US$.",
+    "pareto_alpha": "Compatibility field for the canonical Pareto exponent retained in the Stage-03 output.",
+    "pareto_r2": "Compatibility field for the canonical Pareto goodness-of-fit statistic retained in the Stage-03 output.",
+    "pareto_alpha_ls_bootstrap_se": "Bootstrap standard error of the log-log least-squares Pareto exponent.",
+    "pareto_beta_ls_bootstrap_se": "Bootstrap standard error of the log-log least-squares Pareto amplitude.",
+    "pareto_alpha_mle_bootstrap_se": "Bootstrap standard error of the direct-MLE Pareto exponent.",
+    "pareto_beta_mle_bootstrap_se": "Bootstrap standard error of the continuity-based direct-MLE Pareto amplitude.",
+    "pareto_alpha_mle_likelihood_se": "Likelihood-width standard error of the direct-MLE Pareto exponent following the 2009 prescription.",
+    "pareto_beta_mle_likelihood_se": "Uncertainty in continuity-based Pareto beta propagated from the likelihood-width alpha uncertainty.",
+    "pareto_mle_r2": "Log-scale coefficient of determination of the direct-MLE Pareto curve against the empirical CCDF.",
+    "pareto_supported": "Whether the selected Pareto tail satisfies the configured support criterion.",
+    "pareto_income_share_pct": "Percentage of total income received by observations at or above the transition threshold.",
+    "income_normalized": "Income divided by the annual mean of strictly positive income observations.",
+    "bin_right_normalized": "Upper boundary of the corresponding geometric bin expressed in normalized-income units.",
+    "observations_in_bin": "Number of observations represented by the binned CCDF point.",
+    "empirical_ccdf_probability": "Empirical complementary cumulative distribution as a probability in [0,1].",
+    "empirical_ccdf_percent": "Empirical complementary cumulative distribution expressed in percent.",
+    "gompertz_transform": "Double-log Gompertz transform ln[ln F(x)] using F on the percent scale.",
+    "regime": "Regime label identifying whether the binned point belongs to the Gompertz body, transition, or Pareto tail.",
+    "income_adj_2025_usd": "Income coordinate of the binned point converted to constant 2025 US$.",
+    "gompertz_fitted_transform": "Fitted fixed-A Gompertz relation A-Bx in double-log transformed coordinates.",
+    "pareto_fitted_ccdf_percent_ls": "Pareto CCDF fitted by log-log least squares, expressed in percent.",
+    "pareto_fitted_ccdf_percent_mle": "Pareto CCDF fitted with the direct-MLE exponent and continuity amplitude, expressed in percent.",
+    "pareto_fitted_ccdf_percent": "Canonical Pareto fitted CCDF retained for compatibility, expressed in percent.",
+    "population_share": "Cumulative share of observations along the Lorenz curve.",
+    "income_share": "Cumulative share of total income along the Lorenz curve.",
+}
+
+COLUMN_UNITS = {
+    "year": "year",
+    "N": "count",
+    "N_valid": "count",
+    "n_nan": "count",
+    "n_zero": "count",
+    "n_negative": "count",
+    "xmin_positive_nominal": "nominal currency units",
+    "xmax_nominal": "nominal currency units",
+    "mean_nominal": "nominal currency units",
+    "median_nominal": "nominal currency units",
+    "std_nominal": "nominal currency units",
+    "income_sum_nominal": "nominal currency units",
+    "xmin_positive": "2025 US$",
+    "xmax": "2025 US$",
+    "mean": "2025 US$",
+    "median": "2025 US$",
+    "std": "2025 US$",
+    "income_sum": "2025 US$",
+    "Gini": "dimensionless",
+    "Pietra": "dimensionless",
+    "Kolkata": "fraction",
+    "Kolkata_pct": "%",
+    "Zanardi": "dimensionless",
+    "top_10": "fraction",
+    "top_1": "fraction",
+    "top_01": "fraction",
+    "IPEA": "dimensionless",
+    "Banco_Mundial": "dimensionless",
+    "diff_IPEA": "dimensionless",
+    "diff_Banco_Mundial": "dimensionless",
+    "bin_left": "2025 US$",
+    "bin_right": "2025 US$",
+    "bin_center_geo": "2025 US$",
+    "N_bin": "count",
+    "geometric_mean": "2025 US$",
+    "ccdf": "fraction",
+    "log_bin_ratio": "dimensionless",
+    "normalization_mean_income_adj_2025_usd": "2025 US$",
+    "positive_income_observation_n": "count",
+    "gompertz_point_n": "count",
+    "gompertz_selection_status": "text",
+    "gompertz_population_n": "count",
+    "gompertz_population_pct": "%",
+    "gompertz_ccdf_at_x_t_percent": "%",
+    "bootstrap_reps": "count",
+    "gompertz_income_share_pct": "%",
+    "pareto_selection_status": "text",
+    "transition_rule": "text",
+    "pareto_population_n": "count",
+    "pareto_population_pct": "%",
+    "pareto_beta_ls": "CCDF-percent scale",
+    "pareto_beta_mle_continuity": "CCDF-percent scale",
+    "cutoff_income_adj": "2025 US$",
+    "pareto_beta_ls_bootstrap_se": "CCDF-percent scale",
+    "pareto_beta_mle_bootstrap_se": "CCDF-percent scale",
+    "pareto_beta_mle_likelihood_se": "CCDF-percent scale",
+    "pareto_supported": "boolean",
+    "pareto_income_share_pct": "%",
+    "income_normalized": "normalized income",
+    "bin_right_normalized": "normalized income",
+    "observations_in_bin": "count",
+    "empirical_ccdf_probability": "fraction",
+    "empirical_ccdf_percent": "%",
+    "regime": "text",
+    "gompertz_x_gmax": "normalized income",
+    "pareto_x_pmin": "normalized income",
+    "transition_x_t": "normalized income",
+    "transition_delta_x_t": "normalized income",
+    "cutoff_normalized": "normalized income",
+    "income_adj_2025_usd": "2025 US$",
+    "pareto_fitted_ccdf_percent_ls": "%",
+    "pareto_fitted_ccdf_percent_mle": "%",
+    "pareto_fitted_ccdf_percent": "%",
+    "population_share": "fraction",
+    "income_share": "fraction",
+}
 
 
 def years_of(values) -> list[int]:
@@ -332,13 +515,13 @@ def build_bootstrap_uncertainties(layer: str) -> pd.DataFrame:
 
 def _exponential_diagnostics(curves, fit, year):
     x_gmax = float(fit["gompertz_x_gmax"])
-    d = curves[
+    data = curves[
         (curves["year"] == year)
         & (curves["income_normalized"] <= x_gmax)
         & (curves["empirical_ccdf_percent"] > 0)
     ]
-    x = d["income_normalized"].to_numpy(float)
-    y = np.log(d["empirical_ccdf_percent"].to_numpy(float))
+    x = data["income_normalized"].to_numpy(float)
+    y = np.log(data["empirical_ccdf_percent"].to_numpy(float))
     if len(x) < 2 or np.unique(x).size < 2:
         return np.nan, np.nan, np.nan
     slope, intercept = np.polyfit(x, y, 1)
@@ -350,14 +533,14 @@ def _exponential_diagnostics(curves, fit, year):
 
 def _mle_r2(curves, fit, year):
     x_t = float(fit["transition_x_t"])
-    d = curves[
+    data = curves[
         (curves["year"] == year)
         & (curves["income_normalized"] >= x_t)
         & (curves["empirical_ccdf_percent"] > 0)
     ]
     return r2_log(
-        d["empirical_ccdf_percent"],
-        d["pareto_fitted_ccdf_percent_mle"],
+        data["empirical_ccdf_percent"],
+        data["pareto_fitted_ccdf_percent_mle"],
     )
 
 
@@ -410,78 +593,45 @@ def build_diagnostics_annual(layer: str) -> pd.DataFrame:
 
 
 def _description(column: str) -> str:
-    explicit = {
-        "year": "Survey/reference year.",
-        "bootstrap_reps": "Number of bootstrap replications.",
-        "gompertz_A": "Canonical Gompertz A fixed at ln[ln(100)].",
-        "gompertz_B": "Canonical Gompertz B estimated by least squares with A fixed.",
-        "gompertz_B_bootstrap_se": "Bootstrap standard error of canonical fixed-A Gompertz B.",
-        "gompertz_boundary_A_free": "Free-intercept Gompertz A used for boundary and reproduction diagnostics.",
-        "gompertz_boundary_B_free": "Free-intercept Gompertz B used for boundary and reproduction diagnostics.",
-        "gompertz_A_free_bootstrap_se": "Bootstrap standard error of free-intercept Gompertz A.",
-        "gompertz_B_free_bootstrap_se": "Bootstrap standard error of free-intercept Gompertz B.",
-        "gompertz_x_gmax": "Upper normalized-income boundary of the selected Gompertz regime.",
-        "gompertz_income_share_pct": "Percentage of total income below the Gompertz-Pareto transition threshold.",
-        "pareto_x_pmin": "Lower normalized-income boundary of the selected Pareto tail.",
-        "transition_x_t": "Normalized-income transition threshold between Gompertz and Pareto regimes.",
-        "transition_delta_x_t": "Half-width of the transition interval when regime boundaries differ.",
-        "pareto_alpha_ls": "Pareto exponent estimated by log-log least squares.",
-        "pareto_beta_ls": "Pareto amplitude estimated by log-log least squares.",
-        "pareto_alpha_mle": "Pareto exponent estimated by direct maximum likelihood above x_t.",
-        "pareto_alpha_mle_fisher_se": "Fisher-information standard error of the direct-MLE Pareto exponent.",
-        "pareto_alpha_mle_likelihood_se": "Likelihood-width standard error of the direct-MLE Pareto exponent.",
-        "pareto_alpha_mle_bootstrap_se": "Bootstrap standard error of the direct-MLE Pareto exponent.",
-        "pareto_beta_mle_continuity": "Pareto amplitude obtained by Gompertz-Pareto continuity at x_t.",
-        "pareto_beta_mle_likelihood_se": "Uncertainty propagated to continuity-based Pareto beta from the likelihood-width alpha error.",
-        "pareto_beta_mle_bootstrap_se": "Bootstrap standard error of continuity-based Pareto beta.",
-        "pareto_income_share_pct": "Percentage of total income at or above the transition threshold.",
-        "pareto_supported": "Whether the selected Pareto tail satisfies the configured support criterion.",
-        "exponential_intercept": "Intercept of the exponential-body diagnostic fitted on the selected Gompertz interval.",
-        "exponential_alpha": "Positive decay coefficient of the exponential-body diagnostic.",
-        "exponential_r2": "Coefficient of determination of the exponential-body diagnostic.",
-        "population_share": "Cumulative population share on the Lorenz grid.",
-        "income_share": "Cumulative income share on the Lorenz grid.",
-        "bin_left": "Left boundary of the geometric income bin.",
-        "bin_right": "Right boundary of the geometric income bin.",
-        "bin_center_geo": "Geometric center of the income bin.",
-        "N_bin": "Number of observations in the geometric income bin.",
-        "income_normalized": "Income normalized by the annual positive-income mean.",
-        "empirical_ccdf_percent": "Empirical complementary cumulative distribution in percent.",
-        "empirical_ccdf_probability": "Empirical complementary cumulative distribution as a probability.",
-        "gompertz_transform": "Transformed empirical CCDF ln[ln(F)] on the percent scale.",
-        "regime": "Regime label assigned relative to the Gompertz-Pareto transition.",
-    }
-    if column in explicit:
-        return explicit[column]
+    if column in COLUMN_DESCRIPTIONS:
+        return COLUMN_DESCRIPTIONS[column]
     if column.endswith("_r2") or column.endswith("_r2_free"):
-        return "Coefficient of determination for the indicated fit."
+        return "Coefficient of determination for the indicated fitted model."
     if column.endswith("_sse"):
-        return "Sum of squared errors for the indicated fit."
+        return "Sum of squared residuals for the indicated fitted model."
     if column.endswith("_pct"):
         return column.replace("_", " ").capitalize() + "."
     return column.replace("_", " ").capitalize() + "."
 
 
 def _unit(column: str) -> str:
-    if column == "year":
-        return "year"
-    if column in {"regime", "gompertz_selection_status", "pareto_selection_status", "transition_rule"}:
-        return "text"
-    if column == "pareto_supported":
-        return "boolean"
-    if column.endswith("_pct") or column == "empirical_ccdf_percent":
-        return "%"
-    if column.endswith("_n") or column in {"N", "N_valid", "N_bin", "bootstrap_reps", "observations_in_bin", "positive_income_observation_n", "gompertz_point_n", "pareto_population_n", "gompertz_population_n"}:
+    if column in COLUMN_UNITS:
+        return COLUMN_UNITS[column]
+    if column.endswith("_n"):
         return "count"
-    if "2025_usd" in column or column.endswith("_income_adj") or column == "income_adj_2025_usd":
+    if column.endswith("_pct"):
+        return "%"
+    if "2025_usd" in column or column.endswith("_income_adj"):
         return "2025 US$"
-    if column in {"income_normalized", "bin_right_normalized", "gompertz_x_gmax", "pareto_x_pmin", "transition_x_t", "transition_delta_x_t", "cutoff_normalized"}:
-        return "normalized income"
-    if column in {"population_share", "income_share", "ccdf", "empirical_ccdf_probability", "top_10", "top_1", "top_01"}:
-        return "fraction"
+    if column.endswith("_status") or column.endswith("_rule"):
+        return "text"
     if "beta" in column and "gompertz" not in column:
         return "CCDF-percent scale"
     return "dimensionless"
+
+
+def _source(column: str) -> str:
+    if column in {"IPEA", "diff_IPEA"}:
+        return "IPEA auxiliary Gini series + Stage 03 analytical pipeline"
+    if column in {"Banco_Mundial", "diff_Banco_Mundial"}:
+        return "World Bank auxiliary Gini series + Stage 03 analytical pipeline"
+    if "bootstrap" in column:
+        return "Stage 03 Moura–Ribeiro bootstrap diagnostics"
+    if "likelihood" in column:
+        return "Stage 03 Moura–Ribeiro likelihood-width diagnostics"
+    if column.startswith("exponential_"):
+        return "Stage 03 exponential-vs-Gompertz diagnostic"
+    return "Stage 03 analytical pipeline"
 
 
 def build_metadata_table(frames: dict[str, pd.DataFrame]) -> pd.DataFrame:
@@ -496,17 +646,17 @@ def build_metadata_table(frames: dict[str, pd.DataFrame]) -> pd.DataFrame:
                     "column_name": column,
                     "description": _description(column),
                     "unit": _unit(column),
-                    "source": "Stage 03 analytical pipeline",
+                    "source": _source(column),
                 }
             )
 
     metadata_columns = {
         "table_name": "Canonical Stage-03 table containing the documented field.",
-        "table_description": "Human-readable description of the table as a whole.",
+        "table_description": "Scientific description of the table as a whole.",
         "column_name": "Column documented by this metadata row.",
-        "description": "Human-readable definition of the column.",
-        "unit": "Measurement unit or scale.",
-        "source": "Primary source or derivation.",
+        "description": "Scientific definition of the column.",
+        "unit": "Measurement unit, scale, or data type.",
+        "source": "Primary data source or computational derivation of the field.",
     }
     for column, description in metadata_columns.items():
         rows.append(
@@ -622,10 +772,12 @@ def validate_parallel_schemas():
             f"refined={sorted(refined_names)}, trusted={sorted(trusted_names)}"
         )
     for name in sorted(CANONICAL_FILES):
-        r_cols = list(pd.read_csv(refined / name, nrows=0).columns)
-        t_cols = list(pd.read_csv(trusted / name, nrows=0).columns)
-        if r_cols != t_cols:
-            raise AssertionError(f"Schema mismatch for {name}: {r_cols} != {t_cols}")
+        refined_columns = list(pd.read_csv(refined / name, nrows=0).columns)
+        trusted_columns = list(pd.read_csv(trusted / name, nrows=0).columns)
+        if refined_columns != trusted_columns:
+            raise AssertionError(
+                f"Schema mismatch for {name}: {refined_columns} != {trusted_columns}"
+            )
 
 
 def main():

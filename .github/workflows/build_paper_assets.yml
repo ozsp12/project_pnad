@@ -4,10 +4,8 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - "src/stage_03_moura_ribeiro_evidence.py"
-      - "src/stage_05_moura_ribeiro.py"
+      - "src/stage_03_pnad_analysis.py"
       - "src/stage_05_publication.py"
-      - "src/stage_05_tables.py"
       - "data/refined/**"
       - "data/trusted/**"
       - "data/auxiliary/**"
@@ -19,10 +17,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "src/stage_03_moura_ribeiro_evidence.py"
-      - "src/stage_05_moura_ribeiro.py"
+      - "src/stage_03_pnad_analysis.py"
       - "src/stage_05_publication.py"
-      - "src/stage_05_tables.py"
       - "data/refined/**"
       - "data/trusted/**"
       - "data/auxiliary/**"
@@ -51,8 +47,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Build Stage 03 Moura-Ribeiro reproduction diagnostics
-        run: python src/stage_03_moura_ribeiro_evidence.py
+      - name: Refresh Stage 03 scientific results
+        env:
+          MPLBACKEND: Agg
+        run: python src/stage_03_pnad_analysis.py
 
       - name: Build Stage 05 publication assets
         env:
@@ -101,6 +99,18 @@ jobs:
           ):
               raise SystemExit("Gompertz/Pareto income shares do not sum to 100%")
 
+          required_economic = {
+              "income_observation_n",
+              "income_mean_2025_usd",
+              "p90_p99_income_share_pct",
+              "p99_p999_income_share_pct",
+              "p999_p100_income_share_pct",
+          }
+          if missing := required_economic - set(economic.columns):
+              raise SystemExit(f"Missing economic columns: {sorted(missing)}")
+          if economic[list(required_economic)].isna().any().any():
+              raise SystemExit("Stage-03 economic summaries contain missing values")
+
           required_metadata = {
               "table_name", "table_description", "column_name",
               "description", "unit", "source",
@@ -136,6 +146,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git restore assets/tables_analysis_refined assets/tables_analysis_trusted
+          git restore assets/figures_analysis_refined assets/figures_analysis_trusted
           git add assets/figures_paper assets/tables_paper
           if git diff --cached --quiet; then
             echo "No paper-asset changes to commit."

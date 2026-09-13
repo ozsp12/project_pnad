@@ -1,8 +1,8 @@
 """Build PNAD metadata for the 1976–2025 longitudinal income dataset.
 
-This module is derived from the refactored ``00_cria_metadata`` notebook.
-It centralizes annual extraction specifications, raw-file ingestion metadata,
-currency/exchange-rate information, and CPI-based normalization factors.
+This module centralizes annual extraction specifications, raw-file ingestion
+metadata, currency/exchange-rate information, and CPI-based normalization
+factors used by the downstream PNAD pipeline.
 """
 
 from pathlib import Path
@@ -14,100 +14,98 @@ import pandas as pd
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_PATH = REPO_ROOT / "data" / "metadata" / "df_metadata.xlsx"
 
-# define função para construir o dataframe de especificações
-def build_specs_pnad_df(): 
-    # dicionário com metadados por ano (variáveis, posições e links)
-    specs_pnad = {  
-        1976: ('V2954', 227, 9, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1976/'),
-        1977: ('V131', 288, 9, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1977/'),
-        1978: ('V2541', 214, 9, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1978/'),
-        1979: ('V2517', 167, 9, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1979/'),
+
+def build_specs_pnad_df():
+    """Build the validated annual PNAD extraction specification table."""
+    specs_pnad = {
+        1976: ("V2954", 227, 9, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1976/"),
+        1977: ("V131", 288, 9, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1977/"),
+        1978: ("V2541", 214, 9, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1978/"),
+        1979: ("V2517", 167, 9, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1979/"),
         1980: (None, None, None, None, None, None, None),
-        1981: ('V5010', 223, 7, 'V9329', 219, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1981/'),
-        1982: ('V602', 199, 7, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1982/'),
-        1983: ('V5010', 223, 7, 'V9329', 219, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1983/'),
-        1984: ('V5010', 223, 7, 'V9329', 219, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1984/'),
-        1985: ('V5010', 248, 9, 'V9329', 244, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1985/'),
-        1986: ('V5010', 256, 9, 'V9329', 252, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1986/'),
-        1987: ('V5010', 248, 9, 'V9329', 244, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1987/'),
-        1988: ('V5010', 248, 9, 'V9329', 244, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1988/'),
-        1989: ('V5010', 60, 9, 'V9329', 245, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1989/'),
-        1990: ('V5010', 56, 9, 'V9329', 244, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1990/PND1990N.DAT'),
+        1981: ("V5010", 223, 7, "V9329", 219, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1981/"),
+        1982: ("V602", 199, 7, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1982/"),
+        1983: ("V5010", 223, 7, "V9329", 219, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1983/"),
+        1984: ("V5010", 223, 7, "V9329", 219, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1984/"),
+        1985: ("V5010", 248, 9, "V9329", 244, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1985/"),
+        1986: ("V5010", 256, 9, "V9329", 252, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1986/"),
+        1987: ("V5010", 248, 9, "V9329", 244, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1987/"),
+        1988: ("V5010", 248, 9, "V9329", 244, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1988/"),
+        1989: ("V5010", 249, 9, "V9329", 245, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1989/"),
+        1990: ("V5010", 56, 9, "V9329", 244, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1990/PND1990N.DAT"),
         1991: (None, None, None, None, None, None, None),
-        1992: ('V4614', 139, 12, 'V0105', 15, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1992/'),
-        1993: ('V4614', 139, 12, 'V0105', 15, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1993/'),
+        1992: ("V4614", 139, 12, "V0105", 15, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1992/"),
+        1993: ("V4614", 139, 12, "V0105", 15, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1993/"),
         1994: (None, None, None, None, None, None, None),
-        1995: ('V4614', 139, 12, 'V0105', 15, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1995/'),
-        1996: ('V4614', 139, 12, 'V0105', 15, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1996/'),
-        1997: ('V4614', 139, 12, 'V0105', 15, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1997/'),
-        1998: ('V4614', 142, 12, 'V0105', 15, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1998/'),
-        1999: ('V4614', 142, 12, 'V0105', 15, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1999/'),
+        1995: ("V4614", 139, 12, "V0105", 15, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1995/"),
+        1996: ("V4614", 139, 12, "V0105", 15, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1996/"),
+        1997: ("V4614", 139, 12, "V0105", 15, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1997/"),
+        1998: ("V4614", 142, 12, "V0105", 15, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1998/"),
+        1999: ("V4614", 142, 12, "V0105", 15, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/1999/"),
         2000: (None, None, None, None, None, None, None),
-        2001: ('V4614', 146, 12, 'V0105', 17, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2001.zip'),
-        2002: ('V4614', 153, 12, 'V0105', 17, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2002.zip'),
-        2003: ('V4614', 153, 12, 'V0105', 17, 2, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2003_20150814.zip'),
-        2004: ('V4621', 239, 12, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2004.zip'),
-        2005: ('V4621', 181, 12, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2005.zip'),
-        2006: ('V4621', 181, 12, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2006.zip'),
-        2007: ('V4621', 179, 12, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2007_20150814.zip'),
-        2008: ('V4621', 181, 12, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2008.zip'),
-        2009: ('V4621', 181, 12, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2009_20171228.zip'),
+        2001: ("V4614", 146, 12, "V0105", 17, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2001.zip"),
+        2002: ("V4614", 153, 12, "V0105", 17, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2002.zip"),
+        2003: ("V4614", 153, 12, "V0105", 17, 2, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2003_20150814.zip"),
+        2004: ("V4621", 239, 12, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2004.zip"),
+        2005: ("V4621", 181, 12, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2005.zip"),
+        2006: ("V4621", 181, 12, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2006.zip"),
+        2007: ("V4621", 179, 12, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2007_20150814.zip"),
+        2008: ("V4621", 181, 12, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2008.zip"),
+        2009: ("V4621", 181, 12, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2009_20171228.zip"),
         2010: (None, None, None, None, None, None, None),
-        2011: ('V4621', 176, 12, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2011_20150814.zip'),
-        2012: ('V4621', 176, 12, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2012_20150814.zip'),
-        2013: ('V4621', 193, 12, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/2013/Dados_20170807.zip'),
-        2014: ('V4621', 193, 12, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/2014/Dados_20170323.zip'),
-        2015: ('V4621', 193, 12, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/2015/Dados_20170517.zip'),
-        2016: ('VD4019', 443, 8, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2016/'),
-        2017: ('VD4019', 443, 8, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2017/'),
-        2018: ('VD4019', 443, 8, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2018/'),
-        2019: ('VD4019', 443, 8, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2019/'),
-        2020: ('VD4019', 443, 8, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2020/'),
-        2021: ('VD4019', 443, 8, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2021/'),
-        2022: ('VD4019', 443, 8, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2022/'),
-        2023: ('VD4019', 443, 8, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2023/'),
-        2024: ('VD4019', 443, 8, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2024/'),
-        2025: ('VD4019', 443, 8, None, None, None, 'https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2025/')
-    }  
-    # define nomes das colunas
-    cols = ['var_renda','pos_renda','tam_renda','var_morador','pos_morador','tam_morador','link']  
-    # cria dataframe a partir do dicionário
-    df = pd.DataFrame.from_dict(specs_pnad, orient='index', columns=cols) 
-    # transforma índice em coluna ano
-    df = df.reset_index().rename(columns={'index':'ano'})  
-    # especificações de ingestão dos arquivos brutos
-    available = df['pos_renda'].notna()
+        2011: ("V4621", 176, 12, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2011_20150814.zip"),
+        2012: ("V4621", 176, 12, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/reponderacao_2001_2012/PNAD_reponderado_2012_20150814.zip"),
+        2013: ("V4621", 193, 12, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/2013/Dados_20170807.zip"),
+        2014: ("V4621", 193, 12, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/2014/Dados_20170323.zip"),
+        2015: ("V4621", 193, 12, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/2015/Dados_20170517.zip"),
+        2016: ("VD5008", 671, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2016/"),
+        2017: ("VD5008", 676, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2017/"),
+        2018: ("VD5008", 676, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2018/"),
+        2019: ("VD5008", 679, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2019/"),
+        2020: ("VD5008", 605, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2020/"),
+        2021: ("VD5008", 605, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2021/"),
+        2022: ("VD5008", 673, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2022/"),
+        2023: ("VD5008", 673, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2023/"),
+        2024: ("VD5008", 673, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2024/"),
+        2025: ("VD5008", 666, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2025/"),
+    }
 
-    df['raw_subdir'] = ''
-    df.loc[df['ano'].isin([1983, 1988]), 'raw_subdir'] = df.loc[
-        df['ano'].isin([1983, 1988]), 'ano'
-    ].astype(str)
+    cols = [
+        "var_renda",
+        "pos_renda",
+        "tam_renda",
+        "var_morador",
+        "pos_morador",
+        "tam_morador",
+        "link",
+    ]
+    df = pd.DataFrame.from_dict(specs_pnad, orient="index", columns=cols)
+    df = df.reset_index().rename(columns={"index": "ano"})
+    available = df["pos_renda"].notna()
 
-    df['raw_pattern'] = ''
-    df.loc[available, 'raw_pattern'] = (
-        'DOM' + df.loc[available, 'ano'].astype(str) + '.*'
-    )
-    df.loc[df['ano'] == 1983, 'raw_pattern'] = 'PND83RM*.DAT'
-    df.loc[df['ano'] == 1988, 'raw_pattern'] = 'PND88RM*.DAT'
+    df["raw_subdir"] = ""
+    special_years = df["ano"].isin([1983, 1988])
+    df.loc[special_years, "raw_subdir"] = df.loc[special_years, "ano"].astype(str)
 
-    df['n_files'] = 0
-    df.loc[available, 'n_files'] = 1
-    df.loc[df['ano'].isin([1983, 1988]), 'n_files'] = 8
+    df["raw_pattern"] = ""
+    df.loc[available, "raw_pattern"] = "DOM" + df.loc[available, "ano"].astype(str) + ".*"
+    df.loc[df["ano"] == 1983, "raw_pattern"] = "PND83RM*.DAT"
+    df.loc[df["ano"] == 1988, "raw_pattern"] = "PND88RM*.DAT"
 
-    df['missing_renda'] = np.nan
-    df.loc[df['ano'].between(1977, 1990) & available, 'missing_renda'] = 999_999_999
-    df.loc[df['ano'].between(1992, 2015) & available, 'missing_renda'] = 999_999_999_999
-    df.loc[df['ano'].between(2016, 2025) & available, 'missing_renda'] = 99_999_999
-    df.loc[df['ano'].isin([1976, 1981, 1982, 1983, 1984]), 'missing_renda'] = 9_999_999
+    df["n_files"] = 0
+    df.loc[available, "n_files"] = 1
+    df.loc[special_years, "n_files"] = 8
 
-    # campos textuais vazios para anos sem pesquisa
-    df['link'] = df['link'].fillna('')
-    df['raw_subdir'] = df['raw_subdir'].fillna('')
-    df['raw_pattern'] = df['raw_pattern'].fillna('')
+    df["missing_renda"] = np.nan
+    df.loc[df["ano"].between(1977, 1990) & available, "missing_renda"] = 999_999_999
+    df.loc[df["ano"].between(1992, 2015) & available, "missing_renda"] = 999_999_999_999
+    df.loc[df["ano"].between(2016, 2025) & available, "missing_renda"] = 999_999
+    df.loc[df["ano"].isin([1976, 1981, 1982, 1983, 1984]), "missing_renda"] = 9_999_999
 
-    # ordena por ano e reseta índice
-    df = df.sort_values('ano').reset_index(drop=True)
-    return df
+    for column in ("link", "raw_subdir", "raw_pattern"):
+        df[column] = df[column].fillna("")
+
+    return df.sort_values("ano").reset_index(drop=True)
 
 
 def build_currency_df():

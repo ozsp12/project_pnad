@@ -6,7 +6,7 @@ This repository contains the reproducible computational workflow used to study t
 
 | Stage | Module | Role | Main output |
 | ---: | --- | --- | --- |
-| 00 | `src/stage_00_build_metadata.py` | Consolidates extraction specifications and monetary metadata | `data/metadata/df_metadata.xlsx` |
+| 00 | `src/stage_00_build_metadata.py` | Consolidates extraction specifications and monetary metadata | `data/metadata/df_metadata.xlsx` and `data/metadata/df_metadata.csv` |
 | 01 | `src/stage_01_build_refined_pnad.py` | Harmonizes local raw PNAD records into annual income samples | `data/refined/pnad_refined_YYYY.parquet` |
 | 02 | `src/stage_02_build_trusted_pnad.py` | Applies deterministic upper-tail treatment and validation | `data/trusted/pnad_trusted_YYYY.parquet` and validation audits |
 | 03 | `src/stage_03_pnad_analysis.py` | Runs descriptive, inequality, CCDF, Gompertz–Pareto, bootstrap and Moura Jr.–Ribeiro reproduction analyses on refined and trusted data | analytical CSV and PNG assets |

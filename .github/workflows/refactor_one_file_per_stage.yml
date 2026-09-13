@@ -1,0 +1,48 @@
+name: One-file-per-stage refactor
+
+on:
+  push:
+    branches: [refactor/one-file-per-stage]
+
+permissions:
+  contents: write
+
+jobs:
+  refactor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/one-file-per-stage
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Apply structural refactor
+        run: |
+          if [ ! -f src/stage_03_moura_ribeiro_evidence.py ]; then
+            echo "Refactor already applied."
+            exit 0
+          fi
+          python scripts/refactor_stage03.py
+          python scripts/refactor_stage05.py
+          python scripts/refactor_docs_tests.py
+          python -m compileall -q src
+          pytest -q
+      - name: Commit generated refactor
+        run: |
+          if [ -f src/stage_03_moura_ribeiro_evidence.py ]; then
+            echo "Refactor was not applied."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No generated changes."
+          else
+            git commit -m "consolidate one source file per pipeline stage"
+            git push origin HEAD:refactor/one-file-per-stage
+          fi

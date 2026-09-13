@@ -1,19 +1,15 @@
 """Moura Jr.--Ribeiro (2009) reproduction diagnostics for Stage 03.
 
-This module belongs to the analytical layer. It does not generate publication
-figures. It reads the canonical Stage-03 outputs for the refined and trusted
-layers, reproduces the main statistical quantities used by Moura Jr. and
-Ribeiro (EPJ B 67, 101--120, 2009), quantifies uncertainty, and writes
-layer-symmetric evidence tables.
+This analytical module reads the canonical Stage-03 outputs for the refined
+and trusted layers, reproduces the main statistical quantities used by Moura
+Jr. and Ribeiro (EPJ B 67, 101--120, 2009), and quantifies uncertainty.
 
-Three files are produced in each Stage-03 table directory:
+Two files are produced in each Stage-03 table directory:
 
 - ``moura_ribeiro_bootstrap_annual.csv``: current-model bootstrap uncertainties
   plus free-intercept Gompertz bootstrap diagnostics;
 - ``moura_ribeiro_reproduction_annual.csv``: one annual row collecting the
-  quantities needed to reproduce the published tables and main fit tests;
-- ``moura_ribeiro_evidence_annual.csv``: long-form evidence table comparing the
-  refined/trusted reconstruction with the values reported in the 2009 paper.
+  quantities needed to reproduce the published tables and main fit tests.
 
 The current project model keeps A = ln[ln(100)] fixed. The free-intercept
 Gompertz estimates are retained separately because the 2009 paper reports A and
@@ -32,7 +28,6 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 METADATA = ROOT / "data" / "metadata" / "df_metadata.xlsx"
-PAPER_REFERENCE = ROOT / "data" / "auxiliary" / "moura_ribeiro_2009_reference.csv"
 
 START_YEAR, END_YEAR = 1978, 2025
 BOOTSTRAP_REPS = int(os.environ.get("PNAD_BOOTSTRAP_REPS", "1000"))
@@ -118,7 +113,7 @@ def bootstrap_fixed_gompertz_B(x, y, A, rng, reps=BOOTSTRAP_REPS):
     idx = rng.integers(0, len(x), size=(reps, len(x)))
     xb = x[idx]
     yb = y[idx]
-    den = (xb ** 2).sum(axis=1)
+    den = (xb**2).sum(axis=1)
     num = (xb * (float(A) - yb)).sum(axis=1)
     return np.divide(
         num,
@@ -129,15 +124,7 @@ def bootstrap_fixed_gompertz_B(x, y, A, rng, reps=BOOTSTRAP_REPS):
 
 
 def likelihood_alpha_se(tail, x_t, grid_size=LIKELIHOOD_GRID_SIZE) -> float:
-    """Numerically reproduce the likelihood-width error used in the 2009 paper.
-
-    Apart from alpha-independent factors, Eqs. (32)--(37) imply
-
-        L(alpha) proportional to alpha**n * exp[-c alpha],  alpha >= 1,
-
-    with c = sum(log(x_i/x_t)). The variance is evaluated numerically on a
-    dense grid, matching the paper's prescription without adding SciPy.
-    """
+    """Numerically reproduce the likelihood-width error used in the 2009 paper."""
     tail = np.asarray(tail, float)
     tail = tail[np.isfinite(tail) & (tail >= x_t)]
     n = int(tail.size)
@@ -161,8 +148,7 @@ def likelihood_alpha_se(tail, x_t, grid_size=LIKELIHOOD_GRID_SIZE) -> float:
 
     mean = float(np.trapezoid(alpha * weight, alpha) / norm)
     mean2 = float(np.trapezoid(alpha * alpha * weight, alpha) / norm)
-    variance = max(0.0, mean2 - mean * mean)
-    return float(np.sqrt(variance))
+    return float(np.sqrt(max(0.0, mean2 - mean * mean)))
 
 
 def _load_layer(layer: str):
@@ -183,13 +169,12 @@ def _load_layer(layer: str):
         suffixes=("", "_pareto"),
     )
     metadata = pd.read_excel(METADATA).rename(columns={"ano": "year"})
-    reference = pd.read_csv(PAPER_REFERENCE)
 
-    for frame in (stats, annual, curves, metadata, reference):
+    for frame in (stats, annual, curves, metadata):
         frame["year"] = pd.to_numeric(frame["year"], errors="coerce").astype("Int64")
 
     years = years_of(annual["year"].dropna())
-    return cfg, stats, annual, curves, metadata, reference, years
+    return cfg, stats, annual, curves, metadata, years
 
 
 def _income(year: int, cfg, positive=True) -> np.ndarray:
@@ -210,7 +195,7 @@ def _normalized_income(year: int, cfg) -> np.ndarray:
 
 def build_bootstrap_uncertainties(layer: str) -> pd.DataFrame:
     """Build annual uncertainty diagnostics for one Stage-03 data layer."""
-    cfg, _, annual, curves, _, _, years = _load_layer(layer)
+    cfg, _, annual, curves, _, years = _load_layer(layer)
     annual_i = annual.set_index("year")
     rows = []
 
@@ -228,10 +213,7 @@ def build_bootstrap_uncertainties(layer: str) -> pd.DataFrame:
         yg = g["gompertz_transform"].to_numpy(float)
 
         fixed_B = bootstrap_fixed_gompertz_B(
-            xg,
-            yg,
-            float(fit["gompertz_A"]),
-            rng,
+            xg, yg, float(fit["gompertz_A"]), rng
         )
         free_A, free_slope = bootstrap_line(xg, yg, rng)
         free_B = -free_slope
@@ -272,7 +254,7 @@ def build_bootstrap_uncertainties(layer: str) -> pd.DataFrame:
                 )
             )
         )
-        beta_mle = f_t * x_t ** alpha_mle
+        beta_mle = f_t * x_t**alpha_mle
 
         def sd(values):
             return float(np.nanstd(values, ddof=1))
@@ -328,7 +310,7 @@ def _mle_r2(curves, fit, year):
 
 def build_reproduction_annual(layer: str, bootstrap=None) -> pd.DataFrame:
     """Collect the annual quantities required for a 2009-paper reproduction."""
-    cfg, stats, annual, curves, metadata, _, years = _load_layer(layer)
+    cfg, stats, annual, curves, metadata, years = _load_layer(layer)
     if bootstrap is None:
         bootstrap = build_bootstrap_uncertainties(layer)
 
@@ -404,14 +386,10 @@ def build_reproduction_annual(layer: str, bootstrap=None) -> pd.DataFrame:
                 "gompertz_x_gmax": float(fit["gompertz_x_gmax"]),
                 "gompertz_free_r2": free_r2,
                 "gompertz_free_correlation_coefficient": float(free_corr),
-                "gompertz_population_pct": float(
-                    fit["gompertz_population_pct"]
-                ),
+                "gompertz_population_pct": float(fit["gompertz_population_pct"]),
                 "pareto_x_pmin": float(fit["pareto_x_pmin"]),
                 "transition_x_t": x_t,
-                "transition_delta_x_t": float(
-                    fit["transition_delta_x_t"]
-                ),
+                "transition_delta_x_t": float(fit["transition_delta_x_t"]),
                 "pareto_alpha_ls": float(fit["pareto_alpha_ls"]),
                 "pareto_alpha_ls_bootstrap_se": float(
                     boot["pareto_alpha_ls_bootstrap_se"]
@@ -436,9 +414,7 @@ def build_reproduction_annual(layer: str, bootstrap=None) -> pd.DataFrame:
                     boot["pareto_beta_mle_bootstrap_se"]
                 ),
                 "pareto_mle_r2": mle_r2,
-                "pareto_population_pct": float(
-                    fit["pareto_population_pct"]
-                ),
+                "pareto_population_pct": float(fit["pareto_population_pct"]),
                 "pareto_supported": bool(pareto_supported),
                 "gompertz_income_share_pct": gompertz_income_share,
                 "pareto_income_share_pct": pareto_income_share,
@@ -449,181 +425,10 @@ def build_reproduction_annual(layer: str, bootstrap=None) -> pd.DataFrame:
     return pd.DataFrame(rows).sort_values("year").reset_index(drop=True)
 
 
-def _comparison_fields(estimate, paper_value, standard_error, paper_se):
-    estimate = float(estimate) if pd.notna(estimate) else np.nan
-    paper_value = float(paper_value) if pd.notna(paper_value) else np.nan
-    standard_error = (
-        float(standard_error) if pd.notna(standard_error) else np.nan
-    )
-    paper_se = float(paper_se) if pd.notna(paper_se) else np.nan
-
-    difference = (
-        estimate - paper_value
-        if np.isfinite(estimate) and np.isfinite(paper_value)
-        else np.nan
-    )
-    relative = (
-        100.0 * difference / paper_value
-        if np.isfinite(difference) and not np.isclose(paper_value, 0.0)
-        else np.nan
-    )
-    within_1se = (
-        abs(difference) <= paper_se
-        if np.isfinite(difference) and np.isfinite(paper_se)
-        else np.nan
-    )
-    return difference, relative, within_1se
-
-
-def build_evidence_table(
-    layer: str,
-    reproduction: pd.DataFrame,
-    reference: pd.DataFrame | None = None,
-) -> pd.DataFrame:
-    """Create a long-form evidence table for refined/trusted reproduction."""
-    if reference is None:
-        reference = pd.read_csv(PAPER_REFERENCE)
-    reference_i = reference.set_index("year")
-    rows = []
-
-    specs = [
-        ("table_1", "annual_income", "descriptive", "mean_income_usd", "mean_income_usd_current_date", None, "paper_mean_income_usd", None, None),
-        ("table_2", "gompertz", "free_lsf", "A", "gompertz_A_free", "gompertz_A_free_bootstrap_se", "paper_gompertz_A", "paper_gompertz_A_se", "gompertz_free_correlation_coefficient"),
-        ("table_2", "gompertz", "free_lsf", "B", "gompertz_B_free", "gompertz_B_free_bootstrap_se", "paper_gompertz_B", "paper_gompertz_B_se", "gompertz_free_correlation_coefficient"),
-        ("table_2", "gompertz", "boundary", "x_gmax", "gompertz_x_gmax", None, "paper_gompertz_x_gmax", None, "gompertz_free_correlation_coefficient"),
-        ("table_2", "gompertz", "free_lsf", "correlation_coefficient", "gompertz_free_correlation_coefficient", None, "paper_gompertz_corr", None, "gompertz_free_correlation_coefficient"),
-        ("table_2", "gompertz", "population", "population_pct", "gompertz_population_pct", None, "paper_gompertz_population_pct", None, "gompertz_free_correlation_coefficient"),
-        ("table_3", "pareto", "boundary", "x_pmin", "pareto_x_pmin", None, "paper_pareto_x_pmin", None, "pareto_ls_r2"),
-        ("table_3", "transition", "boundary", "x_t", "transition_x_t", None, "paper_transition_x_t", "paper_transition_x_t_se", "pareto_ls_r2"),
-        ("table_3", "pareto", "lsf", "alpha", "pareto_alpha_ls", "pareto_alpha_ls_bootstrap_se", "paper_pareto_alpha_ls", "paper_pareto_alpha_ls_se", "pareto_ls_r2"),
-        ("table_3", "pareto", "lsf", "beta", "pareto_beta_ls", "pareto_beta_ls_bootstrap_se", "paper_pareto_beta_ls", "paper_pareto_beta_ls_se", "pareto_ls_r2"),
-        ("table_3", "pareto", "mle", "alpha", "pareto_alpha_mle", "pareto_alpha_mle_likelihood_se", "paper_pareto_alpha_mle", "paper_pareto_alpha_mle_se", "pareto_mle_r2"),
-        ("table_3", "pareto", "mle_continuity", "beta", "pareto_beta_mle_continuity", "pareto_beta_mle_likelihood_se", "paper_pareto_beta_mle", "paper_pareto_beta_mle_se", "pareto_mle_r2"),
-        ("table_3", "pareto", "lsf", "correlation_coefficient", "pareto_ls_correlation_coefficient", None, "paper_pareto_corr_lsf", None, "pareto_ls_r2"),
-        ("table_3", "pareto", "population", "population_pct", "pareto_population_pct", None, "paper_pareto_population_pct", None, "pareto_ls_r2"),
-        ("table_4", "income_share", "gompertz", "share_pct", "gompertz_income_share_pct", None, "paper_gompertz_income_share_pct", None, None),
-        ("table_4", "income_share", "pareto", "share_pct", "pareto_income_share_pct", None, "paper_pareto_income_share_pct", None, None),
-        ("table_4", "inequality", "lorenz", "gini", "gini", None, "paper_gini", None, None),
-    ]
-
-    for _, record in reproduction.iterrows():
-        year = int(record["year"])
-        paper = reference_i.loc[year] if year in reference_i.index else None
-
-        delta_r2 = float(record["gompertz_free_r2"] - record["exponential_r2"])
-        rows.append(
-            {
-                "year": year,
-                "layer": layer,
-                "paper_table": "model_test",
-                "test": "gompertz_vs_exponential",
-                "estimator": "r2_comparison",
-                "parameter": "delta_r2",
-                "estimate": delta_r2,
-                "standard_error": np.nan,
-                "fit_metric": "delta_r2",
-                "fit_value": delta_r2,
-                "criterion": "gompertz_free_r2 > exponential_r2",
-                "passed": bool(np.isfinite(delta_r2) and delta_r2 > 0),
-                "evidence_status": (
-                    "supported" if np.isfinite(delta_r2) and delta_r2 > 0 else "rejected"
-                ),
-                "paper_2009_value": np.nan,
-                "paper_2009_standard_error": np.nan,
-                "difference_from_2009": np.nan,
-                "relative_difference_pct": np.nan,
-                "within_paper_1se": np.nan,
-            }
-        )
-
-        for (
-            paper_table,
-            test,
-            estimator,
-            parameter,
-            estimate_col,
-            se_col,
-            paper_col,
-            paper_se_col,
-            fit_col,
-        ) in specs:
-            estimate = record[estimate_col]
-            se = record[se_col] if se_col else np.nan
-            paper_value = (
-                paper[paper_col]
-                if paper is not None and paper_col is not None
-                else np.nan
-            )
-            paper_se = (
-                paper[paper_se_col]
-                if paper is not None and paper_se_col is not None
-                else np.nan
-            )
-            fit_value = record[fit_col] if fit_col else np.nan
-
-            if test == "gompertz":
-                criterion = "correlation_coefficient >= 0.98"
-                passed = bool(
-                    np.isfinite(record["gompertz_free_correlation_coefficient"])
-                    and record["gompertz_free_correlation_coefficient"] >= 0.98
-                )
-                status = "supported" if passed else "weak"
-            elif test == "pareto" and estimator in {"lsf", "boundary", "population"}:
-                criterion = "pareto_ls_r2 >= 0.98 and selected tail supported"
-                passed = bool(
-                    np.isfinite(record["pareto_ls_r2"])
-                    and record["pareto_ls_r2"] >= 0.98
-                    and bool(record["pareto_supported"])
-                )
-                status = "supported" if passed else "fallback"
-            elif test == "pareto" and estimator.startswith("mle"):
-                criterion = "finite direct MLE on observations x >= x_t"
-                passed = bool(np.isfinite(record["pareto_alpha_mle"]))
-                status = "supported" if passed else "rejected"
-            else:
-                criterion = "descriptive reproduction quantity"
-                passed = np.nan
-                status = "descriptive"
-
-            difference, relative, within_1se = _comparison_fields(
-                estimate,
-                paper_value,
-                se,
-                paper_se,
-            )
-            rows.append(
-                {
-                    "year": year,
-                    "layer": layer,
-                    "paper_table": paper_table,
-                    "test": test,
-                    "estimator": estimator,
-                    "parameter": parameter,
-                    "estimate": estimate,
-                    "standard_error": se,
-                    "fit_metric": fit_col if fit_col else "",
-                    "fit_value": fit_value,
-                    "criterion": criterion,
-                    "passed": passed,
-                    "evidence_status": status,
-                    "paper_2009_value": paper_value,
-                    "paper_2009_standard_error": paper_se,
-                    "difference_from_2009": difference,
-                    "relative_difference_pct": relative,
-                    "within_paper_1se": within_1se,
-                }
-            )
-
-    return pd.DataFrame(rows).sort_values(
-        ["year", "paper_table", "test", "estimator", "parameter"]
-    ).reset_index(drop=True)
-
-
 def run_layer(layer: str):
-    cfg, _, _, _, _, reference, _ = _load_layer(layer)
+    cfg, _, _, _, _, _ = _load_layer(layer)
     bootstrap = build_bootstrap_uncertainties(layer)
     reproduction = build_reproduction_annual(layer, bootstrap)
-    evidence = build_evidence_table(layer, reproduction, reference)
 
     tables = cfg["tables"]
     tables.mkdir(parents=True, exist_ok=True)
@@ -631,13 +436,9 @@ def run_layer(layer: str):
     reproduction.to_csv(
         tables / "moura_ribeiro_reproduction_annual.csv", index=False
     )
-    evidence.to_csv(
-        tables / "moura_ribeiro_evidence_annual.csv", index=False
-    )
     return {
         "bootstrap": bootstrap,
         "reproduction": reproduction,
-        "evidence": evidence,
     }
 
 
@@ -646,9 +447,8 @@ def main():
     for layer, result in results.items():
         years = result["reproduction"]["year"]
         print(
-            f"Stage 03 Moura-Ribeiro evidence ({layer}): "
-            f"{len(years)} survey years, "
-            f"{len(result['evidence'])} evidence rows."
+            f"Stage 03 Moura-Ribeiro reproduction ({layer}): "
+            f"{len(years)} survey years."
         )
     return results
 

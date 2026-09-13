@@ -1,8 +1,9 @@
 """Build the canonical paper-facing tables for Stage 05.
 
-Statistical estimation and reproduction diagnostics are produced by Stage 03.
-This module only consolidates those persisted results with trusted microdata
-into publication tables.
+Statistical estimation and reproduction diagnostics are produced by Stage 03
+and persisted directly in the canonical Gompertz and Pareto annual tables.
+This module only consolidates those results with trusted microdata into
+publication tables.
 """
 
 from __future__ import annotations
@@ -220,19 +221,25 @@ def build_income_summaries(years, annual, stats, metadata):
 def load_annual_fits():
     gompertz = _year_filter(pd.read_csv(TABLES_TRUSTED / "gompertz_annual.csv"))
     pareto = _year_filter(pd.read_csv(TABLES_TRUSTED / "pareto_annual.csv"))
-    return gompertz.merge(
+    annual = gompertz.merge(
         pareto,
         on="year",
         how="inner",
         validate="one_to_one",
         suffixes=("", "_pareto"),
     )
+    if "bootstrap_reps_pareto" in annual:
+        if not np.array_equal(
+            annual["bootstrap_reps"].to_numpy(),
+            annual["bootstrap_reps_pareto"].to_numpy(),
+        ):
+            raise AssertionError("Gompertz and Pareto bootstrap replication counts differ")
+        annual = annual.drop(columns=["bootstrap_reps_pareto"])
+    return annual
 
 
-def build_gompertz_table(annual, bootstrap, regime):
-    t = annual.merge(bootstrap, on="year", how="left").merge(
-        regime, on="year", how="left"
-    )
+def build_gompertz_table(annual):
+    t = annual.copy()
     t["gompertz_correlation_coefficient"] = np.sqrt(
         np.clip(pd.to_numeric(t["gompertz_r2"], errors="coerce"), 0, 1)
     )
@@ -256,21 +263,8 @@ def build_gompertz_table(annual, bootstrap, regime):
     return t[columns].sort_values("year").reset_index(drop=True)
 
 
-def build_pareto_table(annual, bootstrap, regime, reproduction):
-    diag = reproduction[
-        [
-            "year",
-            "pareto_mle_r2",
-            "pareto_alpha_mle_likelihood_se",
-            "pareto_beta_mle_likelihood_se",
-            "pareto_supported",
-        ]
-    ]
-    t = (
-        annual.merge(bootstrap, on="year", how="left")
-        .merge(regime, on="year", how="left")
-        .merge(diag, on="year", how="left")
-    )
+def build_pareto_table(annual):
+    t = annual.copy()
     t["pareto_ls_correlation_coefficient"] = np.sqrt(
         np.clip(pd.to_numeric(t["pareto_ls_r2"], errors="coerce"), 0, 1)
     )
@@ -316,9 +310,9 @@ def _column_metadata(table_name, column):
     if column == "year":
         unit, source = "year", "PNAD / annual series"
     elif column == "pareto_selection_status":
-        unit, source = "text", "Stage-03 reproduction diagnostics"
+        unit, source = "text", "Stage-03 analytical diagnostics"
     elif column == "pareto_supported":
-        unit, source = "boolean", "Stage-03 reproduction diagnostics"
+        unit, source = "boolean", "Stage-03 analytical diagnostics"
     elif column.endswith("_pct"):
         unit = "%"
     elif column.endswith("_n") or column == "bootstrap_reps":
@@ -394,6 +388,22 @@ def validate_tables(gompertz, pareto, economic):
             raise AssertionError("Annual paper tables must have unique years")
 
 
+def validate_persisted_regime_shares(annual, recomputed):
+    check = annual[["year", "gompertz_income_share_pct", "pareto_income_share_pct"]].merge(
+        recomputed,
+        on="year",
+        validate="one_to_one",
+        suffixes=("_persisted", "_recomputed"),
+    )
+    for prefix in ("gompertz", "pareto"):
+        if not np.allclose(
+            check[f"{prefix}_income_share_pct_persisted"],
+            check[f"{prefix}_income_share_pct_recomputed"],
+            atol=1e-8,
+        ):
+            raise AssertionError(f"Persisted and recomputed {prefix} income shares differ")
+
+
 def _clean_paper_csvs():
     TABLES_PAPER.mkdir(parents=True, exist_ok=True)
     for path in TABLES_PAPER.glob("*.csv"):
@@ -403,21 +413,16 @@ def _clean_paper_csvs():
 def main():
     stats = _year_filter(pd.read_csv(TABLES_TRUSTED / "statistics_annual.csv"))
     annual = load_annual_fits()
-    bootstrap = _year_filter(
-        pd.read_csv(TABLES_TRUSTED / "moura_ribeiro_bootstrap_annual.csv")
-    )
-    reproduction = _year_filter(
-        pd.read_csv(TABLES_TRUSTED / "moura_ribeiro_reproduction_annual.csv")
-    )
     metadata = _load_metadata()
     years = sorted(
         set(annual["year"].dropna().astype(int))
         & set(stats["year"].dropna().astype(int))
     )
 
-    economic, regime = build_income_summaries(years, annual, stats, metadata)
-    gompertz = build_gompertz_table(annual, bootstrap, regime)
-    pareto = build_pareto_table(annual, bootstrap, regime, reproduction)
+    economic, recomputed_regime = build_income_summaries(years, annual, stats, metadata)
+    validate_persisted_regime_shares(annual, recomputed_regime)
+    gompertz = build_gompertz_table(annual)
+    pareto = build_pareto_table(annual)
     validate_tables(gompertz, pareto, economic)
 
     metadata_table = build_metadata_table(

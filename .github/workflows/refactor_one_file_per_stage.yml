@@ -29,6 +29,7 @@ jobs:
           python scripts/refactor_stage03.py
           python scripts/refactor_stage05.py
           python scripts/refactor_docs_tests.py
+          python scripts/fix_refactor_tests.py
           python -m compileall -q src
           pytest -q
       - name: Commit generated refactor

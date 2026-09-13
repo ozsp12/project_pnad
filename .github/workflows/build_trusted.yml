@@ -35,11 +35,17 @@ jobs:
       - name: Build trusted datasets
         run: python src/stage_02_build_trusted_pnad.py
 
+      - name: Separate validation audits from analytical tables
+        run: |
+          mkdir -p assets/tables_validation
+          mv assets/tables_analysis_trusted/trusted_trim_audit_annual.csv assets/tables_validation/
+          mv assets/tables_analysis_trusted/trusted_distribution_tests_annual.csv assets/tables_validation/
+
       - name: Commit trusted datasets and audits
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A data/trusted assets/tables_analysis_trusted
+          git add -A data/trusted assets/tables_analysis_trusted assets/tables_validation
           if git diff --cached --quiet; then
             echo "No trusted-data changes to commit."
           else

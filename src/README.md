@@ -9,12 +9,9 @@ The `src` directory contains the canonical scientific workflow. Stages 00–02 b
 | 00 | `stage_00_build_metadata.py` | extraction specifications and monetary metadata |
 | 01 | `stage_01_build_refined_pnad.py` | raw fixed-width records → annual refined datasets |
 | 02 | `stage_02_build_trusted_pnad.py` | structural cleaning, log-MAD upper-tail treatment and validation |
-| 03 | `stage_03_pnad_analysis.py` | descriptive, inequality, CCDF and Gompertz–Pareto analysis for refined/trusted |
-| 03 | `stage_03_moura_ribeiro_evidence.py` | 2009-method uncertainty and reproduction diagnostics consolidated into canonical tables |
+| 03 | `stage_03_pnad_analysis.py` | descriptive, inequality, CCDF, Gompertz–Pareto, uncertainty and 2009-method reproduction analysis for refined/trusted |
 | 04 | `stage_04_build_analytic_pnad.py` | concatenated trusted analytical Parquet |
-| 05 | `stage_05_publication.py` | canonical paper-asset entry point |
-| 05 | `stage_05_moura_ribeiro.py` | publication figure routines only |
-| 05 | `stage_05_tables.py` | publication-table consolidation only |
+| 05 | `stage_05_publication.py` | publication figures and table formatting from persisted Stage-03 results |
 
 ## Stage 03
 
@@ -43,7 +40,7 @@ The `refined` layer is the analytical baseline and the `trusted` layer is the be
 
 Each directory also contains `metadata.csv`, which documents the purpose of every table and the scientific meaning, unit/scale, and source of every column.
 
-`stage_03_moura_ribeiro_evidence.py` computes the simulation/inference quantities needed to reproduce Moura Jr. and Ribeiro (2009): fixed-`A` and free-intercept Gompertz bootstrap diagnostics, Pareto LSF/MLE bootstrap uncertainties, the paper-style likelihood width for the MLE exponent, exponential-vs-Gompertz diagnostics, and regime income shares. These quantities are written directly into `gompertz_annual.csv` and `pareto_annual.csv`; no separate bootstrap or reproduction CSVs are persisted.
+`stage_03_pnad_analysis.py` also computes the simulation/inference quantities needed to reproduce Moura Jr. and Ribeiro (2009): fixed-`A` and free-intercept Gompertz bootstrap diagnostics, Pareto LSF/MLE bootstrap uncertainties, the paper-style likelihood width for the MLE exponent, exponential-vs-Gompertz diagnostics, and regime income shares. These quantities are written directly into `gompertz_annual.csv` and `pareto_annual.csv`; no separate bootstrap or reproduction CSVs are persisted.
 
 The 2009 numerical reference dataset remains in `data/auxiliary/moura_ribeiro_2009_reference.csv`; no separate long-form evidence table is generated.
 
@@ -53,7 +50,7 @@ The 2009 numerical reference dataset remains in `data/auxiliary/moura_ribeiro_20
 
 ## Stage 05
 
-Stage 05 is strictly publication-only. `stage_05_publication.py` is the canonical executable. It reads the consolidated trusted Stage-03 outputs, calls the figure routines in `stage_05_moura_ribeiro.py`, and calls `stage_05_tables.py` to write four canonical tables.
+Stage 05 is strictly publication-only. `stage_05_publication.py` is the single Stage-05 executable and contains the figure and table-formatting features that consume consolidated trusted Stage-03 outputs.
 
 All fitted parameters, bootstrap standard errors, likelihood-width uncertainties, model-comparison diagnostics, Pareto support diagnostics, and Gompertz/Pareto regime income shares are computed and persisted in Stage 03. Stage 05 does not re-estimate any of these quantities; figure annotations and publication tables consume the persisted values directly.
 

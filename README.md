@@ -9,8 +9,7 @@ This repository contains the reproducible computational workflow used to study t
 | 00 | `src/stage_00_build_metadata.py` | Consolidates extraction specifications and monetary metadata | `data/metadata/df_metadata.xlsx` |
 | 01 | `src/stage_01_build_refined_pnad.py` | Harmonizes local raw PNAD records into annual income samples | `data/refined/pnad_refined_YYYY.parquet` |
 | 02 | `src/stage_02_build_trusted_pnad.py` | Applies deterministic upper-tail treatment and validation | `data/trusted/pnad_trusted_YYYY.parquet` and validation audits |
-| 03 | `src/stage_03_pnad_analysis.py` | Runs descriptive, inequality, CCDF, and Gompertz–Pareto analyses on refined and trusted data | analytical CSV and PNG assets |
-| 03 | `src/stage_03_moura_ribeiro_evidence.py` | Computes Moura Jr.–Ribeiro (2009) uncertainty and reproduction diagnostics for both analytical layers | diagnostics consolidated into canonical annual tables |
+| 03 | `src/stage_03_pnad_analysis.py` | Runs descriptive, inequality, CCDF, Gompertz–Pareto, bootstrap and Moura Jr.–Ribeiro reproduction analyses on refined and trusted data | analytical CSV and PNG assets |
 | 04 | `src/stage_04_build_analytic_pnad.py` | Concatenates trusted annual samples into one validated cross-year Parquet | `data/analytics/pnad_analytics_all.parquet` |
 | 05 | `src/stage_05_publication.py` | Builds the complete paper-facing figure and table set from persisted Stage-03 results | `assets/figures_paper/` and `assets/tables_paper/` |
 
@@ -39,7 +38,7 @@ $$
 
 and estimates only `B` by least squares. A free-intercept fit is retained as a diagnostic and for comparison with the 2009 methodology. Pareto parameters are estimated by log-log least squares and direct maximum likelihood after determining the transition threshold. Gompertz–Pareto continuity at the transition is used to determine the Pareto amplitude for the direct-MLE branch.
 
-`stage_03_moura_ribeiro_evidence.py` adds the uncertainty calculations required to reproduce Moura Jr. and Ribeiro, *Eur. Phys. J. B* **67**, 101–120 (2009): fixed-`A` Gompertz bootstrap uncertainty for `B`, free-intercept Gompertz bootstrap diagnostics for `A` and `B`, Pareto LSF/MLE bootstrap uncertainties, the likelihood-width uncertainty for the MLE exponent, exponential-versus-Gompertz diagnostics, and regime income shares. These quantities are persisted directly in `gompertz_annual.csv` and `pareto_annual.csv`; separate `moura_ribeiro_bootstrap_annual.csv` and `moura_ribeiro_reproduction_annual.csv` files are not used.
+`stage_03_pnad_analysis.py` also contains the uncertainty calculations required to reproduce Moura Jr. and Ribeiro, *Eur. Phys. J. B* **67**, 101–120 (2009): fixed-`A` Gompertz bootstrap uncertainty for `B`, free-intercept Gompertz bootstrap diagnostics for `A` and `B`, Pareto LSF/MLE bootstrap uncertainties, the likelihood-width uncertainty for the MLE exponent, exponential-versus-Gompertz diagnostics, and regime income shares. These quantities are persisted directly in `gompertz_annual.csv` and `pareto_annual.csv`; separate `moura_ribeiro_bootstrap_annual.csv` and `moura_ribeiro_reproduction_annual.csv` files are not used.
 
 The numerical values reported in the 2009 paper remain available in `data/auxiliary/moura_ribeiro_2009_reference.csv` as a historical reference dataset.
 
@@ -49,7 +48,7 @@ Stage 04 reads only `data/trusted/pnad_trusted_YYYY.parquet`. It introduces no s
 
 ## Stage 05 publication layer
 
-Stage 05 is presentation-only. `stage_05_publication.py` consumes persisted Stage-03 scientific results and orchestrates publication figures plus the canonical tables. `stage_05_moura_ribeiro.py` contains the figure routines, while `stage_05_tables.py` consolidates the paper-facing tables. Statistical bootstrap and likelihood calculations do not belong to Stage 05.
+Stage 05 is presentation-only. `stage_05_publication.py` contains the figure and table-formatting features and consumes persisted Stage-03 scientific results. Statistical estimation, bootstrap, likelihood calculations and top-income-band aggregation belong to Stage 03.
 
 The paper table set contains:
 
@@ -91,7 +90,6 @@ With refined data already available, the analytical workflow is:
 ```bash
 python src/stage_02_build_trusted_pnad.py
 python src/stage_03_pnad_analysis.py
-python src/stage_03_moura_ribeiro_evidence.py
 python src/stage_04_build_analytic_pnad.py
 ```
 

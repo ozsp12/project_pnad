@@ -13,7 +13,7 @@ This repository contains the reproducible computational workflow used to study t
 | 04 | `src/stage_04_build_analytic_pnad.py` | Concatenates trusted annual samples into one validated cross-year Parquet | `data/analytics/pnad_analytics_all.parquet` |
 | 05 | `src/stage_05_publication.py` | Builds the complete paper-facing figure and table set from persisted Stage-03 results | `assets/figures_paper/` and `assets/tables_paper/` |
 
-The original fixed-width PNAD microdata are local files of approximately 20 GB and are not versioned under `data/raw/`. The persisted `data/refined/` layer is therefore the normal reproducible starting point inside GitHub. The notebooks under `notebook/` are intentionally retained as historical and pedagogical artifacts; source code under `src/` is authoritative.
+The original fixed-width PNAD microdata are local files of approximately 20 GB and are not versioned under `data/raw/`. The persisted `data/refined/` layer is therefore the normal reproducible starting point inside GitHub. Source code under `src/` is authoritative.
 
 ## Stage 03 methodology and analytical layers
 
@@ -61,6 +61,7 @@ Because the current model fixes `A`, Table 01 does not report a standard error f
 
 ## Automated workflows
 
+- `Build metadata` executes Stage 00, validates that the generated XLSX and CSV match `build_metadata_df()`, and commits both metadata artifacts when they change.
 - `Run PNAD analysis` executes the canonical Stage-03 analysis, consolidates the Moura–Ribeiro diagnostics into the annual tables, validates baseline/benchmark schema symmetry, and commits analytical assets.
 - `Build PNAD analytics dataset` executes Stage 04 independently and commits only `data/analytics/`.
 - `Build paper assets` refreshes the consolidated Stage-03 diagnostics, executes the canonical Stage-05 publication entry point, validates figures/tables, and commits paper assets on `main`.
@@ -79,10 +80,16 @@ Because the current model fixes `A`, Table 01 does not report a standard error f
 
 ## Dependencies and execution
 
-All direct runtime and test dependencies are pinned in `requirements.txt`.
+The reproducible environment targets **Python 3.12**, matching the GitHub Actions workflows. All direct runtime and test dependencies are pinned in `requirements.txt`.
 
 ```bash
 pip install -r requirements.txt
+```
+
+Metadata artifacts are generated with:
+
+```bash
+python src/stage_00_build_metadata.py
 ```
 
 With refined data already available, the analytical workflow is:

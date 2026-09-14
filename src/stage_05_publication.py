@@ -11,12 +11,12 @@ from cycler import cycler
 from matplotlib.ticker import LogFormatterMathtext, LogLocator, NullFormatter
 
 ROOT = Path(__file__).resolve().parents[1]
-TABLES = ROOT / "assets/tables_analysis_trusted"
-FIGURES = ROOT / "assets/figures_paper"
-TABLES_PAPER = ROOT / "assets/tables_paper"
-TRUSTED = ROOT / "data/trusted"
-METADATA = ROOT / "data/metadata/df_metadata.xlsx"
-GDP = ROOT / "data/auxiliary/gdp_growth_brazil_1978_2025.csv"
+TABLES = ROOT / "assets" / "tables_analysis_trusted"
+FIGURES = ROOT / "assets" / "figures_paper"
+TABLES_PAPER = ROOT / "assets" / "tables_paper"
+TRUSTED = ROOT / "data" / "trusted"
+METADATA = ROOT / "data" / "metadata" / "df_metadata.xlsx"
+GDP = ROOT / "data" / "auxiliary" / "gdp_growth_brazil_1978_2025.csv"
 
 START_YEAR, END_YEAR, MAX_PANELS, DPI = 1978, 2025, 12, 300
 PAGE_SIZE, SINGLE_SIZE = (7.0, 9.5), (7.0, 4.5)
@@ -529,10 +529,20 @@ def plot_misc(stats, annual):
         ax.set_xlabel("Year")
     save(fig, "inequality_indices_grid")
 
+    # Reindex only the plotting copy. Missing survey/reference years remain NaN,
+    # which makes Matplotlib break the lines instead of visually interpolating
+    # across years with no observation. The underlying Stage-03 tables are unchanged.
+    full_years = pd.Index(range(START_YEAR, END_YEAR + 1), name="year")
+    gini_validation = (
+        stats.set_index("year")
+        .reindex(full_years)
+        .reset_index()
+    )
+
     fig, ax = plt.subplots(figsize=SINGLE_SIZE)
     ax.plot(
-        stats.year,
-        stats.Gini,
+        gini_validation.year,
+        gini_validation.Gini,
         label="PNAD",
         color="0.05",
         lw=1.25,
@@ -545,10 +555,9 @@ def plot_misc(stats, annual):
         ("IPEA", "IPEA", "--", "0.35"),
         ("Banco_Mundial", "World Bank", ":", "0.58"),
     ]:
-        data = stats.dropna(subset=[column])
         ax.plot(
-            data.year,
-            data[column],
+            gini_validation.year,
+            gini_validation[column],
             color=gray,
             ls=line_style,
             lw=1.05,

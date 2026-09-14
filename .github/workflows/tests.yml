@@ -6,12 +6,16 @@ on:
     paths:
       - "src/**"
       - "tests/**"
+      - "data/metadata/df_metadata.csv"
+      - "data/metadata/df_metadata.xlsx"
       - "requirements.txt"
       - ".github/workflows/tests.yml"
   pull_request:
     paths:
       - "src/**"
       - "tests/**"
+      - "data/metadata/df_metadata.csv"
+      - "data/metadata/df_metadata.xlsx"
       - "requirements.txt"
       - ".github/workflows/tests.yml"
 

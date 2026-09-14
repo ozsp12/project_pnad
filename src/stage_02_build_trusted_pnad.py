@@ -17,6 +17,13 @@ with k=6 by default. The log-MAD rule is applied only after non-finite,
 negative, and sentinel values have been excluded. Sentinel removal is therefore
 a structural cleaning rule and is never delegated to the statistical outlier
 criterion.
+
+For the 1985 and 1990 surveys, the trusted layer applies an additional
+conservative upper-tail rule: observations strictly above the empirical 99th
+percentile of the structurally valid annual income distribution are removed.
+The effective cutoff is therefore the minimum between the annual log-MAD
+cutoff and the empirical p99 cutoff. The refined datasets remain unchanged,
+and the exceptional cutoff is recorded explicitly in the audit table.
 """
 
 from __future__ import annotations
@@ -41,6 +48,8 @@ MAD_THRESHOLD = 6.0
 PARQUET_ENGINE = "pyarrow"
 PARQUET_COMPRESSION = "snappy"
 INCOME_SENTINELS = (999_999.0, 9_999_999.0, 99_999_999.0)
+EXCEPTIONAL_P99_TRIM_YEARS = frozenset({1985, 1990})
+EXCEPTIONAL_P99_QUANTILE = 0.99
 
 AUDIT_FILE = VALIDATION_TABLES_PATH / "trusted_trim_audit_annual.csv"
 TESTS_FILE = VALIDATION_TABLES_PATH / "trusted_distribution_tests_annual.csv"
@@ -312,7 +321,29 @@ def trim_refined_year(
         threshold=threshold,
         consistency=consistency,
     )
-    cutoff = float(threshold_info["statistical_cutoff"])
+    log_mad_cutoff = float(threshold_info["statistical_cutoff"])
+    p99_exception_cutoff = np.nan
+    cutoff_rule = "log_mad"
+    cutoff = log_mad_cutoff
+
+    if year in EXCEPTIONAL_P99_TRIM_YEARS:
+        p99_exception_cutoff = float(
+            np.quantile(valid_income, EXCEPTIONAL_P99_QUANTILE)
+        )
+        cutoff = min(log_mad_cutoff, p99_exception_cutoff)
+        cutoff_rule = "min_log_mad_p99_exception"
+
+    threshold_info.update({
+        "log_mad_cutoff": log_mad_cutoff,
+        "p99_exception_quantile": (
+            EXCEPTIONAL_P99_QUANTILE
+            if year in EXCEPTIONAL_P99_TRIM_YEARS
+            else np.nan
+        ),
+        "p99_exception_cutoff": p99_exception_cutoff,
+        "cutoff_rule": cutoff_rule,
+        "statistical_cutoff": float(cutoff),
+    })
 
     statistical_keep_valid = valid_income <= cutoff
     n_statistical_outlier = int(np.count_nonzero(~statistical_keep_valid))

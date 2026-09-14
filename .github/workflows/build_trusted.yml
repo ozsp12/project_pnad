@@ -2,6 +2,12 @@ name: Build trusted PNAD
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/stage_02_build_trusted_pnad.py"
+      - "data/refined/**"
+      - ".github/workflows/build_trusted.yml"
 
 permissions:
   contents: write

@@ -1,0 +1,96 @@
+name: Sanitize refined PNAD sentinels
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/stage_01_build_refined_pnad.py"
+      - "data/refined/**"
+      - ".github/workflows/sanitize_refined.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pnad-refined-sentinel-sanitize-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sanitize-refined:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Remove global sentinel values from refined datasets
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import pandas as pd
+
+          from src.stage_01_build_refined_pnad import GLOBAL_INCOME_SENTINELS
+
+          refined = Path("data/refined")
+          paths = sorted(refined.glob("pnad_refined_*.parquet"))
+          if not paths:
+              raise RuntimeError("No refined PNAD Parquet files found.")
+
+          total_removed = 0
+          changed_years = []
+          sentinels = set(GLOBAL_INCOME_SENTINELS)
+
+          for path in paths:
+              df = pd.read_parquet(path)
+              if "renda" not in df.columns:
+                  raise ValueError(f"{path.name}: missing renda column")
+
+              income = pd.to_numeric(df["renda"], errors="coerce")
+              sentinel_mask = income.isin(sentinels)
+              removed = int(sentinel_mask.sum())
+              if removed:
+                  df.loc[~sentinel_mask].to_parquet(
+                      path,
+                      index=False,
+                      compression="snappy",
+                  )
+                  total_removed += removed
+                  changed_years.append((path.name, removed))
+
+          for path in paths:
+              df = pd.read_parquet(path, columns=["renda"])
+              income = pd.to_numeric(df["renda"], errors="coerce")
+              if income.isin(sentinels).any():
+                  raise AssertionError(f"Sentinel remained in {path.name}")
+
+          print(f"Total sentinel rows removed: {total_removed}")
+          for name, removed in changed_years:
+              print(f"{name}: {removed}")
+          PY
+
+      - name: Rebuild trusted datasets and validation audits
+        run: python src/stage_02_build_trusted_pnad.py
+
+      - name: Commit synchronized refined and trusted outputs
+        run: |
+          if git diff --quiet -- data/refined data/trusted assets/tables_validation; then
+            echo "Refined and trusted datasets already synchronized."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/refined data/trusted assets/tables_validation
+          git commit -m "synchronize sentinel-clean PNAD datasets"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main

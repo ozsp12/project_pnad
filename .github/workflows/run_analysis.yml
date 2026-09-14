@@ -2,30 +2,33 @@ name: Run PNAD analysis
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Build trusted PNAD"]
+    types: [completed]
   push:
     branches: [main]
     paths:
       - "src/stage_03_pnad_analysis.py"
       - "data/metadata/df_metadata.xlsx"
       - "data/auxiliary/**"
-      - "data/refined/**"
-      - "data/trusted/**"
       - "requirements.txt"
-      - ".github/workflows/run_analysis.yml"
 
 permissions:
   contents: write
 
 concurrency:
-  group: pnad-analysis-${{ github.ref }}
+  group: pnad-analysis-main
   cancel-in-progress: true
 
 jobs:
   analysis:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v5

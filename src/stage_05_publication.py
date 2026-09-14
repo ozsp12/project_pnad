@@ -227,8 +227,20 @@ def income(year, positive=True):
     return x[x > 0] if positive else x
 
 
+def annual_plot_frame(df):
+    """Return a plotting-only annual grid with NaN at unobserved years."""
+    data = df.copy()
+    data["year"] = pd.to_numeric(data["year"], errors="coerce")
+    data = data.dropna(subset=["year"])
+    data["year"] = data["year"].astype(int)
+    if data["year"].duplicated().any():
+        raise ValueError("Annual plotting data must contain unique years.")
+    full_years = pd.Index(range(START_YEAR, END_YEAR + 1), name="year")
+    return data.set_index("year").reindex(full_years).reset_index()
+
+
 def line_figure(df, stem, series, ylabel, scale=1.0):
-    data = df.sort_values("year")
+    data = annual_plot_frame(df)
     fig, ax = plt.subplots(figsize=SINGLE_SIZE)
     for index, (column, label) in enumerate(series):
         ax.plot(
@@ -250,7 +262,6 @@ def line_figure(df, stem, series, ylabel, scale=1.0):
         save(fig, stem, top=0.90)
     else:
         save(fig, stem)
-
 
 def plot_histograms(years):
     def draw(ax, year):
@@ -417,6 +428,12 @@ def plot_model_families(curves, annual, years):
     for method in ("ls", "mle"):
         def draw(ax, year, method=method):
             row = fit.loc[year]
+            supported = bool(row.get("pareto_supported", True))
+            if not supported:
+                annotation(ax, "Pareto tail not supported", x=0.20, y=0.48)
+                style(ax)
+                return
+
             column = f"pareto_fitted_ccdf_percent_{method}"
             xmin = (
                 min(row.transition_x_t, row.pareto_x_pmin)
@@ -462,7 +479,6 @@ def plot_model_families(curves, annual, years):
             legend=True,
             ncol=3,
         )
-
 
 def plot_income_stats(stats):
     line_figure(
@@ -517,27 +533,20 @@ def plot_misc(stats, annual):
         "2025 US$",
     )
 
+    temporal_stats = annual_plot_frame(stats)
     fig, axes = plt.subplots(2, 2, figsize=(7, 6.2), sharex=True)
     for ax, (column, scale) in zip(
         axes.ravel(),
         [("Gini", 1), ("Zanardi", 1), ("Kolkata", 100), ("Pietra", 100)],
     ):
-        ax.plot(stats.year, scale * stats[column], **series_style(0))
+        ax.plot(temporal_stats.year, scale * temporal_stats[column], **series_style(0))
         ax.set_title(column, fontweight="semibold")
         style(ax)
     for ax in axes[-1]:
         ax.set_xlabel("Year")
     save(fig, "inequality_indices_grid")
 
-    # Reindex only the plotting copy. Missing survey/reference years remain NaN,
-    # which makes Matplotlib break the lines instead of visually interpolating
-    # across years with no observation. The underlying Stage-03 tables are unchanged.
-    full_years = pd.Index(range(START_YEAR, END_YEAR + 1), name="year")
-    gini_validation = (
-        stats.set_index("year")
-        .reindex(full_years)
-        .reset_index()
-    )
+    gini_validation = temporal_stats
 
     fig, ax = plt.subplots(figsize=SINGLE_SIZE)
     ax.plot(
@@ -752,15 +761,17 @@ def validate_tables(g, p, e):
     merged = g[["year", "gompertz_income_share_pct"]].merge(
         p[["year", "pareto_income_share_pct"]], on="year", validate="one_to_one"
     )
-    if not np.allclose(
-        merged.gompertz_income_share_pct + merged.pareto_income_share_pct,
+    complete = merged.dropna(
+        subset=["gompertz_income_share_pct", "pareto_income_share_pct"]
+    )
+    if not complete.empty and not np.allclose(
+        complete.gompertz_income_share_pct + complete.pareto_income_share_pct,
         100.0,
         atol=1e-8,
     ):
-        raise AssertionError("Gompertz and Pareto income shares must sum to 100%")
+        raise AssertionError("Supported Gompertz and Pareto income shares must sum to 100%")
     if any(frame.year.duplicated().any() for frame in (g, p, e)):
         raise AssertionError("Annual paper tables must have unique years")
-
 
 def build_paper_tables(stats=None, annual=None):
     if stats is None or annual is None:

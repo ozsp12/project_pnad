@@ -609,7 +609,8 @@ def plot_inequality_indices_grid(df, output_path, ncols=2, figsize=(16, 10)):
     years = np.arange(first, last + 1)
     indexed = df.set_index("year").reindex(years)
     for ax, (col, title, scale, ylabel) in zip(axes.ravel(), series):
-        y = indexed[col].interpolate(method="linear", limit_direction="both")
+        # Missing survey years remain NaN so the plotted line is interrupted.
+        y = indexed[col]
         ax.plot(years, scale * y, marker="o", markersize=4, linewidth=1.7)
         ax.set_title(f"Evolution of the {title} - Brazil ({first}-{last})")
         ax.set_xlabel("Year")
@@ -618,7 +619,6 @@ def plot_inequality_indices_grid(df, output_path, ncols=2, figsize=(16, 10)):
     fig.tight_layout()
     fig.savefig(output_path, dpi=250, bbox_inches="tight")
     plt.close(fig)
-
 
 def plot_gini_validation(df, output_path, figsize=(14, 6)):
     fig, ax = plt.subplots(figsize=figsize)
@@ -857,9 +857,72 @@ def continuity_beta(alpha, x_t, gompertz_A, gompertz_B):
 
 
 def fit_year_regime(year, income_normalized, normalization_mean):
+    """Fit the annual Gompertz--Pareto regime without relaxing support criteria.
+
+    If fewer than ``MIN_PARETO_POINTS`` valid binned tail points remain after the
+    Gompertz boundary, the Pareto regime is recorded as unsupported. No reduced
+    minimum-point fallback is used. This policy is part of Stage 03 itself so
+    local execution and CI execute the same scientific algorithm.
+    """
     curve = build_regime_ccdf(income_normalized)
     gompertz = select_gompertz_region(curve)
-    pareto = select_pareto_region(curve, gompertz["gompertz_x_gmax"])
+
+    try:
+        pareto = select_pareto_region(curve, gompertz["gompertz_x_gmax"])
+    except ValueError as exc:
+        if "Insufficient Pareto-tail points" not in str(exc):
+            raise
+
+        n_total = int(len(income_normalized))
+        fit = {
+            "year": int(year),
+            "log_bin_ratio": BIN_RATIO,
+            "normalization_mean_income_adj_2025_usd": float(normalization_mean),
+            "positive_income_observation_n": n_total,
+            **gompertz,
+            "pareto_x_pmin": np.nan,
+            "pareto_selection_alpha": np.nan,
+            "pareto_selection_r2": np.nan,
+            "pareto_selection_status": "unsupported_insufficient_tail_points",
+            "transition_x_t": np.nan,
+            "transition_delta_x_t": np.nan,
+            "transition_rule": "unsupported_no_pareto_transition",
+            "gompertz_population_n": np.nan,
+            "pareto_population_n": np.nan,
+            "gompertz_population_pct": np.nan,
+            "pareto_population_pct": np.nan,
+            "pareto_alpha_ls": np.nan,
+            "pareto_beta_ls": np.nan,
+            "pareto_ls_r2": np.nan,
+            "pareto_ls_sse": np.nan,
+            "pareto_alpha_mle": np.nan,
+            "pareto_alpha_mle_fisher_se": np.nan,
+            "pareto_beta_mle_continuity": np.nan,
+            "gompertz_ccdf_at_x_t_percent": np.nan,
+            "cutoff_normalized": np.nan,
+            "cutoff_income_adj": np.nan,
+            "pareto_alpha": np.nan,
+            "pareto_r2": np.nan,
+        }
+
+        curve.insert(0, "year", int(year))
+        x = curve["income_normalized"].to_numpy(float)
+        curve["regime"] = "gompertz_body"
+        curve["gompertz_x_gmax"] = gompertz["gompertz_x_gmax"]
+        curve["pareto_x_pmin"] = np.nan
+        curve["cutoff_normalized"] = np.nan
+        curve["cutoff_income_adj"] = np.nan
+        curve["income_adj_2025_usd"] = x * normalization_mean
+        curve["gompertz_fitted_transform"] = np.where(
+            x <= gompertz["gompertz_x_gmax"],
+            gompertz["gompertz_A"] - gompertz["gompertz_B"] * x,
+            np.nan,
+        )
+        curve["pareto_fitted_ccdf_percent_ls"] = np.nan
+        curve["pareto_fitted_ccdf_percent_mle"] = np.nan
+        curve["pareto_fitted_ccdf_percent"] = np.nan
+        return fit, curve
+
     x_t, dx_t, threshold_rule = determine_threshold(
         gompertz["gompertz_x_gmax"], pareto["pareto_x_pmin"]
     )
@@ -924,7 +987,6 @@ def fit_year_regime(year, income_normalized, normalization_mean):
     curve["pareto_fitted_ccdf_percent"] = curve["pareto_fitted_ccdf_percent_mle"]
     return fit, curve
 
-
 def build_regime_datasets(files_by_year, df_metadata):
     fits, curves = [], []
     metadata = df_metadata.set_index("ano")
@@ -934,20 +996,21 @@ def build_regime_datasets(files_by_year, df_metadata):
         fits.append(fit)
         curves.append(curve)
     fit_table = pd.DataFrame(fits).sort_values("year").reset_index(drop=True)
-    if not np.allclose(
-        fit_table["gompertz_population_pct"] + fit_table["pareto_population_pct"],
+    supported = fit_table[["gompertz_population_pct", "pareto_population_pct"]].notna().all(axis=1)
+    if supported.any() and not np.allclose(
+        fit_table.loc[supported, "gompertz_population_pct"]
+        + fit_table.loc[supported, "pareto_population_pct"],
         100.0,
         rtol=0.0,
         atol=1e-10,
     ):
-        raise AssertionError("Gompertz and Pareto population percentages must sum to 100%.")
+        raise AssertionError("Supported Gompertz and Pareto population percentages must sum to 100%.")
     return (
         fit_table,
         pd.concat(curves, ignore_index=True)
         .sort_values(["year", "income_normalized"])
         .reset_index(drop=True),
     )
-
 
 def plot_gompertz_regime_fits(curves, fits, years, output_path, ncols=4, figsize=None):
     fit_i = fits.set_index("year")
@@ -1004,13 +1067,29 @@ def plot_pareto_regime_fits(curves, fits, years, output_path, ncols=4, figsize=N
     fig, axes = make_grid(len(years), cols=ncols, figsize=figsize)
     for i, year in enumerate(years):
         f = fit_i.loc[year]
+        ax = axes.ravel()[i]
+        status = str(f["pareto_selection_status"])
+        if status.startswith("unsupported_"):
+            ax.text(
+                0.5,
+                0.5,
+                "Pareto tail not supported",
+                transform=ax.transAxes,
+                ha="center",
+                va="center",
+            )
+            ax.set_title(f"{year} - Pareto tail not supported")
+            ax.set_xlabel("Normalized individual income")
+            ax.set_ylabel("CCDF (%)")
+            ax.grid(True, alpha=0.3)
+            continue
+
         xp = float(f["pareto_x_pmin"])
         xt = float(f["transition_x_t"])
         d = curves[
             (curves["year"] == year)
             & (curves["income_normalized"] >= min(xt, xp))
         ]
-        ax = axes.ravel()[i]
         ax.scatter(
             d["income_normalized"], d["empirical_ccdf_percent"],
             s=12, alpha=0.7, color="0.35", label="Empirical CCDF",
@@ -1032,16 +1111,17 @@ def plot_pareto_regime_fits(curves, fits, years, output_path, ncols=4, figsize=N
         ax.set_xscale("log")
         ax.set_yscale("log")
         ax.set_title(
-            fr"{year} - $\alpha_{{MLE}}={f['pareto_alpha_mle']:.3f}$, $R^2_{{LS}}={f['pareto_ls_r2']:.3f}$"
+            fr"{year} - $lpha_{{MLE}}={f['pareto_alpha_mle']:.3f}$, $R^2_{{LS}}={f['pareto_ls_r2']:.3f}$"
         )
         ax.set_xlabel("Normalized individual income")
         ax.set_ylabel("CCDF (%)")
         ax.grid(True, alpha=0.3)
     handles, labels = axes.ravel()[0].get_legend_handles_labels()
-    fig.legend(
-        handles, labels, loc="upper center", bbox_to_anchor=(0.5, 0.985),
-        ncol=5, frameon=True,
-    )
+    if handles:
+        fig.legend(
+            handles, labels, loc="upper center", bbox_to_anchor=(0.5, 0.985),
+            ncol=5, frameon=True,
+        )
     finish_grid(
         fig, axes, len(years),
         "Pareto region - direct MLE and log-binned CCDF LSF",
@@ -1754,25 +1834,36 @@ def build_diagnostics_annual(layer: str) -> pd.DataFrame:
     for year in years:
         fit = annual_i.loc[year]
         x = _normalized_income(year, cfg)
-        x_t = float(fit["transition_x_t"])
-        tail = x[x >= x_t]
-        total_income = float(np.sum(x))
-        gompertz_income_share = 100.0 * float(np.sum(x[x < x_t])) / total_income
-        pareto_income_share = 100.0 - gompertz_income_share
+        selection_status = str(fit["pareto_selection_status"])
+        pareto_estimable = not selection_status.startswith("unsupported_")
 
-        likelihood_se = likelihood_alpha_se(tail, x_t)
-        beta_mle = float(fit["pareto_beta_mle_continuity"])
-        beta_likelihood_se = (
-            abs(beta_mle * np.log(x_t) * likelihood_se)
-            if np.isfinite(likelihood_se) and x_t > 0
-            else np.nan
-        )
         exp_intercept, exp_alpha, exp_r2 = _exponential_diagnostics(
             curves, fit, year
         )
+
+        if pareto_estimable:
+            x_t = float(fit["transition_x_t"])
+            tail = x[x >= x_t]
+            total_income = float(np.sum(x))
+            gompertz_income_share = 100.0 * float(np.sum(x[x < x_t])) / total_income
+            pareto_income_share = 100.0 - gompertz_income_share
+            likelihood_se = likelihood_alpha_se(tail, x_t)
+            beta_mle = float(fit["pareto_beta_mle_continuity"])
+            beta_likelihood_se = (
+                abs(beta_mle * np.log(x_t) * likelihood_se)
+                if np.isfinite(likelihood_se) and x_t > 0
+                else np.nan
+            )
+            pareto_mle_r2 = _mle_r2(curves, fit, year)
+        else:
+            gompertz_income_share = np.nan
+            pareto_income_share = np.nan
+            likelihood_se = np.nan
+            beta_likelihood_se = np.nan
+            pareto_mle_r2 = np.nan
+
         pareto_supported = (
-            str(fit["pareto_selection_status"])
-            == "earliest_tail_start_with_r2_ge_0.98"
+            selection_status == "earliest_tail_start_with_r2_ge_0.98"
         )
 
         rows.append(
@@ -1784,7 +1875,7 @@ def build_diagnostics_annual(layer: str) -> pd.DataFrame:
                 "gompertz_income_share_pct": gompertz_income_share,
                 "pareto_alpha_mle_likelihood_se": likelihood_se,
                 "pareto_beta_mle_likelihood_se": beta_likelihood_se,
-                "pareto_mle_r2": _mle_r2(curves, fit, year),
+                "pareto_mle_r2": pareto_mle_r2,
                 "pareto_supported": bool(pareto_supported),
                 "pareto_income_share_pct": pareto_income_share,
             }

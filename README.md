@@ -15,6 +15,10 @@ This repository contains the reproducible computational workflow used to study t
 
 The original fixed-width PNAD microdata are local files of approximately 20 GB and are not versioned under `data/raw/`. The persisted `data/refined/` layer is therefore the normal reproducible starting point inside GitHub. Source code under `src/` is authoritative.
 
+## Trusted upper-tail treatment
+
+Stage 02 uses the annual log-MAD upper-tail rule after structural cleaning. For 1985 and 1990 only, the trusted layer additionally applies the empirical 99th-percentile cutoff, with the effective threshold defined as `min(log-MAD, p99)`. The exception is based exclusively on within-year tail behavior and leverage; IPEA and World Bank Gini series are not used to choose or tune the cutoff. The untrimmed observations remain available in the refined layer. If the resulting trusted tail does not retain the canonical minimum number of Pareto bins, Stage 03 records the Pareto regime as unsupported rather than relaxing the fitting criterion.
+
 ## Stage 03 methodology and analytical layers
 
 Stage 03 applies the same analytical pipeline independently to `refined` and `trusted`. The `refined` layer is the baseline and the `trusted` layer is the benchmark. Their analytical directories must remain structurally identical: the same filenames, the same column schemas, and the same metadata schema.

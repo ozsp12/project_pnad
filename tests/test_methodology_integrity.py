@@ -91,6 +91,15 @@ def test_analysis_workflow_contains_no_runtime_pareto_monkeypatch():
     assert "python src/stage_03_pnad_analysis.py" in workflow
 
 
+def test_paper_assets_workflow_handles_unsupported_pareto_years():
+    workflow = Path(".github/workflows/build_paper_assets.yml").read_text(encoding="utf-8")
+    assert "pareto_selection_status" in workflow
+    assert "startswith(\"unsupported_\")" in workflow
+    assert "merged.loc[supported" in workflow
+    assert "Unsupported Pareto years must retain missing regime income shares" in workflow
+    assert '".github/workflows/build_paper_assets.yml"' in workflow
+
+
 def test_stage03_source_contains_no_disallowed_control_characters():
     source_text = Path("src/stage_03_pnad_analysis.py").read_text(encoding="utf-8")
     controls = [

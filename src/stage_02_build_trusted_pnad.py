@@ -1,10 +1,10 @@
 """Build trusted annual PNAD datasets and audit each distribution.
 
 Stage 02 reads the annual refined Parquet files created by
-`stage_01_build_refined_pnad.py`, removes structurally invalid income values,
-applies the deterministic upper-tail log-MAD rule used in the project
-notebook, validates the resulting annual distributions, and writes trusted
-datasets plus validation/audit tables.
+``stage_01_build_refined_pnad.py``, removes structurally invalid income values
+and the project-wide sentinel values 999999, 9999999, and 99999999, applies
+the deterministic upper-tail log-MAD rule, validates the resulting annual
+distributions, and writes trusted datasets plus validation/audit tables.
 
 The statistical transformation is
 
@@ -13,10 +13,10 @@ The statistical transformation is
     s   = 1.4826 * median(|z_i - m|)
     x_c = exp(m + k s) - 1
 
-with k=6 by default. The log-MAD rule is applied only to finite,
-non-negative income values. Non-finite or negative values are treated as
-structural invalids, recorded explicitly in the audit, and excluded before
-statistical trimming.
+with k=6 by default. The log-MAD rule is applied only after non-finite,
+negative, and sentinel values have been excluded. Sentinel removal is therefore
+a structural cleaning rule and is never delegated to the statistical outlier
+criterion.
 """
 
 from __future__ import annotations
@@ -40,6 +40,7 @@ MAD_CONSISTENCY = 1.4826
 MAD_THRESHOLD = 6.0
 PARQUET_ENGINE = "pyarrow"
 PARQUET_COMPRESSION = "snappy"
+INCOME_SENTINELS = (999_999.0, 9_999_999.0, 99_999_999.0)
 
 AUDIT_FILE = VALIDATION_TABLES_PATH / "trusted_trim_audit_annual.csv"
 TESTS_FILE = VALIDATION_TABLES_PATH / "trusted_distribution_tests_annual.csv"
@@ -148,6 +149,8 @@ def compute_log_mad_threshold(
         raise ValueError("log-MAD requires finite income values.")
     if (x < 0).any():
         raise ValueError("log-MAD requires non-negative income values.")
+    if np.isin(x, INCOME_SENTINELS).any():
+        raise ValueError("log-MAD input must not contain sentinel income values.")
 
     transformed = np.log1p(x)
     center = float(np.median(transformed))
@@ -185,6 +188,7 @@ def validate_distribution(
     trusted_income: np.ndarray,
     cutoff: float,
     n_invalid: int,
+    n_sentinel: int,
     n_statistical_outlier: int,
 ) -> dict[str, float | int | bool]:
     """Run deterministic tests on one annual distribution."""
@@ -199,15 +203,23 @@ def validate_distribution(
         "input_n_negative": int(
             np.sum(raw_income[np.isfinite(raw_income)] < 0)
         ),
+        "input_n_sentinel": int(np.isin(raw_income, INCOME_SENTINELS).sum()),
         "n_invalid_structural": int(n_invalid),
+        "n_invalid_sentinel": int(n_sentinel),
         "n_statistical_outlier": int(n_statistical_outlier),
         "test_raw_nonempty": bool(raw_income.size > 0),
         "test_valid_input_nonempty": bool(valid_income.size > 0),
         "test_trusted_nonempty": bool(trusted_income.size > 0),
         "test_valid_input_finite": bool(np.isfinite(valid_income).all()),
         "test_valid_input_nonnegative": bool((valid_income >= 0).all()),
+        "test_valid_input_no_sentinel": bool(
+            not np.isin(valid_income, INCOME_SENTINELS).any()
+        ),
         "test_trusted_finite": bool(np.isfinite(trusted_income).all()),
         "test_trusted_nonnegative": bool((trusted_income >= 0).all()),
+        "test_trusted_no_sentinel": bool(
+            not np.isin(trusted_income, INCOME_SENTINELS).any()
+        ),
         "test_count_monotonic": bool(
             trusted_income.size <= valid_income.size <= raw_income.size
         ),
@@ -276,18 +288,24 @@ def trim_refined_year(
     raw_income = _income_array(df, year)
 
     finite_mask = np.isfinite(raw_income)
-    nonnegative_mask = finite_mask & (raw_income >= 0)
+    sentinel_mask = finite_mask & np.isin(raw_income, INCOME_SENTINELS)
+    nonnegative_mask = finite_mask & (raw_income >= 0) & ~sentinel_mask
     valid_income = raw_income[nonnegative_mask]
 
     n_nan = int(np.isnan(raw_income).sum())
     n_inf = int(np.isinf(raw_income).sum())
-    n_negative = int(
-        np.sum(raw_income[finite_mask] < 0)
-    )
+    n_negative = int(np.sum(raw_income[finite_mask] < 0))
+    n_sentinel = int(np.count_nonzero(sentinel_mask))
+    sentinel_counts = {
+        int(value): int(np.count_nonzero(raw_income == value))
+        for value in INCOME_SENTINELS
+    }
     n_invalid = int(raw_income.size - valid_income.size)
 
     if valid_income.size == 0:
-        raise ValueError(f"{year}: no finite non-negative income values.")
+        raise ValueError(
+            f"{year}: no finite non-negative non-sentinel income values."
+        )
 
     threshold_info = compute_log_mad_threshold(
         valid_income,
@@ -314,6 +332,10 @@ def trim_refined_year(
         "n_invalid_nan": n_nan,
         "n_invalid_inf": n_inf,
         "n_invalid_negative": n_negative,
+        "n_invalid_sentinel": n_sentinel,
+        "n_invalid_sentinel_999999": sentinel_counts[999_999],
+        "n_invalid_sentinel_9999999": sentinel_counts[9_999_999],
+        "n_invalid_sentinel_99999999": sentinel_counts[99_999_999],
         "n_invalid_structural": n_invalid,
         "n_valid_before_trim": int(valid_income.size),
         "n_statistical_outlier": n_statistical_outlier,
@@ -340,6 +362,7 @@ def trim_refined_year(
         trusted_income=trusted_income,
         cutoff=cutoff,
         n_invalid=n_invalid,
+        n_sentinel=n_sentinel,
         n_statistical_outlier=n_statistical_outlier,
     )
 
@@ -456,6 +479,7 @@ if __name__ == "__main__":
         audit[[
             "year",
             "n_refined",
+            "n_invalid_sentinel",
             "n_invalid_structural",
             "n_statistical_outlier",
             "n_removed_total",

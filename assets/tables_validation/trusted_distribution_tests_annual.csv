@@ -1,8 +1,8 @@
 year,input_n_nan,input_n_inf,input_n_negative,input_n_sentinel,n_invalid_structural,n_invalid_sentinel,n_statistical_outlier,test_raw_nonempty,test_valid_input_nonempty,test_trusted_nonempty,test_valid_input_finite,test_valid_input_nonnegative,test_valid_input_no_sentinel,test_trusted_finite,test_trusted_nonnegative,test_trusted_no_sentinel,test_count_monotonic,test_count_identity,test_cutoff_finite_nonnegative,test_max_after_le_cutoff,median_relative_change,mean_relative_change,structural_invalid_rate,statistical_removal_rate,total_removal_rate,all_tests_pass
-1976,0,0,0,4,4,4,5,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,-0.009103394243138984,2.6954904444863743e-05,3.369363055607968e-05,6.064853500094342e-05,True
-1977,0,0,0,919,919,919,13,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,-0.017358720473299515,0.004739898703361769,6.704970962318063e-05,0.00480694841298495,True
-1978,0,0,0,628,628,628,6,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,-0.006543871135198503,0.0029029857300685528,2.7735532452884265e-05,0.002930721262521437,True
-1979,0,0,0,564,564,564,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.003291105262850774,0.0,0.003291105262850774,True
+1976,0,0,0,0,0,0,5,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,-0.009103394243138984,0.0,3.3694538789153056e-05,3.3694538789153056e-05,True
+1977,0,0,0,0,0,0,13,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,-0.017358720473299515,0.0,6.736903201065468e-05,6.736903201065468e-05,True
+1978,0,0,0,0,0,0,6,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,-0.006543871135198503,0.0,2.7816282724697613e-05,2.7816282724697613e-05,True
+1979,0,0,0,0,0,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.0,0.0,0.0,True
 1981,6912,0,0,0,6912,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.014426749598213355,0.0,0.014426749598213355,True
 1982,0,0,0,0,0,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.0,0.0,0.0,True
 1983,8419,0,0,0,8419,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.01656579092354432,0.0,0.01656579092354432,True

@@ -97,3 +97,36 @@ def test_read_year_fast_parses_per_capita_income_and_audit_counts(tmp_path):
     assert stats["n_invalid_renda"] == 1
     assert stats["n_invalid_morador"] == 1
     assert stats["per_capita"] is True
+
+
+def test_read_year_fast_removes_global_sentinels_before_transformation(tmp_path):
+    raw = tmp_path / "sample.dat"
+    raw.write_bytes(
+        b"00999999\n"
+        b"09999999\n"
+        b"99999999\n"
+        b"00000123\n"
+    )
+    spec = SimpleNamespace(
+        ano=2025,
+        raw_subdir="",
+        raw_pattern="sample.dat",
+        n_files=1,
+        pos_renda=0,
+        tam_renda=8,
+        missing_renda=88_888_888,
+        pos_morador=None,
+        tam_morador=None,
+    )
+
+    refined, stats = stage_01.read_year_fast(
+        spec,
+        raw_path=tmp_path,
+        show_file_progress=False,
+    )
+
+    assert refined["renda"].tolist() == [123.0]
+    assert not refined["renda"].isin(stage_01.GLOBAL_INCOME_SENTINELS).any()
+    assert stats["n_raw"] == 4
+    assert stats["n_missing_renda"] == 3
+    assert stats["n_refined"] == 1

@@ -39,8 +39,14 @@ jobs:
           from src.stage_00_build_metadata import build_metadata_df
 
           expected = build_metadata_df()
-          csv = pd.read_csv("data/metadata/df_metadata.csv")
-          xlsx = pd.read_excel("data/metadata/df_metadata.xlsx")
+          csv = pd.read_csv(
+              "data/metadata/df_metadata.csv",
+              dtype={"raw_subdir": "string"},
+          )
+          xlsx = pd.read_excel(
+              "data/metadata/df_metadata.xlsx",
+              dtype={"raw_subdir": "string"},
+          )
 
           string_columns = [
               "var_renda", "var_morador", "link", "raw_subdir", "raw_pattern", "Currency"

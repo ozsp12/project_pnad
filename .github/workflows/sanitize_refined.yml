@@ -2,18 +2,12 @@ name: Sanitize refined PNAD sentinels
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "src/stage_01_build_refined_pnad.py"
-      - "data/refined/**"
-      - ".github/workflows/sanitize_refined.yml"
 
 permissions:
   contents: write
 
 concurrency:
-  group: pnad-refined-sentinel-sanitize-${{ github.ref }}
+  group: pnad-refined-sentinel-sanitize-main
   cancel-in-progress: true
 
 jobs:
@@ -78,19 +72,15 @@ jobs:
               print(f"{name}: {removed}")
           PY
 
-      - name: Rebuild trusted datasets and validation audits
-        run: python src/stage_02_build_trusted_pnad.py
-
-      - name: Commit synchronized refined and trusted outputs
+      - name: Commit sanitized refined datasets
         run: |
-          if git diff --quiet -- data/refined data/trusted assets/tables_validation; then
-            echo "Refined and trusted datasets already synchronized."
+          if git diff --quiet -- data/refined; then
+            echo "Refined datasets already contain no global sentinels."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/refined data/trusted assets/tables_validation
-          git commit -m "synchronize sentinel-clean PNAD datasets"
-          git fetch origin main
-          git rebase origin/main
+          git add data/refined
+          git commit -m "sanitize refined PNAD sentinels"
+          git pull --rebase origin main
           git push origin HEAD:main

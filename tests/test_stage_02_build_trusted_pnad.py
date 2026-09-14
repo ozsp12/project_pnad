@@ -39,6 +39,13 @@ def test_compute_log_mad_threshold_uses_zero_dispersion_cutoff():
     assert result["statistical_cutoff"] == pytest.approx(5.0)
 
 
+def test_compute_log_mad_threshold_rejects_sentinel_values():
+    income = np.array([1.0, 2.0, 999_999.0])
+
+    with pytest.raises(ValueError, match="sentinel income values"):
+        stage_02.compute_log_mad_threshold(income)
+
+
 def test_trim_refined_year_accounts_for_invalids_and_tail_removal():
     year = 2025
     frame = pd.DataFrame(
@@ -60,6 +67,7 @@ def test_trim_refined_year_accounts_for_invalids_and_tail_removal():
     assert audit["n_invalid_nan"] == 1
     assert audit["n_invalid_inf"] == 1
     assert audit["n_invalid_negative"] == 1
+    assert audit["n_invalid_sentinel"] == 0
     assert audit["n_invalid_structural"] == 3
     assert audit["n_statistical_outlier"] == 1
     assert audit["n_removed_total"] == 4
@@ -67,9 +75,48 @@ def test_trim_refined_year_accounts_for_invalids_and_tail_removal():
     assert audit["n_refined"] == audit["n_trusted"] + audit["n_removed_total"]
     assert trusted["renda"].max() <= audit["statistical_cutoff"]
     assert tests["test_count_identity"]
+    assert tests["test_valid_input_no_sentinel"]
+    assert tests["test_trusted_no_sentinel"]
     assert tests["test_trusted_finite"]
     assert tests["test_trusted_nonnegative"]
     assert tests["test_max_after_le_cutoff"]
+    assert tests["all_tests_pass"]
+
+
+def test_trim_refined_year_removes_all_global_sentinels_before_trimming():
+    year = 2009
+    frame = pd.DataFrame(
+        {
+            "ano": [year] * 7,
+            "renda": [
+                100.0,
+                200.0,
+                300.0,
+                400.0,
+                999_999.0,
+                9_999_999.0,
+                99_999_999.0,
+            ],
+        }
+    )
+
+    trusted, audit, tests = stage_02.trim_refined_year(
+        frame,
+        year,
+        threshold=20.0,
+    )
+
+    assert trusted["renda"].tolist() == [100.0, 200.0, 300.0, 400.0]
+    assert audit["n_invalid_sentinel"] == 3
+    assert audit["n_invalid_sentinel_999999"] == 1
+    assert audit["n_invalid_sentinel_9999999"] == 1
+    assert audit["n_invalid_sentinel_99999999"] == 1
+    assert audit["n_invalid_structural"] == 3
+    assert audit["n_statistical_outlier"] == 0
+    assert tests["input_n_sentinel"] == 3
+    assert tests["n_invalid_sentinel"] == 3
+    assert tests["test_valid_input_no_sentinel"]
+    assert tests["test_trusted_no_sentinel"]
     assert tests["all_tests_pass"]
 
 

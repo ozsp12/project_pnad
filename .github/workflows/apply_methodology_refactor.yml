@@ -30,6 +30,20 @@ jobs:
       - name: Apply refactor
         run: python tools/apply_methodology_refactor.py
 
+      - name: Normalize test import path
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("tests/test_methodology_integrity.py")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace(
+              "from pathlib import Path\nimport inspect\n\n",
+              "from pathlib import Path\nimport inspect\nimport sys\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\n\n",
+              1,
+          )
+          path.write_text(text, encoding="utf-8")
+          PY
+
       - name: Install dependencies
         run: pip install -r requirements.txt
 

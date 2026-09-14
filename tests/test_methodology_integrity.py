@@ -89,3 +89,12 @@ def test_analysis_workflow_contains_no_runtime_pareto_monkeypatch():
     assert "MIN_PARETO_POINTS = 4" not in workflow
     assert "fit_year_regime_with_p99_fallback" not in workflow
     assert "python src/stage_03_pnad_analysis.py" in workflow
+
+
+def test_stage03_source_contains_no_disallowed_control_characters():
+    source_text = Path("src/stage_03_pnad_analysis.py").read_text(encoding="utf-8")
+    controls = [
+        ch for ch in source_text
+        if ord(ch) < 32 and ch not in {"\n", "\r", "\t"}
+    ]
+    assert controls == []

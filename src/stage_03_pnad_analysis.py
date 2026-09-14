@@ -1111,7 +1111,7 @@ def plot_pareto_regime_fits(curves, fits, years, output_path, ncols=4, figsize=N
         ax.set_xscale("log")
         ax.set_yscale("log")
         ax.set_title(
-            fr"{year} - $lpha_{{MLE}}={f['pareto_alpha_mle']:.3f}$, $R^2_{{LS}}={f['pareto_ls_r2']:.3f}$"
+            fr"{year} - $\alpha_{{MLE}}={f['pareto_alpha_mle']:.3f}$, $R^2_{{LS}}={f['pareto_ls_r2']:.3f}$"
         )
         ax.set_xlabel("Normalized individual income")
         ax.set_ylabel("CCDF (%)")

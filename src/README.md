@@ -13,6 +13,8 @@ The `src` directory contains the canonical scientific workflow. Stages 00–02 b
 | 04 | `stage_04_build_analytic_pnad.py` | concatenated trusted analytical Parquet |
 | 05 | `stage_05_publication.py` | publication figures and table formatting from persisted Stage-03 results |
 
+Stage 00 generates both `data/metadata/df_metadata.xlsx` and `data/metadata/df_metadata.csv`. The `Build metadata` workflow regenerates and validates both artifacts whenever the Stage-00 implementation changes.
+
 ## Stage 03
 
 The main regime analysis uses normalized positive individual income, geometric thresholds with ratio `1.10`, and a percent-scale CCDF. The current Gompertz model is
@@ -56,9 +58,9 @@ All fitted parameters, bootstrap standard errors, likelihood-width uncertainties
 
 The fixed normalization parameter `A` has no paper-facing standard error because it is not estimated in the current model. The free-intercept `A` and `B` estimates and their bootstrap uncertainties are retained explicitly as Moura–Ribeiro replication diagnostics. `table_04_metadata.csv` documents both the purpose of each table and the meaning, unit, and source of every paper-facing column.
 
-## Historical notebooks
+## Runtime
 
-The notebooks under `notebook/` remain intentionally as historical and pedagogical artifacts. They are not authoritative implementations.
+The repository targets **Python 3.12**, matching GitHub Actions. Direct runtime and test dependencies are pinned in `requirements.txt`.
 
 ## Tests
 

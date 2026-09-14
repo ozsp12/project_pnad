@@ -11,10 +11,12 @@ on:
       - "assets/tables_analysis_refined/**"
       - "assets/tables_analysis_trusted/**"
       - "requirements.txt"
+      - ".github/workflows/build_paper_assets.yml"
   push:
     branches: [main]
     paths:
       - "src/stage_05_publication.py"
+      - ".github/workflows/build_paper_assets.yml"
 
 permissions:
   contents: write
@@ -89,14 +91,25 @@ jobs:
           metadata = pd.read_csv(tables_dir / "table_04_metadata.csv")
 
           merged = gompertz[["year", "gompertz_income_share_pct"]].merge(
-              pareto[["year", "pareto_income_share_pct"]], on="year"
+              pareto[["year", "pareto_income_share_pct", "pareto_selection_status"]],
+              on="year",
+              validate="one_to_one",
           )
-          if not np.allclose(
-              merged["gompertz_income_share_pct"] + merged["pareto_income_share_pct"],
+          unsupported = merged["pareto_selection_status"].astype(str).str.startswith("unsupported_")
+          supported = ~unsupported
+          share_columns = ["gompertz_income_share_pct", "pareto_income_share_pct"]
+
+          if merged.loc[supported, share_columns].isna().any().any():
+              raise SystemExit("Supported Gompertz/Pareto regimes contain missing income shares")
+          if supported.any() and not np.allclose(
+              merged.loc[supported, "gompertz_income_share_pct"]
+              + merged.loc[supported, "pareto_income_share_pct"],
               100.0,
               atol=1e-8,
           ):
-              raise SystemExit("Gompertz/Pareto income shares do not sum to 100%")
+              raise SystemExit("Supported Gompertz/Pareto income shares do not sum to 100%")
+          if merged.loc[unsupported, share_columns].notna().any().any():
+              raise SystemExit("Unsupported Pareto years must retain missing regime income shares")
 
           required_economic = {
               "income_observation_n",

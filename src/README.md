@@ -15,6 +15,10 @@ The `src` directory contains the canonical scientific workflow. Stages 00–02 b
 
 Stage 00 generates both `data/metadata/df_metadata.xlsx` and `data/metadata/df_metadata.csv`. The `Build metadata` workflow regenerates and validates both artifacts whenever the Stage-00 implementation changes.
 
+## Stage 02 upper-tail policy
+
+The trusted layer applies the canonical log-MAD rule after structural cleaning. In 1985 and 1990 the effective upper cutoff is `min(log-MAD, p99)`. This exception is defined solely from the within-year income distribution and is not calibrated to IPEA or World Bank inequality series. Refined data remain unchanged.
+
 ## Stage 03
 
 The main regime analysis uses normalized positive individual income, geometric thresholds with ratio `1.10`, and a percent-scale CCDF. The current Gompertz model is

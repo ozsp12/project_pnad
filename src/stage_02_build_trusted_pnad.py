@@ -19,11 +19,14 @@ a structural cleaning rule and is never delegated to the statistical outlier
 criterion.
 
 For the 1985 and 1990 surveys, the trusted layer applies an additional
-conservative upper-tail rule: observations strictly above the empirical 99th
-percentile of the structurally valid annual income distribution are removed.
-The effective cutoff is therefore the minimum between the annual log-MAD
-cutoff and the empirical p99 cutoff. The refined datasets remain unchanged,
-and the exceptional cutoff is recorded explicitly in the audit table.
+upper-tail rule: observations strictly above the empirical 99th percentile of
+the structurally valid annual income distribution are removed. The effective
+cutoff is therefore the minimum between the annual log-MAD cutoff and the
+empirical p99 cutoff. This exceptional rule is defined from within-year tail
+behavior and leverage only; external Gini reference series are not used to
+select, tune, or validate the cutoff during construction. The refined datasets
+remain unchanged, and the exceptional cutoff is recorded explicitly in the
+audit table.
 """
 
 from __future__ import annotations

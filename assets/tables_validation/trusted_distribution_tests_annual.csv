@@ -7,12 +7,12 @@ year,input_n_nan,input_n_inf,input_n_negative,input_n_sentinel,n_invalid_structu
 1982,0,0,0,0,0,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.0,0.0,0.0,True
 1983,0,0,0,0,0,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.0,0.0,0.0,True
 1984,0,0,0,0,0,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.0,0.0,0.0,True
-1985,0,0,0,0,0,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.0,0.0,0.0,True
+1985,0,0,0,0,0,0,5142,True,True,True,True,True,True,True,True,True,True,True,True,True,-0.014925373134328401,-0.12864398352002648,0.0,0.010001225354331627,0.010001225354331627,True
 1986,0,0,0,0,0,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.0,0.0,0.0,True
 1987,0,0,0,0,0,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.0,0.0,0.0,True
 1988,0,0,0,0,0,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.0,0.0,0.0,True
 1989,0,0,0,0,0,0,2,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,-0.005976660506254634,0.0,6.833168198435205e-06,6.833168198435205e-06,True
-1990,0,0,0,0,0,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.0,0.0,0.0,True
+1990,0,0,0,0,0,0,1128,True,True,True,True,True,True,True,True,True,True,True,True,True,-0.033988857673444145,-0.16645737763929813,0.0,0.009742194584790776,0.009742194584790776,True
 1992,0,0,0,0,0,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.0,0.0,0.0,True
 1993,0,0,0,0,0,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.0,0.0,0.0,True
 1995,0,0,0,0,0,0,0,True,True,True,True,True,True,True,True,True,True,True,True,True,0.0,0.0,0.0,0.0,0.0,True

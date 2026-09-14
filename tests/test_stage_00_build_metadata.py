@@ -4,10 +4,29 @@ import sys
 import numpy as np
 import pandas as pd
 import pytest
+from pandas.testing import assert_frame_equal
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO_ROOT))
 
 from src import stage_00_build_metadata as stage_00
+
+
+STRING_COLUMNS = [
+    "var_renda",
+    "var_morador",
+    "link",
+    "raw_subdir",
+    "raw_pattern",
+    "Currency",
+]
+
+
+def normalize_metadata(frame):
+    frame = frame.copy()
+    for column in STRING_COLUMNS:
+        frame[column] = frame[column].fillna("").astype(str)
+    return frame
 
 
 def test_specs_cover_full_period_and_validate_available_years():
@@ -82,8 +101,8 @@ def test_save_metadata_roundtrip(tmp_path):
     csv_output = tmp_path / "df_metadata.csv"
 
     saved = stage_00.save_metadata(metadata, output)
-    restored_xlsx = pd.read_excel(saved)
-    restored_csv = pd.read_csv(csv_output)
+    restored_xlsx = pd.read_excel(saved, dtype={"raw_subdir": "string"})
+    restored_csv = pd.read_csv(csv_output, dtype={"raw_subdir": "string"})
 
     assert saved == output
     assert output.is_file()
@@ -92,3 +111,32 @@ def test_save_metadata_roundtrip(tmp_path):
     assert restored_csv["ano"].tolist() == metadata["ano"].tolist()
     assert list(restored_xlsx.columns) == list(metadata.columns)
     assert list(restored_csv.columns) == list(metadata.columns)
+
+
+def test_persisted_metadata_artifacts_match_stage_00_builder():
+    expected = normalize_metadata(stage_00.build_metadata_df())
+    metadata_dir = REPO_ROOT / "data" / "metadata"
+
+    persisted_csv = normalize_metadata(
+        pd.read_csv(metadata_dir / "df_metadata.csv", dtype={"raw_subdir": "string"})
+    )
+    persisted_xlsx = normalize_metadata(
+        pd.read_excel(metadata_dir / "df_metadata.xlsx", dtype={"raw_subdir": "string"})
+    )
+
+    assert_frame_equal(
+        expected,
+        persisted_csv,
+        check_dtype=False,
+        check_exact=False,
+        rtol=1e-12,
+        atol=1e-12,
+    )
+    assert_frame_equal(
+        expected,
+        persisted_xlsx,
+        check_dtype=False,
+        check_exact=False,
+        rtol=1e-12,
+        atol=1e-12,
+    )

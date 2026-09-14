@@ -2,41 +2,36 @@ name: Build paper assets
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Run PNAD analysis"]
+    types: [completed]
   pull_request:
     paths:
-      - "src/stage_03_pnad_analysis.py"
       - "src/stage_05_publication.py"
-      - "data/refined/**"
-      - "data/trusted/**"
-      - "data/auxiliary/**"
-      - "data/metadata/df_metadata.xlsx"
       - "assets/tables_analysis_refined/**"
       - "assets/tables_analysis_trusted/**"
       - "requirements.txt"
-      - ".github/workflows/build_paper_assets.yml"
   push:
     branches: [main]
     paths:
-      - "src/stage_03_pnad_analysis.py"
       - "src/stage_05_publication.py"
-      - "data/refined/**"
-      - "data/trusted/**"
-      - "data/auxiliary/**"
-      - "data/metadata/df_metadata.xlsx"
-      - "assets/tables_analysis_refined/**"
-      - "assets/tables_analysis_trusted/**"
-      - "requirements.txt"
-      - ".github/workflows/build_paper_assets.yml"
 
 permissions:
   contents: write
 
+concurrency:
+  group: pnad-paper-assets-main
+  cancel-in-progress: true
+
 jobs:
   paper-assets:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -47,10 +42,14 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Refresh Stage 03 scientific results
-        env:
-          MPLBACKEND: Agg
-        run: python src/stage_03_pnad_analysis.py
+      - name: Ensure Stage 03 analytical tables exist
+        shell: bash
+        run: |
+          test -f assets/tables_analysis_trusted/statistics_annual.csv
+          test -f assets/tables_analysis_trusted/gompertz_annual.csv
+          test -f assets/tables_analysis_trusted/pareto_annual.csv
+          test -f assets/tables_analysis_trusted/gompertz_pareto_curves.csv
+          test -f assets/tables_analysis_trusted/lorenz.csv
 
       - name: Build Stage 05 publication assets
         env:
@@ -141,12 +140,10 @@ jobs:
           if-no-files-found: error
 
       - name: Commit paper assets
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git restore assets/tables_analysis_refined assets/tables_analysis_trusted
-          git restore assets/figures_analysis_refined assets/figures_analysis_trusted
           git add assets/figures_paper assets/tables_paper
           if git diff --cached --quiet; then
             echo "No paper-asset changes to commit."

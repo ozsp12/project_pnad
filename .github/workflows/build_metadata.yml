@@ -1,0 +1,73 @@
+name: Build metadata
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/stage_00_build_metadata.py"
+      - ".github/workflows/build_metadata.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build-metadata:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate metadata
+        run: python src/stage_00_build_metadata.py
+
+      - name: Validate generated formats
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          from pandas.testing import assert_frame_equal
+          from src.stage_00_build_metadata import build_metadata_df
+
+          expected = build_metadata_df()
+          csv = pd.read_csv("data/metadata/df_metadata.csv")
+          xlsx = pd.read_excel("data/metadata/df_metadata.xlsx")
+
+          string_columns = [
+              "var_renda", "var_morador", "link", "raw_subdir", "raw_pattern", "Currency"
+          ]
+
+          def normalize(frame):
+              frame = frame.copy()
+              for column in string_columns:
+                  frame[column] = frame[column].fillna("").astype(str)
+              return frame
+
+          expected = normalize(expected)
+          csv = normalize(csv)
+          xlsx = normalize(xlsx)
+
+          assert_frame_equal(expected, csv, check_dtype=False, check_exact=False, rtol=1e-12, atol=1e-12)
+          assert_frame_equal(expected, xlsx, check_dtype=False, check_exact=False, rtol=1e-12, atol=1e-12)
+          PY
+
+      - name: Commit refreshed metadata
+        run: |
+          if git diff --quiet -- data/metadata/df_metadata.xlsx data/metadata/df_metadata.csv; then
+            echo "Metadata already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/metadata/df_metadata.xlsx data/metadata/df_metadata.csv
+          git commit -m "refresh generated PNAD metadata"
+          git push

@@ -78,16 +78,19 @@ jobs:
               print(f"{name}: {removed}")
           PY
 
-      - name: Commit sanitized refined datasets
+      - name: Rebuild trusted datasets and validation audits
+        run: python src/stage_02_build_trusted_pnad.py
+
+      - name: Commit synchronized refined and trusted outputs
         run: |
-          if git diff --quiet -- data/refined; then
-            echo "Refined datasets already contain no global sentinels."
+          if git diff --quiet -- data/refined data/trusted assets/tables_validation; then
+            echo "Refined and trusted datasets already synchronized."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/refined
-          git commit -m "remove sentinel values from refined PNAD datasets"
+          git add data/refined data/trusted assets/tables_validation
+          git commit -m "synchronize sentinel-clean PNAD datasets"
           git fetch origin main
           git rebase origin/main
           git push origin HEAD:main

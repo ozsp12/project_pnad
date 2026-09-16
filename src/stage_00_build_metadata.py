@@ -1,8 +1,9 @@
 """Build PNAD metadata for the 1976–2025 longitudinal income dataset.
 
 This module centralizes annual extraction specifications, raw-file ingestion
-metadata, currency/exchange-rate information, and CPI-based normalization
-factors used by the downstream PNAD pipeline.
+metadata, currency/exchange-rate information, CPI-based normalization factors,
+and deterministic ingestion-scale corrections used by the downstream PNAD
+pipeline.
 """
 
 from pathlib import Path
@@ -102,6 +103,9 @@ def build_specs_pnad_df():
     df.loc[df["ano"].between(2016, 2025) & available, "missing_renda"] = 999_999
     df.loc[df["ano"].isin([1976, 1981, 1982, 1983, 1984]), "missing_renda"] = 9_999_999
 
+    df["income_scale_divisor"] = 1.0
+    df.loc[df["ano"] == 2017, "income_scale_divisor"] = 100.0
+
     for column in ("link", "raw_subdir", "raw_pattern"):
         df[column] = df[column].fillna("")
 
@@ -165,6 +169,8 @@ def build_metadata_df():
     assert (df_specs.loc[available, "raw_pattern"] != "").all()
     assert (df_specs.loc[available, "n_files"] > 0).all()
     assert df_specs.loc[available, "missing_renda"].notna().all()
+    assert df_specs.loc[available, "income_scale_divisor"].notna().all()
+    assert (df_specs.loc[available, "income_scale_divisor"] > 0).all()
 
     df_currency = build_currency_df()
 

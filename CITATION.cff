@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite it using the metadata in this file."
+title: "PNAD Longitudinal Income Research"
+type: software
+authors:
+  - family-names: "Santos-Pereira"
+    given-names: "Osvaldo L."
+repository-code: "https://github.com/ozsp12/project_pnad"
+license: MIT
+abstract: "Reproducible computational workflow for longitudinal analysis of Brazilian income distributions using PNAD and PNAD Continua microdata, including harmonization, deterministic upper-tail treatment, inequality statistics, Gompertz-Pareto modeling, diagnostics, and publication assets."

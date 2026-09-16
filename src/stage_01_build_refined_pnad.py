@@ -5,6 +5,10 @@ All survey-year-specific extraction rules are read from
 ``stage_00_build_metadata.py``. In addition to the annual missing-income code,
 the project-wide sentinel values 999999, 9999999, and 99999999 are always
 excluded before any per-capita transformation.
+
+The 2017 PNAD Contínua ``VD5008`` field requires a deterministic scale
+correction: parsed values are divided by 100 before they enter the refined
+layer. This is an ingestion/unit correction, not an upper-tail treatment.
 """
 
 from pathlib import Path
@@ -20,6 +24,7 @@ DEFAULT_RAW_PATH = REPO_ROOT / "data" / "raw"
 DEFAULT_REFINED_PATH = REPO_ROOT / "data" / "refined"
 
 GLOBAL_INCOME_SENTINELS = frozenset({999_999, 9_999_999, 99_999_999})
+YEAR_INCOME_SCALE_DIVISORS = {2017: 100.0}
 
 REQUIRED_METADATA_COLUMNS = {
     "ano",
@@ -123,6 +128,7 @@ def read_year_fast(spec, raw_path=DEFAULT_RAW_PATH, show_file_progress=True):
     income_start = int(spec.pos_renda)
     income_end = income_start + int(spec.tam_renda)
     missing_income = int(spec.missing_renda)
+    income_scale_divisor = YEAR_INCOME_SCALE_DIVISORS.get(year, 1.0)
 
     has_member = pd.notna(spec.pos_morador) and pd.notna(spec.tam_morador)
     if has_member:
@@ -168,9 +174,9 @@ def read_year_fast(spec, raw_path=DEFAULT_RAW_PATH, show_file_progress=True):
                         if member is None or member <= 0:
                             n_invalid_member += 1
                         else:
-                            incomes.append(income / member)
+                            incomes.append((income / income_scale_divisor) / member)
                     else:
-                        incomes.append(float(income))
+                        incomes.append(float(income) / income_scale_divisor)
 
                     if bytes_since_update >= 4 * 1024 * 1024:
                         progress.update(bytes_since_update)
@@ -197,6 +203,7 @@ def read_year_fast(spec, raw_path=DEFAULT_RAW_PATH, show_file_progress=True):
         "n_invalid_renda": n_invalid_income,
         "n_invalid_morador": n_invalid_member if has_member else 0,
         "per_capita": has_member,
+        "income_scale_divisor": income_scale_divisor,
     }
 
     return df_refined, stats

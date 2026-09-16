@@ -6,9 +6,9 @@ All survey-year-specific extraction rules are read from
 the project-wide sentinel values 999999, 9999999, and 99999999 are always
 excluded before any per-capita transformation.
 
-The 2017 PNAD Contínua ``VD5008`` field requires a deterministic scale
-correction: parsed values are divided by 100 before they enter the refined
-layer. This is an ingestion/unit correction, not an upper-tail treatment.
+Year-specific unit corrections are declared in the canonical Stage-00 metadata
+through ``income_scale_divisor`` and are applied before values enter the
+refined layer. These are ingestion/unit corrections, not upper-tail treatments.
 """
 
 from pathlib import Path
@@ -24,7 +24,6 @@ DEFAULT_RAW_PATH = REPO_ROOT / "data" / "raw"
 DEFAULT_REFINED_PATH = REPO_ROOT / "data" / "refined"
 
 GLOBAL_INCOME_SENTINELS = frozenset({999_999, 9_999_999, 99_999_999})
-YEAR_INCOME_SCALE_DIVISORS = {2017: 100.0}
 
 REQUIRED_METADATA_COLUMNS = {
     "ano",
@@ -33,6 +32,7 @@ REQUIRED_METADATA_COLUMNS = {
     "pos_morador",
     "tam_morador",
     "missing_renda",
+    "income_scale_divisor",
     "raw_subdir",
     "raw_pattern",
     "n_files",
@@ -63,6 +63,11 @@ def load_metadata(metadata_path=DEFAULT_METADATA_PATH):
     if not df_metadata["ano"].is_unique:
         raise ValueError("Metadata contains duplicated years.")
 
+    scale = pd.to_numeric(df_metadata["income_scale_divisor"], errors="coerce")
+    available = df_metadata["pos_renda"].notna()
+    if scale.loc[available].isna().any() or (scale.loc[available] <= 0).any():
+        raise ValueError("Available survey years require a positive income_scale_divisor.")
+
     return df_metadata
 
 
@@ -75,6 +80,7 @@ def get_available_specs(df_metadata):
         & (df_metadata["raw_pattern"].astype(str).str.strip() != "")
         & (df_metadata["n_files"].fillna(0) > 0)
         & df_metadata["missing_renda"].notna()
+        & df_metadata["income_scale_divisor"].notna()
     ].copy()
 
     return available.sort_values("ano").reset_index(drop=True)
@@ -128,7 +134,9 @@ def read_year_fast(spec, raw_path=DEFAULT_RAW_PATH, show_file_progress=True):
     income_start = int(spec.pos_renda)
     income_end = income_start + int(spec.tam_renda)
     missing_income = int(spec.missing_renda)
-    income_scale_divisor = YEAR_INCOME_SCALE_DIVISORS.get(year, 1.0)
+    income_scale_divisor = float(spec.income_scale_divisor)
+    if not pd.notna(income_scale_divisor) or income_scale_divisor <= 0:
+        raise ValueError(f"Invalid income_scale_divisor for {year}: {income_scale_divisor}")
 
     has_member = pd.notna(spec.pos_morador) and pd.notna(spec.tam_morador)
     if has_member:

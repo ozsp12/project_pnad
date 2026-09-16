@@ -39,6 +39,8 @@ def test_specs_cover_full_period_and_validate_available_years():
     assert (available["raw_pattern"].astype(str).str.len() > 0).all()
     assert (available["n_files"] > 0).all()
     assert available["missing_renda"].notna().all()
+    assert available["income_scale_divisor"].notna().all()
+    assert (available["income_scale_divisor"] > 0).all()
 
     multi_file = available.set_index("ano").loc[[1983, 1988]]
     assert (multi_file["n_files"] == 8).all()
@@ -71,6 +73,10 @@ def test_specs_preserve_validated_income_fields():
         assert specs.loc[year, "tam_renda"] == 8
         assert specs.loc[year, "missing_renda"] == 999_999
 
+    assert specs.loc[2017, "income_scale_divisor"] == pytest.approx(100.0)
+    for year in [2016, 2018, 2019, 2025]:
+        assert specs.loc[year, "income_scale_divisor"] == pytest.approx(1.0)
+
 
 def test_currency_metadata_is_normalized_to_2025():
     currency = stage_00.build_currency_df()
@@ -92,7 +98,7 @@ def test_metadata_merge_preserves_one_row_per_year():
 
     assert metadata["ano"].tolist() == list(range(1976, 2026))
     assert metadata["ano"].is_unique
-    assert {"Currency", "Exchange", "Index", "Inflation"}.issubset(metadata.columns)
+    assert {"Currency", "Exchange", "Index", "Inflation", "income_scale_divisor"}.issubset(metadata.columns)
 
 
 def test_save_metadata_roundtrip(tmp_path):

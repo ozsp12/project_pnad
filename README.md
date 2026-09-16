@@ -15,6 +15,10 @@ This repository contains the reproducible computational workflow used to study t
 
 The original fixed-width PNAD microdata are local files of approximately 20 GB and are not versioned under `data/raw/`. The persisted `data/refined/` layer is therefore the normal reproducible starting point inside GitHub. Source code under `src/` is authoritative.
 
+## 2017 PNAD Contínua income-scale correction
+
+Stage 01 applies one explicit year-specific unit correction to the 2017 PNAD Contínua income field `VD5008`: parsed values are divided by `100` before being written to the refined layer. This is an ingestion-scale correction, not an outlier filter or upper-tail treatment. Without the correction, the 2017 refined sample has nominal mean income of approximately R$ 106,446.8 and median income of R$ 65,030, roughly two orders of magnitude above the neighboring years. Dividing by 100 yields approximately R$ 1,064.47 and R$ 650.30, respectively, restoring the expected scale between 2016 and 2018 while preserving the full empirical distribution. The correction is encoded by `YEAR_INCOME_SCALE_DIVISORS = {2017: 100.0}` and is covered by a dedicated Stage-01 regression test.
+
 ## Trusted upper-tail treatment
 
 Stage 02 uses the annual log-MAD upper-tail rule after structural cleaning. For 1985 and 1990 only, the trusted layer additionally applies the empirical 99th-percentile cutoff, with the effective threshold defined as `min(log-MAD, p99)`. The exception is based exclusively on within-year tail behavior and leverage; IPEA and World Bank Gini series are not used to choose or tune the cutoff. The untrimmed observations remain available in the refined layer. If the resulting trusted tail does not retain the canonical minimum number of Pareto bins, Stage 03 records the Pareto regime as unsupported rather than relaxing the fitting criterion.

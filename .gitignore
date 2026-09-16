@@ -17,7 +17,7 @@ env/
 # Local raw microdata
 data/raw/
 
-# Paper figures: canonical repository format is SVG only
+# Paper figures: canonical repository format is PNG only
 assets/figures_paper/*.pdf
 
 # Operating-system and editor files

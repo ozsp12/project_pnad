@@ -97,6 +97,36 @@ def test_read_year_fast_parses_per_capita_income_and_audit_counts(tmp_path):
     assert stats["n_invalid_renda"] == 1
     assert stats["n_invalid_morador"] == 1
     assert stats["per_capita"] is True
+    assert stats["income_scale_divisor"] == 1.0
+
+
+def test_read_year_fast_applies_2017_income_scale_correction(tmp_path):
+    raw = tmp_path / "sample.dat"
+    raw.write_bytes(
+        b"00065030\n"
+        b"00106447\n"
+    )
+    spec = SimpleNamespace(
+        ano=2017,
+        raw_subdir="",
+        raw_pattern="sample.dat",
+        n_files=1,
+        pos_renda=0,
+        tam_renda=8,
+        missing_renda=999999,
+        pos_morador=None,
+        tam_morador=None,
+    )
+
+    refined, stats = stage_01.read_year_fast(
+        spec,
+        raw_path=tmp_path,
+        show_file_progress=False,
+    )
+
+    assert refined["renda"].tolist() == pytest.approx([650.30, 1064.47])
+    assert refined["ano"].tolist() == [2017, 2017]
+    assert stats["income_scale_divisor"] == 100.0
 
 
 def test_read_year_fast_removes_global_sentinels_before_transformation(tmp_path):

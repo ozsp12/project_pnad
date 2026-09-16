@@ -23,6 +23,8 @@ Stage 02 uses the annual log-MAD upper-tail rule after structural cleaning. For 
 
 Stage 03 applies the same analytical pipeline independently to `refined` and `trusted`. The `refined` layer is the baseline and the `trusted` layer is the benchmark. Their analytical directories must remain structurally identical: the same filenames, the same column schemas, and the same metadata schema.
 
+All distributional statistics in this repository are computed on the annual PNAD and PNAD Contínua samples with equal observation weights. Survey expansion weights are intentionally not applied. The reported quantities therefore characterize the empirical distributions of the analyzed samples rather than design-weighted official population estimates. External IPEA and World Bank Gini series are used only as external validation references and are not treated as estimand-equivalent targets.
+
 The six canonical scientific CSVs in both `assets/tables_analysis_refined/` and `assets/tables_analysis_trusted/` are:
 
 - `statistics_annual.csv`;
@@ -109,3 +111,7 @@ Stage 04 may be executed independently. Publication assets are generated with on
 ```bash
 python src/stage_05_publication.py
 ```
+
+## Citation and license
+
+Repository citation metadata are provided in `CITATION.cff`. The software in this repository is released under the MIT License; see `LICENSE`. Upstream PNAD and PNAD Contínua microdata remain subject to the terms and conditions of their original data providers.

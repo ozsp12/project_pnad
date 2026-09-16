@@ -18,6 +18,7 @@ def complete_metadata_row(year=2025):
         "pos_morador": 4,
         "tam_morador": 2,
         "missing_renda": 9999,
+        "income_scale_divisor": 1.0,
         "raw_subdir": "",
         "raw_pattern": "sample.dat",
         "n_files": 1,
@@ -30,6 +31,16 @@ def test_load_metadata_rejects_duplicate_years(tmp_path):
     frame.to_excel(path, index=False)
 
     with pytest.raises(ValueError, match="duplicated years"):
+        stage_01.load_metadata(path)
+
+
+def test_load_metadata_rejects_invalid_income_scale_divisor(tmp_path):
+    row = complete_metadata_row()
+    row["income_scale_divisor"] = 0.0
+    path = tmp_path / "metadata.xlsx"
+    pd.DataFrame([row]).to_excel(path, index=False)
+
+    with pytest.raises(ValueError, match="positive income_scale_divisor"):
         stage_01.load_metadata(path)
 
 
@@ -78,6 +89,7 @@ def test_read_year_fast_parses_per_capita_income_and_audit_counts(tmp_path):
         pos_renda=0,
         tam_renda=4,
         missing_renda=9999,
+        income_scale_divisor=1.0,
         pos_morador=4,
         tam_morador=2,
     )
@@ -114,6 +126,7 @@ def test_read_year_fast_applies_2017_income_scale_correction(tmp_path):
         pos_renda=0,
         tam_renda=8,
         missing_renda=999999,
+        income_scale_divisor=100.0,
         pos_morador=None,
         tam_morador=None,
     )
@@ -145,6 +158,7 @@ def test_read_year_fast_removes_global_sentinels_before_transformation(tmp_path)
         pos_renda=0,
         tam_renda=8,
         missing_renda=88_888_888,
+        income_scale_divisor=1.0,
         pos_morador=None,
         tam_morador=None,
     )

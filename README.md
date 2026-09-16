@@ -17,7 +17,9 @@ The original fixed-width PNAD microdata are local files of approximately 20 GB a
 
 ## 2017 PNAD Contínua income-scale correction
 
-Stage 01 applies one explicit year-specific unit correction to the 2017 PNAD Contínua income field `VD5008`: parsed values are divided by `100` before being written to the refined layer. This is an ingestion-scale correction, not an outlier filter or upper-tail treatment. Without the correction, the 2017 refined sample has nominal mean income of approximately R$ 106,446.8 and median income of R$ 65,030, roughly two orders of magnitude above the neighboring years. Dividing by 100 yields approximately R$ 1,064.47 and R$ 650.30, respectively, restoring the expected scale between 2016 and 2018 while preserving the full empirical distribution. The correction is encoded by `YEAR_INCOME_SCALE_DIVISORS = {2017: 100.0}` and is covered by a dedicated Stage-01 regression test.
+Stage 00 records the deterministic ingestion-scale rule in the canonical metadata column `income_scale_divisor`: the value is `100.0` for the 2017 PNAD Contínua income field `VD5008` and `1.0` for the other survey years. Stage 01 reads this metadata and applies the divisor only after missing-income and sentinel codes have been identified, before the refined layer is written. This is an ingestion/unit correction, not an outlier filter or upper-tail treatment.
+
+The correction is documented against the official IBGE 2017 PNAD Contínua quarterly microdata source declared in the Stage-00 metadata and cross-checked against the income scale reported by IBGE for 2017. Without the correction, the persisted 2017 sample has nominal mean income of approximately R$ 106,446.8 and median income of R$ 65,030, roughly two orders of magnitude above the neighboring years. Dividing by 100 yields approximately R$ 1,064.47 and R$ 650.30, respectively, restoring the expected scale between 2016 and 2018 while preserving the full empirical distribution. The metadata rule and parser behavior are covered by dedicated regression tests.
 
 ## Trusted upper-tail treatment
 

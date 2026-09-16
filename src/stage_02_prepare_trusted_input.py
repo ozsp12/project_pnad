@@ -13,7 +13,10 @@ from tempfile import TemporaryDirectory
 import numpy as np
 import pandas as pd
 
-from src import stage_02_build_trusted_pnad as stage_02
+try:
+    from src import stage_02_build_trusted_pnad as stage_02
+except ModuleNotFoundError:  # direct execution: python src/stage_02_prepare_trusted_input.py
+    import stage_02_build_trusted_pnad as stage_02
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

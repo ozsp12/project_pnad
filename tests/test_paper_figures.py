@@ -6,6 +6,8 @@ import matplotlib
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import pytest
 from matplotlib.colors import to_rgb
 from matplotlib.ticker import NullFormatter
@@ -45,24 +47,86 @@ def test_log_grid_suppresses_minor_tick_labels():
         plt.close(fig)
 
 
-def test_publication_palette_is_strictly_monochrome():
+def test_publication_palette_is_colored_and_canonical():
     colors = matplotlib.rcParams["axes.prop_cycle"].by_key()["color"]
-    assert tuple(colors) == stage_05.MONOCHROME_COLORS
+    assert tuple(colors) == stage_05.PUBLICATION_COLORS
+    assert len(set(colors)) == len(colors)
     for color in colors:
         red, green, blue = to_rgb(color)
-        assert red == pytest.approx(green)
-        assert green == pytest.approx(blue)
+        assert not (red == pytest.approx(green) and green == pytest.approx(blue))
 
 
-def test_series_template_uses_distinct_nonchromatic_encodings():
+def test_series_template_uses_color_line_and_marker_encodings():
     assert len(set(stage_05.LINE_STYLES)) == len(stage_05.LINE_STYLES)
     assert len(set(stage_05.MARKERS)) == len(stage_05.MARKERS)
-    for index in range(len(stage_05.MONOCHROME_COLORS)):
+    for index, color in enumerate(stage_05.PUBLICATION_COLORS[: len(stage_05.MARKERS)]):
         spec = stage_05.series_style(index)
-        assert spec["markerfacecolor"] == "white"
-        red, green, blue = to_rgb(spec["color"])
-        assert red == pytest.approx(green)
-        assert green == pytest.approx(blue)
+        assert spec["color"] == color
+        assert spec["markerfacecolor"] == color
+        assert spec["markeredgecolor"] == color
+
+
+def test_adjusted_income_uses_metadata_scale(monkeypatch):
+    monkeypatch.setattr(
+        stage_05,
+        "income",
+        lambda year, positive=True: np.array([100.0, 200.0]),
+    )
+    metadata = pd.DataFrame(
+        {"exchange": [2.0], "Inflation": [3.0]}, index=pd.Index([2000], name="year")
+    )
+
+    adjusted = stage_05.adjusted_income(2000, metadata)
+
+    assert adjusted.tolist() == pytest.approx([150.0, 300.0])
+
+
+def test_lorenz_geometry_contains_area_and_inequality_annotations(monkeypatch):
+    lorenz = pd.DataFrame(
+        {
+            "year": [2000, 2000, 2000, 2000],
+            "population_share": [0.0, 0.5, 0.7, 1.0],
+            "income_share": [0.0, 0.2, 0.3, 1.0],
+        }
+    )
+    stats = pd.DataFrame(
+        {
+            "year": [2000],
+            "Gini": [0.50],
+            "Kolkata": [0.70],
+            "Zanardi": [0.02],
+            "Pietra": [0.40],
+        }
+    )
+    captured = {}
+
+    def fake_family(years, stem, draw, xlabel, ylabel, legend=False, ncol=3):
+        fig, ax = plt.subplots()
+        try:
+            draw(ax, 2000)
+            captured["stem"] = stem
+            captured["xlabel"] = xlabel
+            captured["ylabel"] = ylabel
+            captured["labels"] = ax.get_legend_handles_labels()[1]
+            captured["line_colors"] = [line.get_color() for line in ax.lines]
+        finally:
+            plt.close(fig)
+
+    monkeypatch.setattr(stage_05, "family", fake_family)
+    stage_05.plot_lorenz(lorenz, stats, [2000])
+
+    assert captured["stem"] == "lorenz_geometry"
+    assert captured["xlabel"] == "Households (%)"
+    assert captured["ylabel"] == "Income (%)"
+    assert "area B" in captured["labels"]
+    assert "equality line" in captured["labels"]
+    assert any(label.startswith("k:") for label in captured["labels"])
+    assert any(label.startswith("G:") for label in captured["labels"])
+    assert any(label.startswith("Z:") for label in captured["labels"])
+    assert any(label.startswith("p:") for label in captured["labels"])
+    assert stage_05.PURPLE in captured["line_colors"]
+    assert stage_05.RED in captured["line_colors"]
+    assert stage_05.ROYAL_BLUE in captured["line_colors"]
 
 
 def test_save_figure_writes_only_png(tmp_path, monkeypatch):

@@ -29,22 +29,33 @@ CANONICAL_TABLES = {
     p.name for p in (GOMPERTZ_OUT, PARETO_OUT, ECONOMIC_OUT, METADATA_OUT)
 }
 
-# Publication template: grayscale only. Series are distinguished by line style
-# and marker geometry, never by chromatic color.
-MONOCHROME_COLORS = ("0.05", "0.30", "0.50", "0.68")
+# Color publication template. The palette follows the historical paper figures:
+# blue for the principal series, warm colors for comparisons, and purple for
+# Lorenz geometry. Line style and marker shape remain secondary encodings.
+BLUE = "#1f77b4"
+RED = "#d62728"
+DARK_RED = "#8b1a1a"
+ORANGE = "#ff7f0e"
+GREEN = "#2ca02c"
+PURPLE = "#8e24aa"
+TEAL = "#008080"
+SALMON = "#fa8072"
+ROYAL_BLUE = "#4169e1"
+LORENZ_FILL = "#e6b3e6"
+PUBLICATION_COLORS = (BLUE, ORANGE, GREEN, RED, PURPLE, TEAL)
 LINE_STYLES = ("-", "--", ":", "-.")
 MARKERS = ("o", "s", "^", "D")
 
 mpl.rcParams.update(
     {
-        "font.family": "serif",
+        "font.family": "sans-serif",
         "font.size": 8.5,
         "axes.titlesize": 9.0,
         "axes.labelsize": 9.0,
         "axes.edgecolor": "0.20",
         "axes.labelcolor": "0.10",
         "axes.linewidth": 0.70,
-        "axes.prop_cycle": cycler(color=MONOCHROME_COLORS),
+        "axes.prop_cycle": cycler(color=PUBLICATION_COLORS),
         "xtick.labelsize": 7.0,
         "ytick.labelsize": 7.0,
         "xtick.color": "0.15",
@@ -71,47 +82,49 @@ def groups(years):
     return [years[i : i + MAX_PANELS] for i in range(0, len(years), MAX_PANELS)]
 
 
-def grid(n):
+def grid(n, figsize=PAGE_SIZE):
     if n > MAX_PANELS:
         raise ValueError(f"At most {MAX_PANELS} panels are allowed per image.")
-    return plt.subplots(min(4, math.ceil(n / 3)), 3, figsize=PAGE_SIZE, squeeze=False)
+    return plt.subplots(min(4, math.ceil(n / 3)), 3, figsize=figsize, squeeze=False)
 
 
-def series_style(index, linewidth=1.10):
-    i = index % len(MONOCHROME_COLORS)
-    color = MONOCHROME_COLORS[i]
+def series_style(index, linewidth=1.25):
+    i = index % len(PUBLICATION_COLORS)
+    color = PUBLICATION_COLORS[i]
     return {
         "color": color,
-        "ls": LINE_STYLES[i],
-        "marker": MARKERS[i],
-        "markerfacecolor": "white",
+        "ls": LINE_STYLES[i % len(LINE_STYLES)],
+        "marker": MARKERS[i % len(MARKERS)],
+        "markerfacecolor": color,
         "markeredgecolor": color,
-        "markeredgewidth": 0.75,
-        "ms": 3.2,
+        "markeredgewidth": 0.65,
+        "ms": 3.4,
         "lw": linewidth,
     }
 
 
-def scatter_style(edge="0.18", size=10):
+def scatter_style(edge=BLUE, size=10):
     return {
         "s": size,
         "facecolors": "white",
         "edgecolors": edge,
-        "linewidths": 0.55,
+        "linewidths": 0.65,
         "zorder": 3,
     }
 
 
-def style(ax, log=False):
+def style(ax, log=False, grid_lines=True):
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.spines["left"].set_color("0.20")
     ax.spines["bottom"].set_color("0.20")
     ax.tick_params(which="major", width=0.65, length=3.0)
     ax.tick_params(which="minor", width=0.45, length=2.0)
-    ax.grid(True, which="major", color="0.88", lw=0.45, zorder=0)
+    if grid_lines:
+        ax.grid(True, which="major", color="0.82", lw=0.55, ls="--", alpha=0.75, zorder=0)
     if log:
-        ax.grid(True, which="minor", color="0.95", lw=0.30, zorder=0)
+        if grid_lines:
+            ax.grid(True, which="minor", color="0.92", lw=0.35, ls=":", alpha=0.75, zorder=0)
         for axis in (ax.xaxis, ax.yaxis):
             axis.set_major_locator(LogLocator(base=10, numticks=6))
             axis.set_major_formatter(LogFormatterMathtext(base=10, labelOnlyBase=True))
@@ -178,12 +191,13 @@ def global_legend(fig, axes, used, ncol=3):
         )
 
 
-def family(years, stem, draw, xlabel, ylabel, legend=False, ncol=3):
+def family(years, stem, draw, xlabel, ylabel, legend=False, ncol=3, figsize=None):
     for part, block in enumerate(groups(years), 1):
-        fig, axes = grid(len(block))
+        fig, axes = grid(len(block), PAGE_SIZE if figsize is None else figsize)
         for ax, year in zip(axes.ravel(), block):
             draw(ax, year)
-            ax.set_title(str(year), fontweight="semibold")
+            if not ax.get_title():
+                ax.set_title(str(year), fontweight="semibold")
         for ax in axes.ravel()[len(block) :]:
             ax.remove()
         fig.supxlabel(xlabel, fontsize=9.3, y=0.006)
@@ -227,6 +241,13 @@ def income(year, positive=True):
     return x[x > 0] if positive else x
 
 
+def adjusted_income(year, metadata_index, positive=True):
+    """Convert trusted nominal income to the Stage-03 2025-US$ presentation scale."""
+    x = income(year, positive=positive)
+    row = metadata_index.loc[year]
+    return x / float(row["exchange"]) * float(row["Inflation"])
+
+
 def annual_plot_frame(df):
     """Return a plotting-only annual grid with NaN at unobserved years."""
     data = df.copy()
@@ -239,49 +260,70 @@ def annual_plot_frame(df):
     return data.set_index("year").reindex(full_years).reset_index()
 
 
-def line_figure(df, stem, series, ylabel, scale=1.0):
+def line_figure(
+    df,
+    stem,
+    series,
+    ylabel,
+    scale=1.0,
+    title=None,
+    colors=None,
+    line_styles=None,
+    markers=None,
+):
     data = annual_plot_frame(df)
     fig, ax = plt.subplots(figsize=SINGLE_SIZE)
     for index, (column, label) in enumerate(series):
-        ax.plot(
-            data.year,
-            scale * data[column],
-            label=label,
-            **series_style(index),
-        )
+        spec = series_style(index)
+        if colors is not None:
+            spec["color"] = colors[index]
+            spec["markerfacecolor"] = colors[index]
+            spec["markeredgecolor"] = colors[index]
+        if line_styles is not None:
+            spec["ls"] = line_styles[index]
+        if markers is not None:
+            spec["marker"] = markers[index]
+        ax.plot(data.year, scale * data[column], label=label, **spec)
     ax.set_xlabel("Year")
     ax.set_ylabel(ylabel)
+    if title:
+        ax.set_title(title, fontsize=10.0)
     style(ax)
-    if len(series) > 1:
-        ax.legend(
-            loc="upper center",
-            bbox_to_anchor=(0.5, 1.13),
-            ncol=min(4, len(series)),
-            handlelength=2.5,
-        )
-        save(fig, stem, top=0.90)
-    else:
-        save(fig, stem)
+    if series:
+        ax.legend(loc="best", handlelength=2.5)
+    save(fig, stem)
 
-def plot_histograms(years):
+
+def plot_histograms(years, meta):
+    metadata_index = meta.set_index("year")
+
     def draw(ax, year):
-        x = income(year, False)
-        x = x[x >= 0]
+        x = adjusted_income(year, metadata_index, positive=False)
+        x = x[np.isfinite(x) & (x >= 0)]
         counts, edges = np.histogram(x, bins=100)
         ax.bar(
             edges[:-1],
             counts,
             width=np.diff(edges),
             align="edge",
-            facecolor="white",
-            edgecolor="0.12",
+            facecolor=BLUE,
+            edgecolor="0.10",
+            alpha=0.72,
             lw=0.35,
             zorder=2,
         )
         ax.set_yscale("log")
+        ax.set_title(f"Income Frequency Distribution - {year}", fontsize=8.2)
         style(ax)
 
-    family(years, "histograms", draw, "Income", "Frequency (log)")
+    family(
+        years,
+        "histograms",
+        draw,
+        "Income (2025 USD)",
+        "Number of People",
+        figsize=(12.5, 12.5),
+    )
 
 
 def plot_ccdf(curves, annual, years):
@@ -297,11 +339,11 @@ def plot_ccdf(curves, annual, years):
         ax.plot(
             data.income_normalized,
             data.empirical_ccdf_percent,
-            color="0.05",
-            lw=1.15,
+            color=BLUE,
+            lw=1.25,
             label="Empirical CCDF",
         )
-        ax.axvline(x_t, color="0.52", ls=":", lw=0.9, label=r"$x_t$")
+        ax.axvline(x_t, color=RED, ls=":", lw=1.0, label=r"$x_t$")
         ax.set_xscale("log")
         ax.set_yscale("log")
         style(ax, True)
@@ -318,39 +360,80 @@ def plot_ccdf(curves, annual, years):
     )
 
 
-def plot_lorenz(lorenz, years):
+def plot_lorenz(lorenz, stats, years):
+    stats_index = stats.set_index("year")
+
     def draw(ax, year):
         data = lorenz[lorenz.year == year]
-        population = 100 * data.population_share
-        income_share = 100 * data.income_share
-        ax.fill_between(population, 0, income_share, color="0.965", zorder=0)
-        ax.plot(
+        row = stats_index.loc[year]
+        population = 100.0 * data.population_share.to_numpy(float)
+        income_share = 100.0 * data.income_share.to_numpy(float)
+
+        ax.fill_between(
             population,
+            0,
             income_share,
-            color="0.05",
-            lw=1.30,
-            label="Lorenz curve",
+            color=LORENZ_FILL,
+            alpha=0.58,
+            label="area B",
+            zorder=0,
         )
+        ax.plot(population, income_share, color=PURPLE, lw=1.55, zorder=3)
         ax.plot(
             [0, 100],
             [0, 100],
-            color="0.50",
+            color="0.45",
             ls="--",
-            lw=0.95,
-            label="Equality line",
+            lw=1.0,
+            label="equality line",
+            zorder=2,
         )
+
+        k = 100.0 * float(row["Kolkata"])
+        q = 100.0 - k
+        ax.plot([k, k], [0, q], color=RED, ls=":", lw=1.0, zorder=2)
+        ax.plot([0, k], [q, q], color=RED, ls=":", lw=1.0, zorder=2)
+        ax.scatter([k], [q], color=ORANGE, s=14, zorder=5)
+        ax.text(k, 2.0, "k", color=RED, fontsize=7.0, ha="center", va="bottom")
+        ax.text(2.0, q, "100-k", color=RED, fontsize=6.6, ha="left", va="bottom")
+
+        pietra_index = int(np.argmax(population - income_share))
+        p_x = float(population[pietra_index])
+        p_y = float(income_share[pietra_index])
+        ax.plot([p_x, p_x], [p_y, p_x], color=ROYAL_BLUE, ls="--", lw=1.05, zorder=3)
+        ax.scatter([p_x], [p_y], color=ROYAL_BLUE, s=14, zorder=5)
+        ax.text(p_x + 1.5, p_y + 1.5, "p", color=ROYAL_BLUE, fontsize=7.0)
+
+        metrics = (
+            (f"k: {k:.3f}", RED),
+            (f"G: {float(row['Gini']):.3f}", "0.25"),
+            (f"Z: {float(row['Zanardi']):.3f}", TEAL),
+            (f"p: {100.0 * float(row['Pietra']):.3f}", ROYAL_BLUE),
+        )
+        for label, color in metrics:
+            ax.plot([], [], color=color, lw=1.3, label=label)
+
         ax.set_xlim(0, 100)
         ax.set_ylim(0, 100)
-        style(ax)
+        ax.set_aspect("equal")
+        style(ax, grid_lines=False)
+        ax.legend(
+            loc="upper left",
+            fontsize=6.0,
+            frameon=True,
+            facecolor="white",
+            edgecolor="0.85",
+            framealpha=0.92,
+            handlelength=1.7,
+        )
 
     family(
         years,
         "lorenz_geometry",
         draw,
-        "Cumulative population (%)",
-        "Cumulative income (%)",
-        legend=True,
-        ncol=2,
+        "Households (%)",
+        "Income (%)",
+        legend=False,
     )
 
 
@@ -365,12 +448,17 @@ def plot_model_families(curves, annual, years):
             & (curves.empirical_ccdf_percent > 0)
         ]
         x = data.income_normalized.to_numpy(float)
-        ax.scatter(x, np.log(data.empirical_ccdf_percent), label="Empirical", **scatter_style())
+        ax.scatter(
+            x,
+            np.log(data.empirical_ccdf_percent),
+            label="Empirical",
+            **scatter_style(BLUE),
+        )
         ax.plot(
             x,
             row.exponential_intercept - row.exponential_alpha * x,
-            color="0.05",
-            lw=1.15,
+            color=RED,
+            lw=1.25,
             label="Exponential fit",
         )
         style(ax)
@@ -387,21 +475,21 @@ def plot_model_families(curves, annual, years):
             x,
             data.gompertz_transform,
             label="Empirical transform",
-            **scatter_style(),
+            **scatter_style(BLUE),
         )
         ax.plot(
             x,
             row.gompertz_A - row.gompertz_B * x,
-            color="0.05",
-            lw=1.20,
+            color=RED,
+            lw=1.25,
             label="Fixed-A Gompertz",
         )
         ax.plot(
             x,
             row.gompertz_boundary_A_free - row.gompertz_boundary_B_free * x,
-            color="0.48",
+            color=ORANGE,
             ls="--",
-            lw=1.05,
+            lw=1.15,
             label="Free-intercept LSF",
         )
         style(ax)
@@ -449,21 +537,21 @@ def plot_model_families(curves, annual, years):
                 data.income_normalized,
                 data.empirical_ccdf_percent,
                 label="Empirical CCDF",
-                **scatter_style(),
+                **scatter_style(BLUE),
             )
             ax.plot(
                 data.income_normalized,
                 data[column],
-                color="0.05",
+                color=RED if method == "ls" else ORANGE,
                 ls="--" if method == "ls" else "-",
-                lw=1.20,
+                lw=1.25,
                 label="Pareto LSF" if method == "ls" else "Pareto MLE",
             )
             ax.axvline(
                 float(row.transition_x_t),
-                color="0.52",
+                color=PURPLE,
                 ls=":",
-                lw=0.9,
+                lw=1.0,
                 label=r"$x_t$",
             )
             ax.set_xscale("log")
@@ -480,23 +568,41 @@ def plot_model_families(curves, annual, years):
             ncol=3,
         )
 
+
 def plot_income_stats(stats):
     line_figure(
         stats,
         "income_statistics",
-        [("mean", "Mean"), ("median", "Median"), ("std", "Std")],
-        "2025 US$",
+        [("mean", "Average Income")],
+        "Income (2025 USD)",
+        title=f"Evolution of the average income - Brazil ({START_YEAR}-{END_YEAR})",
+        colors=[BLUE],
+        line_styles=["-"],
+        markers=["o"],
     )
 
 
 def plot_misc(stats, annual):
-    line_figure(stats, "gini", [("Gini", "Gini")], "Gini coefficient")
+    line_figure(
+        stats,
+        "gini",
+        [("Gini", "Gini")],
+        "Gini coefficient",
+        title="Evolution of the Gini Index - Brazil",
+        colors=[BLUE],
+        line_styles=["-"],
+        markers=["o"],
+    )
     line_figure(
         stats,
         "top_income_shares",
         [("top_10", "Top 10%"), ("top_1", "Top 1%"), ("top_01", "Top 0.1%")],
         "Income share (%)",
         100,
+        title=f"Income concentration - Brazil ({START_YEAR}-{END_YEAR})",
+        colors=[BLUE, DARK_RED, SALMON],
+        line_styles=["-", ":", "-"],
+        markers=["o", "s", "^"],
     )
     exclusive = stats.assign(
         p90_p99=stats.top_10 - stats.top_1,
@@ -513,75 +619,96 @@ def plot_misc(stats, annual):
         ],
         "Income share (%)",
         100,
+        colors=[BLUE, ORANGE, RED],
+        line_styles=["-", "--", ":"],
+        markers=["o", "s", "^"],
     )
     line_figure(
         stats,
         "inequality_indices",
         [("Gini", "Gini"), ("Pietra", "Pietra"), ("Kolkata", "Kolkata"), ("Zanardi", "Zanardi")],
         "Index",
+        colors=[BLUE, ROYAL_BLUE, ORANGE, TEAL],
+        line_styles=["-", "-", "-", "-"],
+        markers=["o", "s", "^", "D"],
     )
     line_figure(
         annual,
         "pareto_income_share",
         [("pareto_income_share_pct", "Pareto")],
         "Income share (%)",
+        colors=[ORANGE],
+        line_styles=["-"],
+        markers=["o"],
     )
     line_figure(
         stats,
         "top_income_shares_mean_median",
         [("mean", "Mean"), ("median", "Median")],
-        "2025 US$",
+        "Income (2025 USD)",
+        colors=[BLUE, ORANGE],
+        line_styles=["-", "--"],
+        markers=["o", "s"],
     )
 
     temporal_stats = annual_plot_frame(stats)
-    fig, axes = plt.subplots(2, 2, figsize=(7, 6.2), sharex=True)
-    for ax, (column, scale) in zip(
-        axes.ravel(),
-        [("Gini", 1), ("Zanardi", 1), ("Kolkata", 100), ("Pietra", 100)],
-    ):
-        ax.plot(temporal_stats.year, scale * temporal_stats[column], **series_style(0))
-        ax.set_title(column, fontweight="semibold")
-        style(ax)
-    for ax in axes[-1]:
+    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.2), sharex=True)
+    index_specs = [
+        ("Zanardi", 1.0, TEAL, "Index value"),
+        ("Kolkata", 100.0, ORANGE, "Index value (%)"),
+        ("Pietra", 100.0, ROYAL_BLUE, "Index value (%)"),
+    ]
+    for ax, (column, scale, color, ylabel) in zip(axes, index_specs):
+        ax.plot(
+            temporal_stats.year,
+            scale * temporal_stats[column],
+            color=color,
+            marker="o",
+            ms=3.2,
+            lw=1.25,
+        )
+        ax.set_title(
+            f"Evolution of the {column} Index - Brazil ({START_YEAR}-{END_YEAR})",
+            fontsize=8.4,
+        )
         ax.set_xlabel("Year")
+        ax.set_ylabel(ylabel)
+        style(ax)
     save(fig, "inequality_indices_grid")
 
     gini_validation = temporal_stats
-
     fig, ax = plt.subplots(figsize=SINGLE_SIZE)
     ax.plot(
         gini_validation.year,
         gini_validation.Gini,
-        label="PNAD",
-        color="0.05",
-        lw=1.25,
+        label="Present Study",
+        color=BLUE,
+        lw=1.35,
         marker="o",
-        markerfacecolor="white",
-        markeredgecolor="0.05",
-        ms=3.3,
+        markerfacecolor=BLUE,
+        markeredgecolor=BLUE,
+        ms=3.4,
     )
-    for column, label, line_style, gray in [
-        ("IPEA", "IPEA", "--", "0.35"),
-        ("Banco_Mundial", "World Bank", ":", "0.58"),
+    for column, label, line_style, color, marker in [
+        ("IPEA", "IPEA", "--", RED, "s"),
+        ("Banco_Mundial", "World Bank", ":", ORANGE, "^"),
     ]:
         ax.plot(
             gini_validation.year,
             gini_validation[column],
-            color=gray,
+            color=color,
             ls=line_style,
-            lw=1.05,
+            lw=1.15,
+            marker=marker,
+            ms=3.0,
             label=label,
         )
+    ax.set_title("Evolution of the Gini Index - Brazil", fontsize=10.0)
     ax.set_xlabel("Year")
     ax.set_ylabel("Gini coefficient")
     style(ax)
-    ax.legend(
-        loc="upper center",
-        bbox_to_anchor=(0.5, 1.13),
-        ncol=3,
-        handlelength=2.5,
-    )
-    save(fig, "gini_validation", top=0.90)
+    ax.legend(loc="best", ncol=3, handlelength=2.5)
+    save(fig, "gini_validation")
 
     gdp = _year_filter(pd.read_csv(GDP))
     line_figure(
@@ -589,6 +716,10 @@ def plot_misc(stats, annual):
         "gdp_growth",
         [("gdp_growth_pct", "GDP")],
         "Real GDP growth (%)",
+        title=f"Real GDP growth - Brazil ({START_YEAR}-{END_YEAR})",
+        colors=[GREEN],
+        line_styles=["-"],
+        markers=["o"],
     )
 
 
@@ -773,6 +904,7 @@ def validate_tables(g, p, e):
     if any(frame.year.duplicated().any() for frame in (g, p, e)):
         raise AssertionError("Annual paper tables must have unique years")
 
+
 def build_paper_tables(stats=None, annual=None):
     if stats is None or annual is None:
         stats, _, annual, _, _ = load_inputs()
@@ -807,10 +939,10 @@ def main():
     clean_figures()
     stats, lorenz, annual, curves, meta = load_inputs()
     years = years_of(annual.year.dropna())
-    plot_histograms(years)
+    plot_histograms(years, meta)
     plot_income_stats(stats)
     plot_ccdf(curves, annual, years)
-    plot_lorenz(lorenz, years)
+    plot_lorenz(lorenz, stats, years)
     plot_model_families(curves, annual, years)
     plot_misc(stats, annual)
     out = build_paper_tables(stats, annual)

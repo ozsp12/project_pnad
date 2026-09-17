@@ -1,10 +1,15 @@
-name: Build PNAD analytics dataset
+name: Build PNAD analytics datasets
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Build trusted PNAD"]
+    types: [completed]
   pull_request:
     paths:
       - "src/stage_04_build_analytic_pnad.py"
+      - "tests/test_stage_04_build_analytic_pnad.py"
+      - "data/refined/**"
       - "data/trusted/**"
       - "requirements.txt"
       - ".github/workflows/build_analytics.yml"
@@ -12,6 +17,7 @@ on:
     branches: [main]
     paths:
       - "src/stage_04_build_analytic_pnad.py"
+      - "tests/test_stage_04_build_analytic_pnad.py"
       - "data/trusted/**"
       - "requirements.txt"
       - ".github/workflows/build_analytics.yml"
@@ -25,10 +31,13 @@ concurrency:
 
 jobs:
   analytics:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -39,21 +48,77 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Ensure trusted datasets exist
+      - name: Ensure refined and trusted datasets exist
         shell: bash
         run: |
-          if ! compgen -G "data/trusted/pnad_trusted_*.parquet" > /dev/null; then
-            echo "Trusted datasets are required to build the analytics layer."
-            echo "Persistent files matching data/trusted/pnad_trusted_*.parquet must be present."
+          if ! compgen -G "data/refined/pnad_refined_*.parquet" > /dev/null; then
+            echo "Refined datasets are required to build the analytics layer."
             exit 1
           fi
-          echo "Trusted datasets are present."
+          if ! compgen -G "data/trusted/pnad_trusted_*.parquet" > /dev/null; then
+            echo "Trusted datasets are required to build the analytics layer."
+            exit 1
+          fi
+          echo "Refined and trusted datasets are present."
 
-      - name: Build concatenated trusted analytics parquet
+      - name: Build refined and trusted analytics products
         run: python src/stage_04_build_analytic_pnad.py
 
-      - name: Commit analytics dataset
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Validate Stage 04 products
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import pandas as pd
+          import pyarrow.parquet as pq
+
+          root = Path("data/analytics")
+          expected = {
+              "pnad_refined_all.parquet",
+              "pnad_refined_all_metadata.csv",
+              "pnad_trusted_all.parquet",
+              "pnad_trusted_all_metadata.csv",
+          }
+          generated = {p.name for p in root.iterdir() if p.is_file()}
+          if generated != expected:
+              raise SystemExit(f"Analytics product set mismatch: {sorted(generated)}")
+
+          required_metadata = {
+              "dataset_name", "layer", "processing_level", "dataset_description",
+              "parquet_file", "metadata_file", "schema_version", "stage04_operation",
+              "source", "source_pattern", "column_name", "arrow_type",
+              "parquet_nullable", "observed_null_count", "description", "unit",
+              "n_rows", "n_columns", "n_years", "first_year", "last_year",
+              "n_row_groups", "compression",
+          }
+
+          for layer in ("refined", "trusted"):
+              parquet_path = root / f"pnad_{layer}_all.parquet"
+              metadata_path = root / f"pnad_{layer}_all_metadata.csv"
+              metadata = pd.read_csv(metadata_path)
+              if missing := required_metadata - set(metadata.columns):
+                  raise SystemExit(f"{layer}: missing metadata columns: {sorted(missing)}")
+              if set(metadata["layer"]) != {layer}:
+                  raise SystemExit(f"{layer}: inconsistent metadata layer")
+              if set(metadata["column_name"]) != {"renda", "ano"}:
+                  raise SystemExit(f"{layer}: unexpected analytical schema")
+              if metadata["observed_null_count"].sum() != 0:
+                  raise SystemExit(f"{layer}: null values found in analytical product")
+
+              parquet = pq.ParquetFile(parquet_path)
+              n_rows = int(metadata["n_rows"].iloc[0])
+              n_years = int(metadata["n_years"].iloc[0])
+              if parquet.metadata.num_rows != n_rows:
+                  raise SystemExit(f"{layer}: row-count metadata mismatch")
+              if parquet.metadata.num_row_groups != n_years:
+                  raise SystemExit(f"{layer}: row-group metadata mismatch")
+
+              years = pd.read_parquet(parquet_path, columns=["ano"])["ano"]
+              if 2017 not in set(years.unique()):
+                  raise SystemExit(f"{layer}: 2017 is missing from the consolidated product")
+          PY
+
+      - name: Commit analytics datasets
+        if: github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -61,7 +126,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No analytics changes to commit."
           else
-            git commit -m "generate PNAD analytics dataset"
+            git commit -m "generate PNAD analytics datasets"
             git pull --rebase origin main
             git push origin HEAD:main
           fi

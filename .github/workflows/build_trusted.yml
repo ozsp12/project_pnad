@@ -6,7 +6,7 @@ on:
     branches: [main]
     paths:
       - "src/stage_02_build_trusted_pnad.py"
-      - "src/stage_02_prepare_trusted_input.py"
+      - "src/trusted_input.py"
       - "data/refined/**"
       - "data/metadata/df_metadata.csv"
       - ".github/workflows/build_trusted.yml"
@@ -37,7 +37,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Build trusted datasets and validation audits
-        run: python src/stage_02_prepare_trusted_input.py
+        run: python src/trusted_input.py
 
       - name: Commit trusted datasets and audits
         run: |

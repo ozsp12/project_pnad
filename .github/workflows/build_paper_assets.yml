@@ -143,15 +143,6 @@ jobs:
                   raise SystemExit(f"Undocumented columns in {table_name}: {missing}")
           PY
 
-      - name: Upload paper assets
-        uses: actions/upload-artifact@v4
-        with:
-          name: paper-assets
-          path: |
-            assets/figures_paper/**
-            assets/tables_paper/**
-          if-no-files-found: error
-
       - name: Commit paper assets
         if: github.event_name != 'pull_request'
         run: |

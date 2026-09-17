@@ -10,7 +10,7 @@ This repository contains the reproducible computational workflow used to study t
 | 01 | `src/stage_01_build_refined_pnad.py` | Harmonizes local raw PNAD records into annual income samples | `data/refined/pnad_refined_YYYY.parquet` |
 | 02 | `src/stage_02_build_trusted_pnad.py` | Applies deterministic upper-tail treatment and validation | `data/trusted/pnad_trusted_YYYY.parquet` and validation audits |
 | 03 | `src/stage_03_pnad_analysis.py` | Runs descriptive, inequality, CCDF, Gompertz–Pareto, bootstrap and Moura Jr.–Ribeiro reproduction analyses on refined and trusted data | analytical CSV and PNG assets |
-| 04 | `src/stage_04_build_analytic_pnad.py` | Concatenates trusted annual samples into one validated cross-year Parquet | `data/analytics/pnad_analytics_all.parquet` |
+| 04 | `src/stage_04_build_analytic_pnad.py` | Concatenates refined and trusted annual samples into validated cross-year products and schema metadata | `data/analytics/pnad_refined_all.parquet`, `data/analytics/pnad_trusted_all.parquet`, and companion metadata CSVs |
 | 05 | `src/stage_05_publication.py` | Builds the complete paper-facing figure and table set from persisted Stage-03 results | `assets/figures_paper/` and `assets/tables_paper/` |
 
 The original fixed-width PNAD microdata are local files of approximately 20 GB and are not versioned under `data/raw/`. The persisted `data/refined/` layer is therefore the normal reproducible starting point inside GitHub. Source code under `src/` is authoritative.
@@ -54,9 +54,11 @@ and estimates only `B` by least squares. A free-intercept fit is retained as a d
 
 The numerical values reported in the 2009 paper remain available in `data/auxiliary/moura_ribeiro_2009_reference.csv` as a historical reference dataset.
 
-## Stage 04 analytics dataset
+## Stage 04 analytics datasets
 
-Stage 04 reads only `data/trusted/pnad_trusted_YYYY.parquet`. It introduces no statistical transformation: it validates year consistency, finite non-negative income and schema compatibility, then writes `data/analytics/pnad_analytics_all.parquet`. Each survey year occupies one Parquet row group. Stage 04 has an independent workflow and does not require Stage 03 to be rerun.
+Stage 04 reads both annual data layers and performs validation plus vertical concatenation only. It writes `data/analytics/pnad_refined_all.parquet` from the refined baseline and `data/analytics/pnad_trusted_all.parquet` from the trusted benchmark. No observations are filtered and no values are statistically transformed in Stage 04. Each survey year occupies one Parquet row group.
+
+Each consolidated Parquet has a companion schema/data-dictionary file, `pnad_refined_all_metadata.csv` or `pnad_trusted_all_metadata.csv`, containing layer and processing-level definitions, source provenance, schema version, column names and Arrow types, nullability/null counts, descriptions, units, row counts, survey-year coverage, and row-group counts. These four files form the canonical cross-year analytical data products intended for archival distribution.
 
 ## Stage 05 publication layer
 
@@ -76,8 +78,8 @@ Because the current model fixes `A`, Table 01 does not report a standard error f
 - `Build metadata` executes Stage 00, validates that the generated XLSX and CSV match `build_metadata_df()`, and commits both metadata artifacts when they change.
 - `Build trusted PNAD` executes Stage 02 directly from the persisted refined layer and commits the trusted annual datasets and validation audits.
 - `Run PNAD analysis` executes the canonical Stage-03 analysis, consolidates the Moura–Ribeiro diagnostics into the annual tables, validates baseline/benchmark schema symmetry, and commits analytical assets.
-- `Build PNAD analytics dataset` executes Stage 04 independently and commits only `data/analytics/`.
-- `Build paper assets` refreshes the consolidated Stage-03 diagnostics, executes the canonical Stage-05 publication entry point, validates figures/tables, and commits paper assets on `main`.
+- `Build PNAD analytics datasets` executes Stage 04 for both refined and trusted layers, validates the four canonical analytics products, and is also triggered after a successful `Build trusted PNAD` run so regenerated trusted data propagate automatically.
+- `Build paper assets` consumes the persisted Stage-03 analytical tables, executes the canonical Stage-05 publication entry point, validates figures/tables, and commits paper assets on `main`.
 - `Unit tests` compiles `src/` and runs the complete `pytest` suite.
 
 ## Assets

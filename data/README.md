@@ -1,13 +1,13 @@
 # Data
 
-The `data` directory contains the empirical material used by the PNAD longitudinal research pipeline. The refined layer is the annual baseline, the trusted layer is the benchmark derived from that baseline, `analytics/` contains the consolidated cross-year trusted product, and `auxiliary/` contains external/reference series rather than PNAD-derived microdata.
+The `data` directory contains the empirical material used by the PNAD longitudinal research pipeline. The refined layer is the annual baseline, the trusted layer is the benchmark derived from that baseline, `analytics/` contains consolidated cross-year products for both layers, and `auxiliary/` contains external/reference series rather than PNAD-derived microdata.
 
 | Directory | Content | Produced or consumed by |
 | --- | --- | --- |
 | `metadata/` | annual extraction specifications, monetary metadata, and processing information | produced by Stage 00; consumed downstream |
-| `refined/` | harmonized annual PNAD/PNAD Contínua baseline datasets before trusted-stage treatment | produced by Stage 01; consumed by Stages 02–03 |
-| `trusted/` | benchmark annual datasets after structural cleaning, log-MAD upper-tail treatment, and validation | produced by Stage 02; consumed by Stages 03–05 |
-| `analytics/` | single vertically concatenated trusted microdata product | produced independently by Stage 04 |
+| `refined/` | harmonized annual PNAD/PNAD Contínua baseline datasets before trusted-stage treatment | produced by Stage 01; consumed by Stages 02–04 |
+| `trusted/` | benchmark annual datasets after structural cleaning, log-MAD upper-tail treatment, and validation | produced by Stage 02; consumed by Stages 03–04 |
+| `analytics/` | consolidated refined and trusted cross-year Parquets plus companion metadata/schema CSVs | produced by Stage 04 |
 | `auxiliary/` | external Gini/GDP series and published Moura–Ribeiro 2009 reference values | consumed as external/reference inputs |
 | `raw/` | local fixed-width original microdata, approximately 20 GB | deliberately not versioned |
 
@@ -17,7 +17,14 @@ The distinction between `refined` and `trusted` is substantive. Stage 03 analyze
 
 ## Analytics layer
 
-`data/analytics/pnad_analytics_all.parquet` is built exclusively from annual trusted Parquet files. Stage 04 performs validation and vertical concatenation only; each survey year is stored as one Parquet row group. Stage 04 is automated independently from Stage 03 and does not re-estimate analytical quantities.
+Stage 04 publishes four canonical files:
+
+- `pnad_refined_all.parquet`: vertically concatenated refined baseline;
+- `pnad_refined_all_metadata.csv`: refined dataset metadata and schema dictionary;
+- `pnad_trusted_all.parquet`: vertically concatenated trusted benchmark;
+- `pnad_trusted_all_metadata.csv`: trusted dataset metadata and schema dictionary.
+
+Stage 04 performs validation and vertical concatenation only. It does not filter observations, modify income values, or estimate statistical quantities. Each survey year is stored as one Parquet row group. The metadata CSVs document processing level, provenance, schema version, columns and Arrow types, nullability and observed null counts, descriptions, units, row counts, year coverage, row-group counts, and compression. The former `pnad_analytics_all.parquet` filename is obsolete.
 
 ## Auxiliary series
 

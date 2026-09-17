@@ -318,30 +318,122 @@ def plot_ccdf(curves, annual, years):
     )
 
 
-def plot_lorenz(lorenz, years):
+def plot_lorenz(lorenz, stats, years):
+    """Plot Lorenz geometry with Gini, Pietra, Kolkata, and Zanardi diagnostics."""
+    indexed_stats = stats.set_index("year")
+    required = {"Gini", "Pietra", "Kolkata", "Zanardi"}
+    missing = required.difference(indexed_stats.columns)
+    if missing:
+        raise ValueError(
+            "Lorenz geometry requires inequality columns: "
+            + ", ".join(sorted(missing))
+        )
+
     def draw(ax, year):
         data = lorenz[lorenz.year == year]
-        population = 100 * data.population_share
-        income_share = 100 * data.income_share
-        ax.fill_between(population, 0, income_share, color="0.965", zorder=0)
+        if data.empty:
+            raise ValueError(f"Missing Lorenz data for {year}.")
+        if year not in indexed_stats.index:
+            raise ValueError(f"Missing inequality statistics for {year}.")
+
+        row = indexed_stats.loc[year]
+        population = 100.0 * data.population_share.to_numpy(float)
+        income_share = 100.0 * data.income_share.to_numpy(float)
+
+        # Area B is retained from the canonical Stage-03 geometry and rendered
+        # in grayscale so the Zanardi construction remains visible in print.
+        ax.fill_between(
+            population,
+            0,
+            income_share,
+            facecolor="0.92",
+            edgecolor="0.72",
+            linewidth=0.30,
+            label="Area B",
+            zorder=0,
+        )
         ax.plot(
             population,
             income_share,
             color="0.05",
             lw=1.30,
             label="Lorenz curve",
+            zorder=3,
         )
         ax.plot(
             [0, 100],
             [0, 100],
-            color="0.50",
+            color="0.48",
             ls="--",
             lw=0.95,
             label="Equality line",
+            zorder=2,
         )
+
+        # Kolkata point: (k, 100-k), together with the two reference guides.
+        k = 100.0 * float(row["Kolkata"])
+        q = 100.0 - k
+        ax.scatter(
+            [k],
+            [q],
+            s=18,
+            facecolors="white",
+            edgecolors="0.08",
+            linewidths=0.75,
+            zorder=6,
+        )
+        ax.plot([k, k], [0, q], color="0.42", ls=":", lw=0.85, zorder=2)
+        ax.plot([0, k], [q, q], color="0.42", ls=":", lw=0.85, zorder=2)
+
+        # Pietra index p is the maximum vertical distance between equality and
+        # the Lorenz curve. Preserve the same geometry used by Stage 03.
+        difference = population - income_share
+        ip = int(np.argmax(difference))
+        px, py = float(population[ip]), float(income_share[ip])
+        ax.plot([px, px], [py, px], color="0.12", ls="--", lw=1.15, zorder=4)
+        ax.scatter(
+            [px],
+            [py],
+            s=14,
+            marker="s",
+            facecolors="white",
+            edgecolors="0.12",
+            linewidths=0.70,
+            zorder=6,
+        )
+        ax.annotate(
+            r"$p$",
+            xy=(px, 0.5 * (px + py)),
+            xytext=(3, 0),
+            textcoords="offset points",
+            ha="left",
+            va="center",
+            fontsize=5.4,
+        )
+
+        # Per-panel values mirror the refined/trusted Lorenz geometry figure.
+        ax.plot([], [], color="none", label=f"k: {k:.3f}")
+        ax.plot([], [], color="none", label=f"G: {float(row['Gini']):.3f}")
+        ax.plot([], [], color="none", label=f"Z: {float(row['Zanardi']):.3f}")
+        ax.plot([], [], color="none", label=f"p: {100.0 * float(row['Pietra']):.3f}")
+
         ax.set_xlim(0, 100)
         ax.set_ylim(0, 100)
+        ax.set_aspect("equal", adjustable="box")
         style(ax)
+        ax.legend(
+            loc="upper left",
+            fontsize=4.9,
+            ncol=2,
+            frameon=True,
+            facecolor="white",
+            edgecolor="0.75",
+            framealpha=0.92,
+            handlelength=1.5,
+            columnspacing=0.7,
+            labelspacing=0.20,
+            borderpad=0.25,
+        )
 
     family(
         years,
@@ -349,8 +441,7 @@ def plot_lorenz(lorenz, years):
         draw,
         "Cumulative population (%)",
         "Cumulative income (%)",
-        legend=True,
-        ncol=2,
+        legend=False,
     )
 
 
@@ -810,7 +901,7 @@ def main():
     plot_histograms(years)
     plot_income_stats(stats)
     plot_ccdf(curves, annual, years)
-    plot_lorenz(lorenz, years)
+    plot_lorenz(lorenz, stats, years)
     plot_model_families(curves, annual, years)
     plot_misc(stats, annual)
     out = build_paper_tables(stats, annual)

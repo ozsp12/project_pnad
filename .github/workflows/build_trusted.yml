@@ -6,7 +6,6 @@ on:
     branches: [main]
     paths:
       - "src/stage_02_build_trusted_pnad.py"
-      - "src/trusted_input.py"
       - "data/refined/**"
       - "data/metadata/df_metadata.csv"
       - ".github/workflows/build_trusted.yml"
@@ -15,12 +14,12 @@ permissions:
   contents: write
 
 concurrency:
-  group: pnad-trusted-main
+  group: build-trusted-main
   cancel-in-progress: true
 
 jobs:
   build-trusted:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,17 +36,17 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Build trusted datasets and validation audits
-        run: python src/trusted_input.py
+        run: python src/stage_02_build_trusted_pnad.py
 
       - name: Commit trusted datasets and audits
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A data/trusted assets/tables_validation
+          git add data/trusted assets/tables_validation
           if git diff --cached --quiet; then
             echo "No trusted-data changes to commit."
-          else
-            git commit -m "build trusted PNAD datasets"
-            git pull --rebase origin main
-            git push origin HEAD:main
+            exit 0
           fi
+          git commit -m "build trusted PNAD datasets"
+          git pull --rebase origin main
+          git push origin HEAD:main

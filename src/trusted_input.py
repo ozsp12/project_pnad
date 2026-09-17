@@ -15,7 +15,7 @@ import pandas as pd
 
 try:
     from src import stage_02_build_trusted_pnad as stage_02
-except ModuleNotFoundError:  # direct execution: python src/stage_02_prepare_trusted_input.py
+except ModuleNotFoundError:  # direct execution: python src/trusted_input.py
     import stage_02_build_trusted_pnad as stage_02
 
 

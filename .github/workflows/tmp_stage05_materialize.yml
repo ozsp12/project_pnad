@@ -1,0 +1,45 @@
+name: Temporary Stage 05 materialization
+
+on:
+  push:
+    branches: [refactor/stage05-color-lorenz]
+    paths:
+      - ".github/workflows/tmp_stage05_materialize.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout refactor branch
+        uses: actions/checkout@v4
+        with:
+          ref: refactor/stage05-color-lorenz
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate publication assets
+        env:
+          MPLBACKEND: Agg
+        run: python src/stage_05_publication.py
+
+      - name: Commit generated assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/figures_paper assets/tables_paper
+          if git diff --cached --quiet; then
+            echo "No paper-asset changes to commit."
+          else
+            git commit -m "generate colored paper assets"
+            git push origin HEAD:refactor/stage05-color-lorenz
+          fi

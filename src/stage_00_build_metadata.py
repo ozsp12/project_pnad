@@ -60,7 +60,7 @@ def build_specs_pnad_df():
         2014: ("V4621", 193, 12, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/2014/Dados_20170323.zip"),
         2015: ("V4621", 193, 12, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_anual/microdados/2015/Dados_20170517.zip"),
         2016: ("VD5008", 671, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2016/"),
-        2017: ("VD5008", 676, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2017/"),
+        2017: ("VD5008", 674, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2017/"),
         2018: ("VD5008", 676, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2018/"),
         2019: ("VD5008", 679, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2019/"),
         2020: ("VD5008", 605, 8, None, None, None, "https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/2020/"),
@@ -104,7 +104,6 @@ def build_specs_pnad_df():
     df.loc[df["ano"].isin([1976, 1981, 1982, 1983, 1984]), "missing_renda"] = 9_999_999
 
     df["income_scale_divisor"] = 1.0
-    df.loc[df["ano"] == 2017, "income_scale_divisor"] = 100.0
 
     for column in ("link", "raw_subdir", "raw_pattern"):
         df[column] = df[column].fillna("")

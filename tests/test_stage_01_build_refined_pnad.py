@@ -112,21 +112,21 @@ def test_read_year_fast_parses_per_capita_income_and_audit_counts(tmp_path):
     assert stats["income_scale_divisor"] == 1.0
 
 
-def test_read_year_fast_applies_2017_income_scale_correction(tmp_path):
+def test_read_year_fast_keeps_2017_income_on_native_scale(tmp_path):
     raw = tmp_path / "sample.dat"
     raw.write_bytes(
-        b"00065030\n"
-        b"00106447\n"
+        b"xx00000650\n"
+        b"xx00001064\n"
     )
     spec = SimpleNamespace(
         ano=2017,
         raw_subdir="",
         raw_pattern="sample.dat",
         n_files=1,
-        pos_renda=0,
+        pos_renda=2,
         tam_renda=8,
         missing_renda=999999,
-        income_scale_divisor=100.0,
+        income_scale_divisor=1.0,
         pos_morador=None,
         tam_morador=None,
     )
@@ -137,9 +137,9 @@ def test_read_year_fast_applies_2017_income_scale_correction(tmp_path):
         show_file_progress=False,
     )
 
-    assert refined["renda"].tolist() == pytest.approx([650.30, 1064.47])
+    assert refined["renda"].tolist() == pytest.approx([650.0, 1064.0])
     assert refined["ano"].tolist() == [2017, 2017]
-    assert stats["income_scale_divisor"] == 100.0
+    assert stats["income_scale_divisor"] == 1.0
 
 
 def test_read_year_fast_removes_global_sentinels_before_transformation(tmp_path):

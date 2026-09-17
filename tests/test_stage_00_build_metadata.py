@@ -57,7 +57,7 @@ def test_specs_preserve_validated_income_fields():
 
     expected_continua_positions = {
         2016: 671,
-        2017: 676,
+        2017: 674,
         2018: 676,
         2019: 679,
         2020: 605,
@@ -72,9 +72,6 @@ def test_specs_preserve_validated_income_fields():
         assert specs.loc[year, "pos_renda"] == position
         assert specs.loc[year, "tam_renda"] == 8
         assert specs.loc[year, "missing_renda"] == 999_999
-
-    assert specs.loc[2017, "income_scale_divisor"] == pytest.approx(100.0)
-    for year in [2016, 2018, 2019, 2025]:
         assert specs.loc[year, "income_scale_divisor"] == pytest.approx(1.0)
 
 

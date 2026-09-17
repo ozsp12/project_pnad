@@ -14,12 +14,12 @@ permissions:
   contents: write
 
 concurrency:
-  group: build-trusted-main
+  group: pnad-trusted-main
   cancel-in-progress: true
 
 jobs:
   build-trusted:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,11 +42,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/trusted assets/tables_validation
+          git add -A data/trusted assets/tables_validation
           if git diff --cached --quiet; then
             echo "No trusted-data changes to commit."
-            exit 0
+          else
+            git commit -m "build trusted PNAD datasets"
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi
-          git commit -m "build trusted PNAD datasets"
-          git pull --rebase origin main
-          git push origin HEAD:main

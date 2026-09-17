@@ -82,10 +82,10 @@ def groups(years):
     return [years[i : i + MAX_PANELS] for i in range(0, len(years), MAX_PANELS)]
 
 
-def grid(n):
+def grid(n, figsize=PAGE_SIZE):
     if n > MAX_PANELS:
         raise ValueError(f"At most {MAX_PANELS} panels are allowed per image.")
-    return plt.subplots(min(4, math.ceil(n / 3)), 3, figsize=PAGE_SIZE, squeeze=False)
+    return plt.subplots(min(4, math.ceil(n / 3)), 3, figsize=figsize, squeeze=False)
 
 
 def series_style(index, linewidth=1.25):
@@ -191,9 +191,9 @@ def global_legend(fig, axes, used, ncol=3):
         )
 
 
-def family(years, stem, draw, xlabel, ylabel, legend=False, ncol=3):
+def family(years, stem, draw, xlabel, ylabel, legend=False, ncol=3, figsize=None):
     for part, block in enumerate(groups(years), 1):
-        fig, axes = grid(len(block))
+        fig, axes = grid(len(block), PAGE_SIZE if figsize is None else figsize)
         for ax, year in zip(axes.ravel(), block):
             draw(ax, year)
             if not ax.get_title():
@@ -287,7 +287,7 @@ def line_figure(
     ax.set_xlabel("Year")
     ax.set_ylabel(ylabel)
     if title:
-        ax.set_title(title, fontsize=10.0, fontweight="semibold")
+        ax.set_title(title, fontsize=10.0)
     style(ax)
     if series:
         ax.legend(loc="best", handlelength=2.5)
@@ -316,7 +316,14 @@ def plot_histograms(years, meta):
         ax.set_title(f"Income Frequency Distribution - {year}", fontsize=8.2)
         style(ax)
 
-    family(years, "histograms", draw, "Income (2025 USD)", "Number of People")
+    family(
+        years,
+        "histograms",
+        draw,
+        "Income (2025 USD)",
+        "Number of People",
+        figsize=(12.5, 12.5),
+    )
 
 
 def plot_ccdf(curves, annual, years):
@@ -696,7 +703,7 @@ def plot_misc(stats, annual):
             ms=3.0,
             label=label,
         )
-    ax.set_title("Evolution of the Gini Index - Brazil", fontsize=10.0, fontweight="semibold")
+    ax.set_title("Evolution of the Gini Index - Brazil", fontsize=10.0)
     ax.set_xlabel("Year")
     ax.set_ylabel("Gini coefficient")
     style(ax)

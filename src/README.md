@@ -1,6 +1,6 @@
 # Source modules
 
-The `src` directory contains the canonical scientific workflow. Stages 00–02 build the metadata and annual data layers; Stage 03 performs statistical analysis and Moura Jr.–Ribeiro diagnostics; Stage 04 builds the cross-year trusted product; Stage 05 converts persisted scientific results into publication assets.
+The `src` directory contains the canonical scientific workflow. Stages 00–02 build the metadata and annual data layers; Stage 03 performs statistical analysis and Moura Jr.–Ribeiro diagnostics; Stage 04 builds the cross-year refined and trusted data products; Stage 05 converts persisted scientific results into publication assets.
 
 ## Pipeline
 
@@ -10,7 +10,7 @@ The `src` directory contains the canonical scientific workflow. Stages 00–02 b
 | 01 | `stage_01_build_refined_pnad.py` | raw fixed-width records → annual refined datasets |
 | 02 | `stage_02_build_trusted_pnad.py` | structural cleaning, log-MAD upper-tail treatment and validation |
 | 03 | `stage_03_pnad_analysis.py` | descriptive, inequality, CCDF, Gompertz–Pareto, uncertainty and 2009-method reproduction analysis for refined/trusted |
-| 04 | `stage_04_build_analytic_pnad.py` | concatenated trusted analytical Parquet |
+| 04 | `stage_04_build_analytic_pnad.py` | consolidated refined/trusted Parquets plus companion metadata/schema CSVs |
 | 05 | `stage_05_publication.py` | publication figures and table formatting from persisted Stage-03 results |
 
 Stage 00 generates both `data/metadata/df_metadata.xlsx` and `data/metadata/df_metadata.csv`. The `Build metadata` workflow regenerates and validates both artifacts whenever the Stage-00 implementation changes.
@@ -52,7 +52,9 @@ The 2009 numerical reference dataset remains in `data/auxiliary/moura_ribeiro_20
 
 ## Stage 04
 
-`stage_04_build_analytic_pnad.py` performs no statistical estimation. It validates the annual trusted files and writes `data/analytics/pnad_analytics_all.parquet`, with one Parquet row group per survey year. Its workflow is independent from Stage 03.
+`stage_04_build_analytic_pnad.py` performs no statistical estimation or filtering. It validates and vertically concatenates the annual refined files into `data/analytics/pnad_refined_all.parquet` and the annual trusted files into `data/analytics/pnad_trusted_all.parquet`. Values and dtypes are preserved from each annual layer, survey years are ordered chronologically, and each year is stored as one Parquet row group.
+
+The module also writes `pnad_refined_all_metadata.csv` and `pnad_trusted_all_metadata.csv`. Each companion CSV records the layer, processing level, dataset description, provenance, schema version, source pattern, column names and Arrow types, Parquet nullability, observed null counts, column descriptions and units, row counts, year coverage, row-group count, and compression. The obsolete `pnad_analytics_all.parquet` product is removed when Stage 04 runs.
 
 ## Stage 05
 
@@ -68,4 +70,4 @@ The repository targets **Python 3.12**, matching GitHub Actions. Direct runtime 
 
 ## Tests
 
-The test suite covers Stages 00–04, mathematical/regime routines, Moura–Ribeiro bootstrap and likelihood calculations, Stage-03 baseline/benchmark schema symmetry, metadata definitions, and Stage-05 figure/table construction. GitHub Actions installs the pinned `requirements.txt`, compiles `src`, and runs `pytest`.
+The test suite covers Stages 00–04, mathematical/regime routines, Moura–Ribeiro bootstrap and likelihood calculations, Stage-03 baseline/benchmark schema symmetry, Stage-04 dual data products and metadata/schema CSVs, metadata definitions, and Stage-05 figure/table construction. GitHub Actions installs the pinned `requirements.txt`, compiles `src`, and runs `pytest`.

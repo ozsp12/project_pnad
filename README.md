@@ -15,11 +15,11 @@ This repository contains the reproducible computational workflow used to study t
 
 The original fixed-width PNAD microdata are local files of approximately 20 GB and are not versioned under `data/raw/`. The persisted `data/refined/` layer is therefore the normal reproducible starting point inside GitHub. Source code under `src/` is authoritative.
 
-## 2017 PNAD Contínua income-scale correction
+## 2017 PNAD Contínua extraction offset
 
-Stage 00 records the deterministic ingestion-scale rule in the canonical metadata column `income_scale_divisor`: the value is `100.0` for the 2017 PNAD Contínua income field `VD5008` and `1.0` for the other survey years. Stage 01 reads this metadata and applies the divisor only after missing-income and sentinel codes have been identified, before the refined layer is written. This is an ingestion/unit correction, not an outlier filter or upper-tail treatment.
+For the 2017 PNAD Contínua microdata, Stage 00 records the fixed-width initial position of `VD5008` as `674`, with field width `8`. The income field is retained on its native scale, so `income_scale_divisor = 1.0`, as for the other survey years. Stage 01 uses this metadata directly when materializing the refined layer.
 
-The correction is documented against the official IBGE 2017 PNAD Contínua quarterly microdata source declared in the Stage-00 metadata and cross-checked against the income scale reported by IBGE for 2017. Without the correction, the persisted 2017 sample has nominal mean income of approximately R$ 106,446.8 and median income of R$ 65,030, roughly two orders of magnitude above the neighboring years. Dividing by 100 yields approximately R$ 1,064.47 and R$ 650.30, respectively, restoring the expected scale between 2016 and 2018 while preserving the full empirical distribution. The metadata rule and parser behavior are covered by dedicated regression tests.
+The previously observed approximately 100-fold income anomaly was caused by using an incorrect fixed-width position for the 2017 field, not by a genuine unit difference and not by the trusted-layer upper-tail treatment. The corrected offset is therefore handled at the raw-to-refined extraction boundary. The canonical metadata and parser behavior are protected by regression tests.
 
 ## Trusted upper-tail treatment
 
@@ -74,6 +74,7 @@ Because the current model fixes `A`, Table 01 does not report a standard error f
 ## Automated workflows
 
 - `Build metadata` executes Stage 00, validates that the generated XLSX and CSV match `build_metadata_df()`, and commits both metadata artifacts when they change.
+- `Build trusted PNAD` executes Stage 02 directly from the persisted refined layer and commits the trusted annual datasets and validation audits.
 - `Run PNAD analysis` executes the canonical Stage-03 analysis, consolidates the Moura–Ribeiro diagnostics into the annual tables, validates baseline/benchmark schema symmetry, and commits analytical assets.
 - `Build PNAD analytics dataset` executes Stage 04 independently and commits only `data/analytics/`.
 - `Build paper assets` refreshes the consolidated Stage-03 diagnostics, executes the canonical Stage-05 publication entry point, validates figures/tables, and commits paper assets on `main`.

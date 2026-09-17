@@ -42,7 +42,6 @@ FIGURES_ANALYSIS_TRUSTED_PATH = REPO_ROOT / "assets" / "figures_analysis_trusted
 
 BIN_RATIO = 1.10
 LORENZ_GRID_SIZE = 1001
-PLOT_COLS = 4
 GOMPERTZ_A_THEORY = float(np.log(np.log(100.0)))
 GOMPERTZ_A_MIN = 1.4
 GOMPERTZ_A_MAX = 1.6
@@ -418,10 +417,6 @@ def build_histogram_dataset(files_by_year, years=None, bins=100):
                         "bin_center": float(center), "count": int(count)}
                        for left, right, center, count in zip(edges[:-1], edges[1:], centers, counts))
     return pd.DataFrame(records).sort_values(["year", "bin_left"]).reset_index(drop=True)
-
-
-def bins_table(df_bins, n=20):
-    return df_bins.head(n).copy()
 
 
 def build_gini_validation(df_stats_year, reference_path=GINI_REFERENCE_PATH):

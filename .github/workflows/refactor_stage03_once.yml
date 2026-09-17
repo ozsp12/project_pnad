@@ -8,10 +8,6 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: stage03-low-risk-refactor
-  cancel-in-progress: false
-
 jobs:
   refactor:
     runs-on: ubuntu-latest
@@ -22,8 +18,8 @@ jobs:
           ref: refactor/stage03-low-risk-cleanup
 
       - name: Apply exact low-risk cleanup
-        shell: python
         run: |
+          python - <<'PY'
           from pathlib import Path
 
           path = Path("src/stage_03_pnad_analysis.py")
@@ -86,7 +82,7 @@ LAYER_CONFIG = {
 '''
 
           if text.count(old_block) != 1:
-              raise SystemExit("Expected Stage-03 duplicate path block exactly once")
+              raise SystemExit("Expected duplicate path block exactly once")
           text = text.replace(old_block, new_block)
 
           old_read = 'metadata = pd.read_excel(METADATA).rename(columns={"ano": "year"})'
@@ -96,6 +92,7 @@ LAYER_CONFIG = {
           text = text.replace(old_read, new_read)
 
           path.write_text(text, encoding="utf-8")
+          PY
 
       - name: Verify syntax and focused Stage 03 tests
         env:

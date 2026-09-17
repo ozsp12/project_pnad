@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src import stage_02_prepare_trusted_input as stage_02_scale
+from src import trusted_input as stage_02_scale
 
 
 def test_load_trusted_scale_divisors_reads_2017_metadata(tmp_path):

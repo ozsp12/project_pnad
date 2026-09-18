@@ -99,6 +99,7 @@ def test_build_layer_product_preserves_values_order_and_schema(tmp_path):
     assert result["renda"].tolist() == [10.0, 20.0, 30.0, 40.0]
     assert str(result["renda"].dtype) == "float64"
     assert str(result["ano"].dtype) == "int64"
+    assert summary["n_columns"] == 2
     assert summary["n_years"] == 2
     assert summary["n_rows"] == 4
     assert pq.ParquetFile(output).metadata.num_row_groups == 2
@@ -174,6 +175,63 @@ def test_build_annual_metadata_combines_processing_and_reference_data(tmp_path):
     assert set(annual["trusted_mad_k"]) == {6.0}
     assert "adjusted_income_formula" in annual.columns
     assert "income_construction" in annual.columns
+    assert set(annual["exchange_source"]) == {stage_04.EXCHANGE_SOURCE}
+    assert set(annual["price_index_source"]) == {stage_04.PRICE_INDEX_SOURCE}
+    assert set(annual["monetary_provenance"]) == {stage_04.MONETARY_PROVENANCE}
+    assert not annual["monetary_provenance"].str.contains("not yet recorded").any()
+
+
+def test_build_datasets_metadata_describes_each_parquet(tmp_path, monkeypatch):
+    analytics = tmp_path / "analytics"
+    refined = tmp_path / "refined"
+    trusted = tmp_path / "trusted"
+    analytics.mkdir()
+    refined.mkdir()
+    trusted.mkdir()
+
+    write_layer(refined, "refined", 2017, [650.0, 1064.0])
+    write_layer(trusted, "trusted", 2017, [650.0])
+
+    refined_output = analytics / "pnad_refined_all.parquet"
+    trusted_output = analytics / "pnad_trusted_all.parquet"
+    refined_schema = analytics / "pnad_refined_all_schema.csv"
+    trusted_schema = analytics / "pnad_trusted_all_schema.csv"
+
+    refined_summary = stage_04.build_layer_product(
+        layer="refined",
+        input_path=refined,
+        output_path=refined_output,
+        schema_path=refined_schema,
+    )
+    trusted_summary = stage_04.build_layer_product(
+        layer="trusted",
+        input_path=trusted,
+        output_path=trusted_output,
+        schema_path=trusted_schema,
+    )
+
+    output = analytics / "pnad_datasets_metadata.csv"
+    monkeypatch.setattr(stage_04, "ANNUAL_METADATA_PATH", analytics / "pnad_annual_metadata.csv")
+    summary = stage_04.build_datasets_metadata(
+        {"refined": refined_summary, "trusted": trusted_summary}, output
+    )
+    metadata = pd.read_csv(output)
+
+    assert summary["n_datasets"] == 2
+    assert metadata["layer"].tolist() == ["refined", "trusted"]
+    assert metadata["dataset_name"].tolist() == [
+        "pnad_refined_all",
+        "pnad_trusted_all",
+    ]
+    assert metadata["n_columns"].tolist() == [2, 2]
+    assert metadata["n_years"].tolist() == [1, 1]
+    assert metadata["n_row_groups"].tolist() == [1, 1]
+    assert set(metadata["compression"]) == {"snappy"}
+    assert (metadata["file_size_bytes"] > 0).all()
+    assert set(metadata["schema_version"].astype(str)) == {"1.0"}
+    assert set(metadata["record_weighting"]) == {
+        "equal observation weights; survey expansion weights are not included"
+    }
 
 
 def test_build_analytics_products_writes_new_contract_and_removes_legacy(
@@ -195,6 +253,7 @@ def test_build_analytics_products_writes_new_contract_and_removes_legacy(
     refined_schema = analytics / "pnad_refined_all_schema.csv"
     trusted_schema = analytics / "pnad_trusted_all_schema.csv"
     annual_metadata = analytics / "pnad_annual_metadata.csv"
+    datasets_metadata = analytics / "pnad_datasets_metadata.csv"
     legacy = analytics / "pnad_analytics_all.parquet"
     old_refined_metadata = analytics / "pnad_refined_all_metadata.csv"
     old_trusted_metadata = analytics / "pnad_trusted_all_metadata.csv"
@@ -212,6 +271,7 @@ def test_build_analytics_products_writes_new_contract_and_removes_legacy(
     monkeypatch.setattr(stage_04, "GINI_REFERENCE_PATH", gini_path)
     monkeypatch.setattr(stage_04, "TRUSTED_AUDIT_PATH", audit_path)
     monkeypatch.setattr(stage_04, "ANNUAL_METADATA_PATH", annual_metadata)
+    monkeypatch.setattr(stage_04, "DATASETS_METADATA_PATH", datasets_metadata)
     monkeypatch.setattr(stage_04, "LEGACY_OUTPUT_PATH", legacy)
     monkeypatch.setattr(
         stage_04,
@@ -227,6 +287,7 @@ def test_build_analytics_products_writes_new_contract_and_removes_legacy(
     assert refined_schema.is_file()
     assert trusted_schema.is_file()
     assert annual_metadata.is_file()
+    assert datasets_metadata.is_file()
     assert not legacy.exists()
     assert not old_refined_metadata.exists()
     assert not old_trusted_metadata.exists()

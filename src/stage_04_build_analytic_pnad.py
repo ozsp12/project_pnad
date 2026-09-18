@@ -1,9 +1,9 @@
-"""Build consolidated PNAD data products, annual metadata, and data dictionaries.
+"""Build consolidated PNAD data products and publication metadata.
 
 Stage 04 is a structural publication stage. It validates and vertically
 concatenates the annual refined and trusted datasets without changing stored
-values or filtering observations. It also materializes one annual metadata
-table and one schema/data-dictionary CSV per consolidated Parquet.
+values or filtering observations. It also materializes dataset-level metadata,
+annual metadata, and one schema/data-dictionary CSV per consolidated Parquet.
 
 No scientific model is fitted in this stage.
 """
@@ -39,6 +39,7 @@ TRUSTED_OUTPUT_PATH = ANALYTICS_PATH / "pnad_trusted_all.parquet"
 REFINED_SCHEMA_PATH = ANALYTICS_PATH / "pnad_refined_all_schema.csv"
 TRUSTED_SCHEMA_PATH = ANALYTICS_PATH / "pnad_trusted_all_schema.csv"
 ANNUAL_METADATA_PATH = ANALYTICS_PATH / "pnad_annual_metadata.csv"
+DATASETS_METADATA_PATH = ANALYTICS_PATH / "pnad_datasets_metadata.csv"
 
 LEGACY_OUTPUT_PATH = ANALYTICS_PATH / "pnad_analytics_all.parquet"
 LEGACY_METADATA_PATHS = (
@@ -50,6 +51,19 @@ PARQUET_COMPRESSION = "snappy"
 REQUIRED_COLUMNS = {"renda", "ano"}
 DATA_SCHEMA_VERSION = "1.0"
 
+EXCHANGE_SOURCE = (
+    "Banco Central do Brasil, Sistema Gerenciador de Series Temporais (SGS), "
+    "series 3692: annual end-of-period U.S. dollar selling exchange rate"
+)
+PRICE_INDEX_SOURCE = (
+    "U.S. Bureau of Labor Statistics, Consumer Price Index for All Urban "
+    "Consumers (CPIAUCSL), distributed by FRED, Federal Reserve Bank of St. Louis"
+)
+MONETARY_PROVENANCE = (
+    f"{EXCHANGE_SOURCE}; {PRICE_INDEX_SOURCE}. Values are persisted in Stage 00 "
+    "metadata and are not queried at Stage 04 runtime."
+)
+
 LAYER_CONFIG = {
     "refined": {
         "input_path": REFINED_PATH,
@@ -57,7 +71,12 @@ LAYER_CONFIG = {
         "output_path": REFINED_OUTPUT_PATH,
         "schema_path": REFINED_SCHEMA_PATH,
         "processing_level": "baseline",
+        "source_stage": "Stage 01",
         "source": "Stage 01 annual refined PNAD Parquet files",
+        "description": (
+            "Consolidated minimally transformed baseline containing all annual "
+            "refined PNAD/PNAD Continua income records."
+        ),
     },
     "trusted": {
         "input_path": TRUSTED_PATH,
@@ -65,7 +84,12 @@ LAYER_CONFIG = {
         "output_path": TRUSTED_OUTPUT_PATH,
         "schema_path": TRUSTED_SCHEMA_PATH,
         "processing_level": "validated benchmark",
+        "source_stage": "Stage 02",
         "source": "Stage 02 annual trusted PNAD Parquet files",
+        "description": (
+            "Consolidated quality-controlled benchmark containing annual trusted "
+            "PNAD/PNAD Continua income records after Stage 02 row selection."
+        ),
     },
 }
 
@@ -356,6 +380,7 @@ def build_layer_product(
         "layer": layer,
         "output": str(output_path),
         "schema": str(schema_path),
+        "n_columns": len(canonical_schema),
         "n_years": len(years),
         "first_year": years[0],
         "last_year": years[-1],
@@ -489,10 +514,9 @@ def build_annual_metadata(
     annual["adjusted_income_formula"] = (
         "renda / exchange * inflation_factor_2025"
     )
-    annual["monetary_provenance"] = (
-        "Stage 00 metadata; documentary provenance of historical exchange/index "
-        "series not yet recorded"
-    )
+    annual["exchange_source"] = EXCHANGE_SOURCE
+    annual["price_index_source"] = PRICE_INDEX_SOURCE
+    annual["monetary_provenance"] = MONETARY_PROVENANCE
 
     annual = annual.merge(
         gini[["ano", "gini_ipea", "gini_world_bank"]],
@@ -521,6 +545,60 @@ def build_annual_metadata(
         "first_year": int(annual["ano"].iloc[0]),
         "last_year": int(annual["ano"].iloc[-1]),
     }
+
+
+def build_datasets_metadata(
+    summaries: dict[str, dict[str, int | str]],
+    output_path: Path | None = None,
+) -> dict[str, int | str]:
+    """Write one metadata row for each consolidated Parquet dataset."""
+    output_path = Path(output_path or DATASETS_METADATA_PATH)
+    rows = []
+
+    for layer in ("refined", "trusted"):
+        summary = summaries[layer]
+        config = LAYER_CONFIG[layer]
+        parquet_path = Path(str(summary["output"]))
+        schema_path = Path(str(summary["schema"]))
+        parquet = pq.ParquetFile(parquet_path)
+
+        compression = {
+            parquet.metadata.row_group(row_group).column(column).compression.lower()
+            for row_group in range(parquet.metadata.num_row_groups)
+            for column in range(parquet.metadata.num_columns)
+        }
+        compression_value = ";".join(sorted(compression))
+
+        rows.append(
+            {
+                "dataset_name": parquet_path.stem,
+                "layer": layer,
+                "parquet_file": parquet_path.name,
+                "description": config["description"],
+                "processing_level": config["processing_level"],
+                "source_stage": config["source_stage"],
+                "source_pattern": config["pattern"],
+                "n_rows": int(parquet.metadata.num_rows),
+                "n_columns": int(parquet.metadata.num_columns),
+                "n_years": int(summary["n_years"]),
+                "first_year": int(summary["first_year"]),
+                "last_year": int(summary["last_year"]),
+                "n_row_groups": int(parquet.metadata.num_row_groups),
+                "compression": compression_value,
+                "file_size_bytes": int(parquet_path.stat().st_size),
+                "schema_version": DATA_SCHEMA_VERSION,
+                "schema_file": schema_path.name,
+                "annual_metadata_file": ANNUAL_METADATA_PATH.name,
+                "observation_unit": "harmonized household per-resident income record",
+                "record_weighting": (
+                    "equal observation weights; survey expansion weights are not included"
+                ),
+            }
+        )
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(rows).to_csv(output_path, index=False)
+    return {"output": str(output_path), "n_datasets": len(rows)}
 
 
 def discover_trusted_files(trusted_path: Path = TRUSTED_PATH) -> dict[int, Path]:
@@ -553,7 +631,7 @@ def build_analytics_parquet(
 
 
 def build_analytics_products() -> dict[str, dict[str, int | str]]:
-    """Build canonical Stage-04 Parquets, schemas, and annual metadata."""
+    """Build canonical Stage-04 Parquets, schemas, and metadata tables."""
     refined_files = discover_layer_files(
         Path(LAYER_CONFIG["refined"]["input_path"]),
         "refined",
@@ -575,6 +653,7 @@ def build_analytics_products() -> dict[str, dict[str, int | str]]:
         "trusted": build_layer_product(layer="trusted"),
     }
     build_annual_metadata(years=years)
+    build_datasets_metadata(summaries)
 
     for legacy_path in (LEGACY_OUTPUT_PATH, *LEGACY_METADATA_PATHS):
         if legacy_path.exists():
@@ -601,3 +680,4 @@ if __name__ == "__main__":
         print(summary["output"])
         print(summary["schema"])
     print(ANNUAL_METADATA_PATH)
+    print(DATASETS_METADATA_PATH)

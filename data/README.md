@@ -7,7 +7,7 @@ The `data` directory contains the empirical material used by the PNAD longitudin
 | `metadata/` | annual extraction specifications, monetary metadata, and processing information | produced by Stage 00; consumed downstream |
 | `refined/` | harmonized annual PNAD/PNAD Contínua baseline datasets before trusted-stage treatment | produced by Stage 01; consumed by Stages 02–04 |
 | `trusted/` | benchmark annual datasets after structural cleaning, log-MAD upper-tail treatment, and validation | produced by Stage 02; consumed by Stages 03–04 |
-| `analytics/` | consolidated refined/trusted Parquets, annual metadata, and variable-level schemas | produced by Stage 04 |
+| `analytics/` | consolidated refined/trusted Parquets, dataset metadata, annual metadata, and variable-level schemas | produced by Stage 04 |
 | `auxiliary/` | external Gini/GDP series and published Moura–Ribeiro 2009 reference values | consumed as external/reference inputs |
 | `raw/` | local fixed-width original microdata, approximately 20 GB | deliberately not versioned |
 
@@ -37,21 +37,26 @@ The untrimmed refined observations are preserved so that analyses sensitive to t
 
 ## Analytics layer
 
-Stage 04 publishes five canonical files:
+Stage 04 publishes six canonical data products:
 
 - `pnad_refined_all.parquet`: vertically concatenated refined baseline;
 - `pnad_trusted_all.parquet`: vertically concatenated trusted benchmark;
 - `pnad_refined_all_schema.csv`: variable-level schema/data dictionary for the refined product;
 - `pnad_trusted_all_schema.csv`: variable-level schema/data dictionary for the trusted product;
-- `pnad_annual_metadata.csv`: one row per survey year with extraction rules, monetary fields, external validation references, and the realized trusted-treatment audit.
+- `pnad_annual_metadata.csv`: one row per survey year with extraction rules, monetary fields, external validation references, and the realized trusted-treatment audit;
+- `pnad_datasets_metadata.csv`: one row per consolidated Parquet with dataset/file-level properties and provenance.
 
 The two consolidated Parquets share the same columns, `renda` and `ano`, and Stage 04 preserves annual values and dtypes without additional statistical transformation. Each survey year is stored as one Parquet row group.
 
 The two schema CSVs have one row per dataset column. They document description, logical and storage type, unit, source, whether the field is calculated, the stage and formula that produce it, logical/storage nullability, valid/missing counts, and the number of distinct values.
 
-`pnad_annual_metadata.csv` is aligned to the survey years present in the consolidated Parquets. It records the source survey and income variable, fixed-width extraction specification, missing-value code, Stage-01 scale/per-capita construction, currency, exchange factor, price index, 2025 adjustment fields, the implemented adjusted-income formula, external IPEA and World Bank Gini values, and the Stage-02 log-MAD/p99 treatment parameters, effective cutoffs, and retained/removed counts. The external Gini series are validation references only.
+`pnad_datasets_metadata.csv` documents the Parquet products themselves. It records dataset name and layer, processing level, source stage, source-file pattern, row and column counts, number and range of survey years, Parquet row groups, compression, file size, schema version, associated schema file, observation unit, and record-weighting convention.
 
-The former `pnad_analytics_all.parquet`, `pnad_refined_all_metadata.csv`, and `pnad_trusted_all_metadata.csv` products are obsolete.
+`pnad_annual_metadata.csv` is aligned to the survey years present in the consolidated Parquets. It records the source survey and income variable, fixed-width extraction specification, missing-value code, Stage-01 scale/per-capita construction, currency, exchange factor, price index, 2025 adjustment fields, the implemented adjusted-income formula, external IPEA and World Bank Gini values, and the Stage-02 log-MAD/p99 treatment parameters, effective cutoffs, and retained/removed counts.
+
+The annual monetary provenance explicitly identifies the exchange-rate series as Banco Central do Brasil SGS series 3692 and the U.S. price-index series as BLS CPIAUCSL distributed through FRED by the Federal Reserve Bank of St. Louis. These values are persisted as metadata rather than queried at Stage 04 runtime. The external Gini series remain validation references only.
+
+The file-level, variable-level, and annual metadata hierarchy is documented in `data/analytics/README.md`. The former `pnad_analytics_all.parquet`, `pnad_refined_all_metadata.csv`, and `pnad_trusted_all_metadata.csv` products are obsolete.
 
 ## Auxiliary series
 

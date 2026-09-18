@@ -1,138 +1,70 @@
 # PNAD Longitudinal Income Research
 
-This repository contains the reproducible computational workflow used to study the Brazilian income distribution with PNAD and PNAD Contínua data. Longitudinal metadata span 1976–2025, including years without a survey. The workflow separates data construction, statistical analysis, cross-year analytics, scientific reproduction diagnostics, and publication assets.
+## Overview
+
+This repository contains the reproducible data-construction and analysis workflow for a harmonized record-level household-income dataset derived from the Brazilian *Pesquisa Nacional por Amostra de Domicílios* (PNAD) and *PNAD Contínua*. The project covers all 45 available survey years between 1976 and 2025 and preserves the explicit survey gaps in 1980, 1991, 1994, 2000, and 2010.
+
+The released records are repeated annual cross-sections rather than a longitudinal panel. The workflow harmonizes year-specific income fields into a common analytical structure, preserves a minimally transformed `refined` baseline, constructs a quality-controlled `trusted` benchmark, and produces documented cross-year data products suitable for scientific reuse and archival deposition.
+
+The research is developed in the context of econophysics and income-distribution studies at the Federal University of Rio de Janeiro and collaborating institutions. The research group is led by **Marcelo Byrro Ribeiro**, who is also the corresponding author of the associated manuscript. The current manuscript author list and affiliations are documented below. 
+
+## Research team
+
+| Researcher | Affiliation | Contact | ORCID |
+| --- | --- | --- | --- |
+| Beatriz Queiroz-Santos | Institute of Economics, Universidade Federal do Rio de Janeiro, Rio de Janeiro, Brazil | beatriz.santos@graduacao.ie.ufrj.br | [0009-0002-7287-5888](https://orcid.org/0009-0002-7287-5888) |
+| Sharon Teles | Physics Institute, Universidade Federal do Rio de Janeiro, Rio de Janeiro, Brazil | steles.ts@gmail.com | [0000-0003-4497-9161](https://orcid.org/0000-0003-4497-9161) |
+| Osvaldo L. Santos-Pereira | Physics Institute, Universidade Federal do Rio de Janeiro, Rio de Janeiro, Brazil | olsp@if.ufrj.br | [0000-0003-2231-517X](https://orcid.org/0000-0003-2231-517X) |
+| Everton M. C. Abreu | Physics Department, Universidade Federal Rural do Rio de Janeiro, Seropédica, Brazil | evertonabreu@ufrrj.br | [0000-0002-6638-2588](https://orcid.org/0000-0002-6638-2588) |
+| Marcelo Byrro Ribeiro | Physics Institute, Universidade Federal do Rio de Janeiro, Rio de Janeiro, Brazil | mbr@if.ufrj.br | [0000-0002-6919-2624](https://orcid.org/0000-0002-6919-2624) |
+
+## Scientific scope
+
+The harmonized target is household income expressed on a per-resident basis when required by the original survey field. PNAD and PNAD Contínua use different survey designs and income constructions, so the 2015–2016 transition is retained as an explicit comparability boundary rather than treated as a measurement-equivalent continuation.
+
+The processed research datasets do not retain the full original survey expansion weights and complex-design variables. Statistics computed directly from the released records are therefore record-weighted and should not be interpreted as official design-weighted population estimates. External IPEA and World Bank Gini series are used only as validation references.
 
 ## Scientific pipeline
 
-| Stage | Module | Role | Main output |
-| ---: | --- | --- | --- |
-| 00 | `src/stage_00_build_metadata.py` | Consolidates extraction specifications and monetary metadata | `data/metadata/df_metadata.xlsx` and `data/metadata/df_metadata.csv` |
-| 01 | `src/stage_01_build_refined_pnad.py` | Harmonizes local raw PNAD records into annual income samples | `data/refined/pnad_refined_YYYY.parquet` |
-| 02 | `src/stage_02_build_trusted_pnad.py` | Applies deterministic upper-tail treatment and validation | `data/trusted/pnad_trusted_YYYY.parquet` and validation audits |
-| 03 | `src/stage_03_pnad_analysis.py` | Runs descriptive, inequality, CCDF, Gompertz–Pareto, bootstrap and Moura Jr.–Ribeiro reproduction analyses on refined and trusted data | analytical CSV and PNG assets |
-| 04 | `src/stage_04_build_analytic_pnad.py` | Concatenates refined/trusted annual samples and builds annual metadata plus variable-level schemas | two consolidated Parquets, `pnad_annual_metadata.csv`, and two schema CSVs |
-| 05 | `src/stage_05_publication.py` | Builds the complete paper-facing figure and table set from persisted Stage-03 results | `assets/figures_paper/` and `assets/tables_paper/` |
+| Stage | Main role | Output |
+| ---: | --- | --- |
+| 00 | annual extraction and monetary metadata | `data/metadata/` |
+| 01 | raw fixed-width records → harmonized annual baseline | `data/refined/` |
+| 02 | structural cleaning, deterministic upper-tail treatment, validation | `data/trusted/`, validation tables |
+| 03 | descriptive, inequality, CCDF and Gompertz–Pareto analysis | analytical tables and figures |
+| 04 | cross-year consolidation and publication metadata | `data/analytics/` |
+| 05 | paper-facing figures and tables | publication assets |
 
-The original fixed-width PNAD microdata are local files of approximately 20 GB and are not versioned under `data/raw/`. The persisted `data/refined/` layer is therefore the normal reproducible starting point inside GitHub. Source code under `src/` is authoritative.
+The two principal consolidated record-level products are `data/analytics/pnad_refined_all.parquet` and `data/analytics/pnad_trusted_all.parquet`. They share the same schema (`renda`, `ano`). Stage 04 also publishes variable-level schema dictionaries and annual extraction, monetary, validation and treatment metadata.
 
-## 2017 PNAD Contínua extraction offset
+## Repository documentation
 
-For the 2017 PNAD Contínua microdata, Stage 00 records the fixed-width initial position of `VD5008` as `674`, with field width `8`. The income field is retained on its native scale, so `income_scale_divisor = 1.0`, as for the other survey years. Stage 01 uses this metadata directly when materializing the refined layer.
+Detailed technical documentation is intentionally kept close to the corresponding material:
 
-The previously observed approximately 100-fold income anomaly was caused by using an incorrect fixed-width position for the 2017 field, not by a genuine unit difference and not by the trusted-layer upper-tail treatment. The corrected offset is therefore handled at the raw-to-refined extraction boundary. The canonical metadata and parser behavior are protected by regression tests.
+- [`src/README.md`](src/README.md): scientific stages, methods, execution contracts, tests and automation;
+- [`data/README.md`](data/README.md): raw/refined/trusted/analytics layers, metadata, provenance and dataset interpretation;
+- [`assets/README.md`](assets/README.md): analytical, validation and publication assets;
+- [`data/metadata/README.md`](data/metadata/README.md): extraction and monetary metadata.
 
-## Trusted upper-tail treatment
+## Reproducible execution
 
-Stage 02 uses the annual log-MAD upper-tail rule after structural cleaning. For 1985 and 1990 only, the trusted layer additionally applies the empirical 99th-percentile cutoff, with the effective threshold defined as `min(log-MAD, p99)`. The exception is based exclusively on within-year tail behavior and leverage; IPEA and World Bank Gini series are not used to choose or tune the cutoff. The untrimmed observations remain available in the refined layer. If the resulting trusted tail does not retain the canonical minimum number of Pareto bins, Stage 03 records the Pareto regime as unsupported rather than relaxing the fitting criterion.
-
-## Stage 03 methodology and analytical layers
-
-Stage 03 applies the same analytical pipeline independently to `refined` and `trusted`. The `refined` layer is the baseline and the `trusted` layer is the benchmark. Their analytical directories must remain structurally identical: the same filenames, the same column schemas, and the same metadata schema.
-
-All distributional statistics in this repository are computed on the annual PNAD and PNAD Contínua samples with equal observation weights. Survey expansion weights are intentionally not applied. The reported quantities therefore characterize the empirical distributions of the analyzed samples rather than design-weighted official population estimates. External IPEA and World Bank Gini series are used only as external validation references and are not treated as estimand-equivalent targets.
-
-The six canonical scientific CSVs in both `assets/tables_analysis_refined/` and `assets/tables_analysis_trusted/` are:
-
-- `statistics_annual.csv`;
-- `geometric_bins.csv`;
-- `gompertz_annual.csv`;
-- `pareto_annual.csv`;
-- `gompertz_pareto_curves.csv`;
-- `lorenz.csv`.
-
-Each directory additionally contains `metadata.csv`, a data dictionary with table-level descriptions and column-level definitions, units, and sources. This analytical-table organization is intentionally unchanged by the current Stage-04 metadata refactor.
-
-Stage 03 includes descriptive statistics, geometric bins with ratio `r = 1.10`, empirical CCDFs, Lorenz geometry, inequality indices, top-income shares, external Gini validation, and Gompertz–Pareto regime estimation. The current Gompertz model fixes
-
-$$
-A=\ln[\ln(100)]
-$$
-
-and estimates only `B` by least squares. A free-intercept fit is retained as a diagnostic and for comparison with the 2009 methodology. Pareto parameters are estimated by log-log least squares and direct maximum likelihood after determining the transition threshold. Gompertz–Pareto continuity at the transition is used to determine the Pareto amplitude for the direct-MLE branch.
-
-`stage_03_pnad_analysis.py` also contains the uncertainty calculations required to reproduce Moura Jr. and Ribeiro, *Eur. Phys. J. B* **67**, 101–120 (2009): fixed-`A` Gompertz bootstrap uncertainty for `B`, free-intercept Gompertz bootstrap diagnostics for `A` and `B`, Pareto LSF/MLE bootstrap uncertainties, the likelihood-width uncertainty for the MLE exponent, exponential-versus-Gompertz diagnostics, and regime income shares. These quantities are persisted directly in `gompertz_annual.csv` and `pareto_annual.csv`; separate `moura_ribeiro_bootstrap_annual.csv` and `moura_ribeiro_reproduction_annual.csv` files are not used.
-
-The numerical values reported in the 2009 paper remain available in `data/auxiliary/moura_ribeiro_2009_reference.csv` as a historical reference dataset.
-
-## Stage 04 analytics datasets
-
-Stage 04 reads both annual data layers and performs validation plus vertical concatenation only. It writes `data/analytics/pnad_refined_all.parquet` from the refined baseline and `data/analytics/pnad_trusted_all.parquet` from the trusted benchmark. No observations are filtered and no income values are statistically transformed in Stage 04. Each survey year occupies one Parquet row group.
-
-The consolidated microdata remain intentionally narrow, currently containing only `renda` and `ano`. Context needed to interpret and reproduce their treatment is stored separately instead of being repeated for every observation.
-
-Stage 04 additionally writes:
-
-- `data/analytics/pnad_refined_all_schema.csv`;
-- `data/analytics/pnad_trusted_all_schema.csv`;
-- `data/analytics/pnad_annual_metadata.csv`.
-
-The schema files are variable-level data dictionaries with one row per column. They record description, logical and storage type, unit, provenance, whether the variable is calculated, the stage and formula used to construct it, logical/storage nullability, valid/missing counts, and the number of distinct values.
-
-`pnad_annual_metadata.csv` has one row per survey year and is aligned exactly to the years present in both consolidated Parquets. It combines the Stage-00 extraction specification and monetary fields with the external IPEA/World Bank Gini reference series and the realized Stage-02 trusted-treatment audit. It includes the raw income/member fields and fixed-width positions, missing-income code, scale/per-capita construction, currency, exchange factor, price index, 2025 inflation adjustment, the implemented adjusted-income formula, Gini reference values, log-MAD parameters, exceptional p99 information, effective cutoffs, and retained/removed counts. The Gini series are labeled as external validation only and do not determine trusted cutoffs.
-
-The analytical tables produced by Stage 03 are not moved or duplicated into `data/analytics/` by this refactor; their final archival organization remains a separate decision.
-
-## Stage 05 publication layer
-
-Stage 05 is presentation-only. `stage_05_publication.py` contains the figure and table-formatting features and consumes persisted Stage-03 scientific results. Statistical estimation, bootstrap, likelihood calculations and top-income-band aggregation belong to Stage 03.
-
-The paper table set contains:
-
-- `table_01_gompertz_annual.csv`;
-- `table_02_pareto_annual.csv`;
-- `table_03_economic_inequality_annual.csv`;
-- `table_04_metadata.csv`.
-
-Because the current model fixes `A`, Table 01 does not report a standard error for fixed `A`. The free-intercept `A` and `B` estimates and their bootstrap uncertainties are retained explicitly as the 2009-method diagnostics. Table 04 is the data dictionary for the paper-facing tables and includes both table-level and column-level descriptions.
-
-## Automated workflows
-
-- `Build metadata` executes Stage 00, validates that the generated XLSX and CSV match `build_metadata_df()`, and commits both metadata artifacts when they change.
-- `Build trusted PNAD` executes Stage 02 directly from the persisted refined layer and commits the trusted annual datasets and validation audits.
-- `Run PNAD analysis` executes the canonical Stage-03 analysis, consolidates the Moura–Ribeiro diagnostics into the annual tables, validates baseline/benchmark schema symmetry, and commits analytical assets.
-- `Build PNAD analytics datasets` executes Stage 04 for both data layers, builds the variable schemas and annual metadata, validates the five canonical analytics products, and is also triggered after a successful `Build trusted PNAD` run so regenerated trusted data propagate automatically.
-- `Build paper assets` consumes the persisted Stage-03 analytical tables, executes the canonical Stage-05 publication entry point, validates figures/tables, and commits paper assets on `main`.
-- `Unit tests` compiles `src/` and runs the complete `pytest` suite.
-
-## Assets
-
-| Directory | Content |
-| --- | --- |
-| `assets/figures_analysis_refined/` | analytical figures from the refined baseline |
-| `assets/figures_analysis_trusted/` | analytical figures from the trusted benchmark |
-| `assets/tables_analysis_refined/` | six canonical baseline tables plus `metadata.csv` |
-| `assets/tables_analysis_trusted/` | six canonical benchmark tables plus `metadata.csv` |
-| `assets/figures_paper/` | 300 dpi paper figures |
-| `assets/tables_paper/` | four canonical paper-facing CSV tables |
-
-## Dependencies and execution
-
-The reproducible environment targets **Python 3.12**, matching the GitHub Actions workflows. All direct runtime and test dependencies are pinned in `requirements.txt`.
+The repository targets Python 3.12 and pins direct runtime and test dependencies in `requirements.txt`.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Metadata artifacts are generated with:
-
-```bash
-python src/stage_00_build_metadata.py
-```
-
-With refined data already available, the analytical workflow is:
+With the persisted refined layer available, the downstream workflow is:
 
 ```bash
 python src/stage_02_build_trusted_pnad.py
 python src/stage_03_pnad_analysis.py
 python src/stage_04_build_analytic_pnad.py
-```
-
-Stage 04 may be executed independently when its persisted refined/trusted, metadata, external-Gini, and trusted-audit inputs are present. Publication assets are generated with one canonical command:
-
-```bash
 python src/stage_05_publication.py
 ```
 
+Reconstruction from the original IBGE fixed-width files is documented in Stage 01; the approximately 20 GB local raw-data collection is deliberately not versioned in this repository.
+
 ## Citation and license
 
-Repository citation metadata are provided in `CITATION.cff`. The software in this repository is released under the MIT License; see `LICENSE`. Upstream PNAD and PNAD Contínua microdata remain subject to the terms and conditions of their original data providers.
+Citation metadata are provided in [`CITATION.cff`](CITATION.cff). The software is released under the MIT License. Original PNAD and PNAD Contínua microdata remain subject to the terms and conditions of the Instituto Brasileiro de Geografia e Estatística (IBGE). Dataset and code persistent identifiers will be recorded with the frozen archival release.

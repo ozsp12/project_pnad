@@ -1,10 +1,18 @@
-# Zenodo dataset release guide
+# Zenodo dataset release
 
-This directory is the archival data package for the PNAD/PNAD Continua income dataset. The repository should be frozen and all automated checks should pass before deposition.
+This directory contains the archival data package corresponding to repository release **v1.0.0**.
 
-## Files to upload
+## Release metadata
 
-Upload the following files to the Zenodo dataset record:
+- Version: `1.0.0`
+- Publication date: `2026-09-18`
+- Zenodo record: https://zenodo.org/records/22836608
+- Version DOI: `10.5281/zenodo.22836608`
+- Resource type: Dataset
+
+## Archived files
+
+The Zenodo dataset package consists of:
 
 - `README.md`;
 - `pnad_refined_all.parquet`;
@@ -15,19 +23,13 @@ Upload the following files to the Zenodo dataset record:
 - `pnad_datasets_metadata.csv`;
 - `SHA256SUMS.txt`.
 
-`SHA256SUMS.txt` is generated from the seven package files above other than the checksum file itself. It allows the archived files to be verified independently after download.
+`SHA256SUMS.txt` contains SHA-256 hashes for the seven package files other than the checksum file itself and permits independent integrity verification after download.
 
-## Recommended Zenodo metadata
+## Dataset title
 
-**Title**
+**Harmonized PNAD and PNAD Contínua Household Income Microdata for Brazil, 1976–2025**
 
-Harmonized Brazilian PNAD and PNAD Continua Household Income Data, 1976–2025
-
-**Resource type**
-
-Dataset.
-
-**Creators**
+## Creators
 
 1. Beatriz Queiroz-Santos — Institute of Economics, Universidade Federal do Rio de Janeiro — ORCID 0009-0002-7287-5888.
 2. Sharon Teles — Physics Institute, Universidade Federal do Rio de Janeiro — ORCID 0000-0003-4497-9161.
@@ -37,29 +39,22 @@ Dataset.
 
 Marcelo Byrro Ribeiro is the corresponding author of the associated manuscript.
 
-**Description**
+## Description
 
-Harmonized record-level household-income data derived from the Brazilian Pesquisa Nacional por Amostra de Domicilios (PNAD) and PNAD Continua, covering 45 available survey years from 1976 through 2025. The deposit contains a minimally transformed `refined` baseline and a quality-controlled `trusted` benchmark, together with variable-level schemas, annual extraction/monetary/treatment metadata, and dataset-level technical metadata. The observations are repeated annual cross-sections rather than a longitudinal panel. The released records do not contain the full original survey expansion weights or complex-sample design variables; direct estimates from the deposited Parquets are therefore record-weighted rather than official design-weighted population estimates.
+Harmonized record-level household-income data derived from the Brazilian Pesquisa Nacional por Amostra de Domicílios (PNAD) and PNAD Contínua, covering 45 available survey years from 1976 through 2025. The deposit contains a minimally transformed `refined` baseline and a quality-controlled `trusted` benchmark, together with variable-level schemas, annual extraction/monetary/treatment metadata, dataset-level technical metadata, and SHA-256 integrity checksums.
 
-**Keywords**
+The observations are repeated annual cross-sections rather than a longitudinal panel. The released records do not contain the full original survey expansion weights or complex-sample design variables; direct estimates from the deposited Parquets are therefore record-weighted rather than official design-weighted population estimates. IPEA and World Bank Gini series are retained only as external validation references and do not determine the trusted-layer treatment.
 
-PNAD; PNAD Continua; Brazil; household income; income distribution; inequality; econophysics; reproducible research.
+The original IBGE fixed-width microdata are not redistributed in the Zenodo deposit. The complete reconstruction and validation workflow is maintained in this repository.
 
-**Related software**
+## Keywords
 
-`https://github.com/ozsp12/project_pnad`
+PNAD; PNAD Contínua; Brazil; household income; income distribution; inequality; econophysics; reproducible research.
 
-## Fields to complete at deposition
+## Licensing
 
-The following values should be added only when the archival record is finalized:
+The repository software is distributed under the MIT License. The deposited harmonized dataset is licensed separately in the Zenodo record. The original PNAD and PNAD Contínua source microdata remain attributable to and governed by the Instituto Brasileiro de Geografia e Estatística (IBGE).
 
-- dataset version;
-- publication date;
-- Zenodo concept DOI and version DOI;
-- final data-license selection.
+## Repository correspondence
 
-The repository software is distributed under the MIT License. The deposited data are derived from IBGE microdata, so the dataset license should be selected consistently with the applicable IBGE source-data terms rather than inferred automatically from the software license.
-
-## Final repository update after Zenodo publication
-
-After Zenodo assigns the DOI, update `CITATION.cff` and the root `README.md` with the dataset version, release date, and DOI. The Git tag/release should then identify the exact repository state corresponding to the deposited files.
+The GitHub repository state corresponding to this archival release is identified as version `v1.0.0`. Repository citation metadata are maintained in the root `CITATION.cff`.

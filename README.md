@@ -44,7 +44,7 @@ Detailed technical documentation is intentionally kept close to the correspondin
 - [`src/README.md`](src/README.md): scientific stages, methods, execution contracts, tests and automation;
 - [`data/README.md`](data/README.md): raw/refined/trusted/analytics layers, metadata, provenance and dataset interpretation;
 - [`data/analytics/README.md`](data/analytics/README.md): consolidated Parquets, metadata hierarchy and integrity manifest;
-- [`data/analytics/RELEASE.md`](data/analytics/RELEASE.md): Zenodo upload set and final release checklist;
+- [`data/analytics/RELEASE.md`](data/analytics/RELEASE.md): Zenodo upload set and release metadata;
 - [`assets/README.md`](assets/README.md): analytical, validation and publication assets;
 - [`data/metadata/README.md`](data/metadata/README.md): extraction and monetary metadata.
 
@@ -69,6 +69,10 @@ Reconstruction from the original IBGE fixed-width files is documented in Stage 0
 
 ## Citation and archival release
 
-Citation metadata are provided in [`CITATION.cff`](CITATION.cff). The software is released under the MIT License. Original PNAD and PNAD Contínua microdata remain subject to the terms and conditions of the Instituto Brasileiro de Geografia e Estatística (IBGE).
+Release **v1.0.0** corresponds to the Zenodo dataset record published on **18 September 2026**:
 
-The Zenodo dataset package is prepared from `data/analytics/` and is accompanied by a SHA-256 integrity manifest. Dataset version, release date and DOI are intentionally added to the repository only after the Zenodo record is finalized so that the citation identifies the exact deposited release.
+**DOI:** [10.5281/zenodo.22836608](https://doi.org/10.5281/zenodo.22836608)
+
+The archived dataset package contains the two consolidated Parquets, their variable-level schemas, annual metadata, dataset-level metadata, a package README, and SHA-256 checksums. Citation metadata for the repository are provided in [`CITATION.cff`](CITATION.cff).
+
+The repository software is released under the MIT License. The deposited harmonized dataset is licensed separately on Zenodo. Original PNAD and PNAD Contínua source microdata remain attributable to and governed by the Instituto Brasileiro de Geografia e Estatística (IBGE).

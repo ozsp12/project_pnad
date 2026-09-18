@@ -1,6 +1,6 @@
 # Source modules
 
-The `src` directory contains the canonical scientific workflow. Stages 00–02 build the metadata and annual data layers; Stage 03 performs statistical analysis and Moura Jr.–Ribeiro diagnostics; Stage 04 builds the cross-year refined and trusted data products; Stage 05 converts persisted scientific results into publication assets.
+The `src` directory contains the canonical scientific workflow. Stages 00–02 build the metadata and annual data layers; Stage 03 performs statistical analysis and Moura Jr.–Ribeiro diagnostics; Stage 04 builds the cross-year refined and trusted data products plus their publication metadata; Stage 05 converts persisted scientific results into publication assets.
 
 ## Pipeline
 
@@ -10,7 +10,7 @@ The `src` directory contains the canonical scientific workflow. Stages 00–02 b
 | 01 | `stage_01_build_refined_pnad.py` | raw fixed-width records → annual refined datasets |
 | 02 | `stage_02_build_trusted_pnad.py` | structural cleaning, log-MAD upper-tail treatment and validation |
 | 03 | `stage_03_pnad_analysis.py` | descriptive, inequality, CCDF, Gompertz–Pareto, uncertainty and 2009-method reproduction analysis for refined/trusted |
-| 04 | `stage_04_build_analytic_pnad.py` | consolidated refined/trusted Parquets plus companion metadata/schema CSVs |
+| 04 | `stage_04_build_analytic_pnad.py` | consolidated refined/trusted Parquets, annual metadata, and variable-level schemas |
 | 05 | `stage_05_publication.py` | publication figures and table formatting from persisted Stage-03 results |
 
 Stage 00 generates both `data/metadata/df_metadata.xlsx` and `data/metadata/df_metadata.csv`. The `Build metadata` workflow regenerates and validates both artifacts whenever the Stage-00 implementation changes.
@@ -35,7 +35,7 @@ $$
 
 with Gompertz–Pareto continuity used to determine the MLE amplitude.
 
-The `refined` layer is the analytical baseline and the `trusted` layer is the benchmark. Their Stage-03 table directories are required to have identical file sets and column schemas. Each contains exactly six scientific tables:
+The `refined` layer is the analytical baseline and the `trusted` layer is the benchmark. Their Stage-03 table directories are currently required to have identical file sets and column schemas. Each contains exactly six scientific tables:
 
 - `statistics_annual.csv`;
 - `geometric_bins.csv`;
@@ -44,7 +44,7 @@ The `refined` layer is the analytical baseline and the `trusted` layer is the be
 - `gompertz_pareto_curves.csv`;
 - `lorenz.csv`.
 
-Each directory also contains `metadata.csv`, which documents the purpose of every table and the scientific meaning, unit/scale, and source of every column.
+Each directory also contains `metadata.csv`, which documents the purpose of every table and the scientific meaning, unit/scale, and source of every column. This Stage-03 analytical-table organization is intentionally unchanged by the Stage-04 metadata refactor.
 
 `stage_03_pnad_analysis.py` also computes the simulation/inference quantities needed to reproduce Moura Jr. and Ribeiro (2009): fixed-`A` and free-intercept Gompertz bootstrap diagnostics, Pareto LSF/MLE bootstrap uncertainties, the paper-style likelihood width for the MLE exponent, exponential-vs-Gompertz diagnostics, and regime income shares. These quantities are written directly into `gompertz_annual.csv` and `pareto_annual.csv`; no separate bootstrap or reproduction CSVs are persisted.
 
@@ -52,9 +52,19 @@ The 2009 numerical reference dataset remains in `data/auxiliary/moura_ribeiro_20
 
 ## Stage 04
 
-`stage_04_build_analytic_pnad.py` performs no statistical estimation or filtering. It validates and vertically concatenates the annual refined files into `data/analytics/pnad_refined_all.parquet` and the annual trusted files into `data/analytics/pnad_trusted_all.parquet`. Values and dtypes are preserved from each annual layer, survey years are ordered chronologically, and each year is stored as one Parquet row group.
+`stage_04_build_analytic_pnad.py` validates and vertically concatenates the annual refined files into `data/analytics/pnad_refined_all.parquet` and the annual trusted files into `data/analytics/pnad_trusted_all.parquet`. Values and dtypes are preserved from each annual layer, survey years are ordered chronologically, and each year is stored as one Parquet row group. Stage 04 does not filter observations, transform income values, or fit scientific models.
 
-The module also writes `pnad_refined_all_metadata.csv` and `pnad_trusted_all_metadata.csv`. Each companion CSV records the layer, processing level, dataset description, provenance, schema version, source pattern, column names and Arrow types, Parquet nullability, observed null counts, column descriptions and units, row counts, year coverage, row-group count, and compression. The obsolete `pnad_analytics_all.parquet` product is removed when Stage 04 runs.
+The module additionally writes three documentation products:
+
+- `pnad_refined_all_schema.csv`;
+- `pnad_trusted_all_schema.csv`;
+- `pnad_annual_metadata.csv`.
+
+The schema files contain one row per variable and record the variable description, logical and storage type, unit, provenance, whether the field is calculated, calculation stage and formula, logical/storage nullability, valid/missing counts, and number of distinct values. They are data dictionaries rather than file-level metadata tables.
+
+`pnad_annual_metadata.csv` contains one row per survey year and combines the Stage-00 extraction and monetary metadata, the external IPEA/World Bank Gini reference series, and the realized Stage-02 trusted-treatment audit. It therefore documents the raw source field and fixed-width specification, missing-income code, scale/per-capita construction, currency/exchange/index/2025-adjustment fields, the adjusted-income formula used downstream, and the annual log-MAD/p99 cutoffs and retained/removed counts. The Gini references are explicitly validation-only and are not used to determine Stage-02 cutoffs.
+
+The obsolete `pnad_analytics_all.parquet`, `pnad_refined_all_metadata.csv`, and `pnad_trusted_all_metadata.csv` products are removed when Stage 04 runs.
 
 ## Stage 05
 
@@ -70,4 +80,4 @@ The repository targets **Python 3.12**, matching GitHub Actions. Direct runtime 
 
 ## Tests
 
-The test suite covers Stages 00–04, mathematical/regime routines, Moura–Ribeiro bootstrap and likelihood calculations, Stage-03 baseline/benchmark schema symmetry, Stage-04 dual data products and metadata/schema CSVs, metadata definitions, and Stage-05 figure/table construction. GitHub Actions installs the pinned `requirements.txt`, compiles `src`, and runs `pytest`.
+The test suite covers Stages 00–04, mathematical/regime routines, Moura–Ribeiro bootstrap and likelihood calculations, Stage-03 baseline/benchmark schema symmetry, Stage-04 dual data products, variable-level schema dictionaries and annual metadata, metadata definitions, and Stage-05 figure/table construction. GitHub Actions installs the pinned `requirements.txt`, compiles `src`, and runs `pytest`.

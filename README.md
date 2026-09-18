@@ -6,7 +6,7 @@ This repository contains the reproducible data-construction and analysis workflo
 
 The released records are repeated annual cross-sections rather than a longitudinal panel. The workflow harmonizes year-specific income fields into a common analytical structure, preserves a minimally transformed `refined` baseline, constructs a quality-controlled `trusted` benchmark, and produces documented cross-year data products suitable for scientific reuse and archival deposition.
 
-The research is developed in the context of econophysics and income-distribution studies at the Federal University of Rio de Janeiro and collaborating institutions. The research group is led by **Marcelo Byrro Ribeiro**, who is also the corresponding author of the associated manuscript. The current manuscript author list and affiliations are documented below. 
+The research is developed in the context of econophysics and income-distribution studies at the Federal University of Rio de Janeiro and collaborating institutions. The research group is led by **Marcelo Byrro Ribeiro**, who is also the corresponding author of the associated manuscript. The current manuscript author list and affiliations are documented below.
 
 ## Research team
 
@@ -15,7 +15,7 @@ The research is developed in the context of econophysics and income-distribution
 | Beatriz Queiroz-Santos | Institute of Economics, Universidade Federal do Rio de Janeiro, Rio de Janeiro, Brazil | beatriz.santos@graduacao.ie.ufrj.br | [0009-0002-7287-5888](https://orcid.org/0009-0002-7287-5888) |
 | Sharon Teles | Physics Institute, Universidade Federal do Rio de Janeiro, Rio de Janeiro, Brazil | steles.ts@gmail.com | [0000-0003-4497-9161](https://orcid.org/0000-0003-4497-9161) |
 | Osvaldo L. Santos-Pereira | Physics Institute, Universidade Federal do Rio de Janeiro, Rio de Janeiro, Brazil | olsp@if.ufrj.br | [0000-0003-2231-517X](https://orcid.org/0000-0003-2231-517X) |
-| Everton M. C. Abreu | Physics Department, Universidade Federal Rural do Rio de Janeiro, Seropédica, Brazil | evertonabreu@ufrrj.br | [0000-0002-6638-2588](https://orcid.org/0000-0002-6638-2588) |
+| Everton M. C. Abreu | Physics Department, Universidade Federal Rural do Rio de Janeiro, Seropédica, Brazil | — | [0000-0002-6638-2588](https://orcid.org/0000-0002-6638-2588) |
 | Marcelo Byrro Ribeiro | Physics Institute, Universidade Federal do Rio de Janeiro, Rio de Janeiro, Brazil | mbr@if.ufrj.br | [0000-0002-6919-2624](https://orcid.org/0000-0002-6919-2624) |
 
 ## Scientific scope
@@ -35,7 +35,7 @@ The processed research datasets do not retain the full original survey expansion
 | 04 | cross-year consolidation and publication metadata | `data/analytics/` |
 | 05 | paper-facing figures and tables | publication assets |
 
-The two principal consolidated record-level products are `data/analytics/pnad_refined_all.parquet` and `data/analytics/pnad_trusted_all.parquet`. They share the same schema (`renda`, `ano`). Stage 04 also publishes variable-level schema dictionaries and annual extraction, monetary, validation and treatment metadata.
+The two principal consolidated record-level products are `data/analytics/pnad_refined_all.parquet` and `data/analytics/pnad_trusted_all.parquet`. They share the same schema (`renda`, `ano`). Stage 04 also publishes dataset-level metadata, variable-level schema dictionaries, and annual extraction, monetary, validation and treatment metadata.
 
 ## Repository documentation
 
@@ -43,6 +43,7 @@ Detailed technical documentation is intentionally kept close to the correspondin
 
 - [`src/README.md`](src/README.md): scientific stages, methods, execution contracts, tests and automation;
 - [`data/README.md`](data/README.md): raw/refined/trusted/analytics layers, metadata, provenance and dataset interpretation;
+- [`data/analytics/README.md`](data/analytics/README.md): consolidated Parquets and metadata hierarchy;
 - [`assets/README.md`](assets/README.md): analytical, validation and publication assets;
 - [`data/metadata/README.md`](data/metadata/README.md): extraction and monetary metadata.
 

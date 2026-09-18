@@ -43,7 +43,8 @@ Detailed technical documentation is intentionally kept close to the correspondin
 
 - [`src/README.md`](src/README.md): scientific stages, methods, execution contracts, tests and automation;
 - [`data/README.md`](data/README.md): raw/refined/trusted/analytics layers, metadata, provenance and dataset interpretation;
-- [`data/analytics/README.md`](data/analytics/README.md): consolidated Parquets and metadata hierarchy;
+- [`data/analytics/README.md`](data/analytics/README.md): consolidated Parquets, metadata hierarchy and integrity manifest;
+- [`data/analytics/RELEASE.md`](data/analytics/RELEASE.md): Zenodo upload set and final release checklist;
 - [`assets/README.md`](assets/README.md): analytical, validation and publication assets;
 - [`data/metadata/README.md`](data/metadata/README.md): extraction and monetary metadata.
 
@@ -66,6 +67,8 @@ python src/stage_05_publication.py
 
 Reconstruction from the original IBGE fixed-width files is documented in Stage 01; the approximately 20 GB local raw-data collection is deliberately not versioned in this repository.
 
-## Citation and license
+## Citation and archival release
 
-Citation metadata are provided in [`CITATION.cff`](CITATION.cff). The software is released under the MIT License. Original PNAD and PNAD Contínua microdata remain subject to the terms and conditions of the Instituto Brasileiro de Geografia e Estatística (IBGE). Dataset and code persistent identifiers will be recorded with the frozen archival release.
+Citation metadata are provided in [`CITATION.cff`](CITATION.cff). The software is released under the MIT License. Original PNAD and PNAD Contínua microdata remain subject to the terms and conditions of the Instituto Brasileiro de Geografia e Estatística (IBGE).
+
+The Zenodo dataset package is prepared from `data/analytics/` and is accompanied by a SHA-256 integrity manifest. Dataset version, release date and DOI are intentionally added to the repository only after the Zenodo record is finalized so that the citation identifies the exact deposited release.

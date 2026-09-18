@@ -1,83 +1,123 @@
 # Source modules
 
-The `src` directory contains the canonical scientific workflow. Stages 00–02 build the metadata and annual data layers; Stage 03 performs statistical analysis and Moura Jr.–Ribeiro diagnostics; Stage 04 builds the cross-year refined and trusted data products plus their publication metadata; Stage 05 converts persisted scientific results into publication assets.
+The `src` directory contains the canonical scientific workflow. Stages 00–02 build the annual data layers, Stage 03 performs the statistical analysis, Stage 04 constructs the cross-year archival products and their metadata, and Stage 05 generates publication-facing outputs.
 
 ## Pipeline
 
 | Stage | Module | Scientific role |
 | ---: | --- | --- |
-| 00 | `stage_00_build_metadata.py` | extraction specifications and monetary metadata |
+| 00 | `stage_00_build_metadata.py` | annual extraction specifications and monetary metadata |
 | 01 | `stage_01_build_refined_pnad.py` | raw fixed-width records → annual refined datasets |
-| 02 | `stage_02_build_trusted_pnad.py` | structural cleaning, log-MAD upper-tail treatment and validation |
-| 03 | `stage_03_pnad_analysis.py` | descriptive, inequality, CCDF, Gompertz–Pareto, uncertainty and 2009-method reproduction analysis for refined/trusted |
-| 04 | `stage_04_build_analytic_pnad.py` | consolidated refined/trusted Parquets, annual metadata, and variable-level schemas |
+| 02 | `stage_02_build_trusted_pnad.py` | structural cleaning, deterministic upper-tail treatment and validation |
+| 03 | `stage_03_pnad_analysis.py` | descriptive, inequality, CCDF, Gompertz–Pareto, uncertainty and 2009-method reproduction analysis |
+| 04 | `stage_04_build_analytic_pnad.py` | consolidated refined/trusted Parquets, annual metadata and variable-level schemas |
 | 05 | `stage_05_publication.py` | publication figures and table formatting from persisted Stage-03 results |
 
-Stage 00 generates both `data/metadata/df_metadata.xlsx` and `data/metadata/df_metadata.csv`. The `Build metadata` workflow regenerates and validates both artifacts whenever the Stage-00 implementation changes.
+## Stage 00 and Stage 01
+
+Stage 00 generates `data/metadata/df_metadata.xlsx` and `data/metadata/df_metadata.csv`. The annual specification records the source income variable, fixed-width position and width, household-member field when needed, file pattern, missing-value code, ingestion-scale divisor, currency, exchange factor and price-index fields.
+
+Stage 01 consumes this specification and reconstructs one `pnad_refined_YYYY.parquet` file per available survey year from the local IBGE fixed-width microdata. When the source field is a household total, Stage 01 divides by the configured household-member count; when the source variable is already per capita, no additional division is applied.
 
 ## Stage 02 upper-tail policy
 
-The trusted layer applies the canonical log-MAD rule after structural cleaning. In 1985 and 1990 the effective upper cutoff is `min(log-MAD, p99)`. This exception is defined solely from the within-year income distribution and is not calibrated to IPEA or World Bank inequality series. Refined data remain unchanged.
+The trusted layer applies structural cleaning followed by the canonical annual log-MAD rule. For non-negative structurally valid income `x`, Stage 02 uses
 
-## Stage 03
+$$
+z_i=\ln(1+x_i),\qquad m=\operatorname{median}(z_i),\qquad
+s=1.4826\,\operatorname{median}|z_i-m|,
+$$
 
-The main regime analysis uses normalized positive individual income, geometric thresholds with ratio `1.10`, and a percent-scale CCDF. The current Gompertz model is
+with the generic cutoff
+
+$$
+x_c=\exp(m+6s)-1.
+$$
+
+If the scaled MAD is zero, the implementation uses the documented standard-deviation fallback; if dispersion remains zero, the observed maximum is retained. In 1985 and 1990 the effective cutoff is `min(log-MAD, p99)`. These exceptional rules are defined from within-year diagnostics and are not calibrated to IPEA or World Bank Gini values.
+
+Stage 02 writes annual trusted Parquets together with `assets/tables_validation/trusted_trim_audit_annual.csv` and `trusted_distribution_tests_annual.csv`.
+
+## Stage 03 analysis
+
+Stage 03 currently applies the same analytical functions independently to the `refined` baseline and `trusted` benchmark. This parallel structure provides a sensitivity check for the benchmark construction while keeping the statistical model fixed.
+
+The main regime analysis uses normalized positive annual income, geometric thresholds with ratio `r = 1.10`, and a percent-scale empirical CCDF. The Gompertz model is
 
 $$
 G(x)=\exp[\exp(A-Bx)],\qquad A=\ln[\ln(100)],
 $$
 
-with `A` fixed and `B` estimated by least squares. A free-intercept fit is retained as a boundary/replication diagnostic. The Pareto branch retains both log-log least squares and direct MLE,
+with `A` fixed and `B` estimated by least squares. A free-intercept fit is retained as a diagnostic. The Pareto branch retains both log-log least squares and direct maximum likelihood,
 
 $$
 \widehat\alpha_{\rm MLE}=\frac{n_t}{\sum_i\ln(x_i/x_t)},
 $$
 
-with Gompertz–Pareto continuity used to determine the MLE amplitude.
+with Gompertz–Pareto continuity used to determine the direct-MLE amplitude.
 
-The `refined` layer is the analytical baseline and the `trusted` layer is the benchmark. Their Stage-03 table directories are currently required to have identical file sets and column schemas. Each contains exactly six scientific tables:
+Each Stage-03 table directory currently contains six scientific CSVs: `statistics_annual.csv`, `geometric_bins.csv`, `gompertz_annual.csv`, `pareto_annual.csv`, `gompertz_pareto_curves.csv`, and `lorenz.csv`, plus `metadata.csv` as a table/column data dictionary. The refined and trusted directories are required to retain identical file sets and column schemas.
 
-- `statistics_annual.csv`;
-- `geometric_bins.csv`;
-- `gompertz_annual.csv`;
-- `pareto_annual.csv`;
-- `gompertz_pareto_curves.csv`;
-- `lorenz.csv`.
+Moura Jr.–Ribeiro reproduction diagnostics are persisted directly in the annual Gompertz and Pareto tables, including fixed-`A` and free-intercept bootstrap diagnostics, Pareto LSF/MLE uncertainty, likelihood-width uncertainty, exponential comparison diagnostics and regime income shares. The historical numerical reference remains in `data/auxiliary/moura_ribeiro_2009_reference.csv`.
 
-Each directory also contains `metadata.csv`, which documents the purpose of every table and the scientific meaning, unit/scale, and source of every column. This Stage-03 analytical-table organization is intentionally unchanged by the Stage-04 metadata refactor.
+## Stage 04 archival products
 
-`stage_03_pnad_analysis.py` also computes the simulation/inference quantities needed to reproduce Moura Jr. and Ribeiro (2009): fixed-`A` and free-intercept Gompertz bootstrap diagnostics, Pareto LSF/MLE bootstrap uncertainties, the paper-style likelihood width for the MLE exponent, exponential-vs-Gompertz diagnostics, and regime income shares. These quantities are written directly into `gompertz_annual.csv` and `pareto_annual.csv`; no separate bootstrap or reproduction CSVs are persisted.
+Stage 04 performs validation and vertical concatenation only. It does not filter observations, transform income values or fit scientific models. Annual values and dtypes are preserved, years are ordered chronologically, and each survey year occupies one Parquet row group.
 
-The 2009 numerical reference dataset remains in `data/auxiliary/moura_ribeiro_2009_reference.csv`; no separate long-form evidence table is generated.
+The five canonical outputs are:
 
-## Stage 04
+- `data/analytics/pnad_refined_all.parquet`;
+- `data/analytics/pnad_trusted_all.parquet`;
+- `data/analytics/pnad_refined_all_schema.csv`;
+- `data/analytics/pnad_trusted_all_schema.csv`;
+- `data/analytics/pnad_annual_metadata.csv`.
 
-`stage_04_build_analytic_pnad.py` validates and vertically concatenates the annual refined files into `data/analytics/pnad_refined_all.parquet` and the annual trusted files into `data/analytics/pnad_trusted_all.parquet`. Values and dtypes are preserved from each annual layer, survey years are ordered chronologically, and each year is stored as one Parquet row group. Stage 04 does not filter observations, transform income values, or fit scientific models.
-
-The module additionally writes three documentation products:
-
-- `pnad_refined_all_schema.csv`;
-- `pnad_trusted_all_schema.csv`;
-- `pnad_annual_metadata.csv`.
-
-The schema files contain one row per variable and record the variable description, logical and storage type, unit, provenance, whether the field is calculated, calculation stage and formula, logical/storage nullability, valid/missing counts, and number of distinct values. They are data dictionaries rather than file-level metadata tables.
-
-`pnad_annual_metadata.csv` contains one row per survey year and combines the Stage-00 extraction and monetary metadata, the external IPEA/World Bank Gini reference series, and the realized Stage-02 trusted-treatment audit. It therefore documents the raw source field and fixed-width specification, missing-income code, scale/per-capita construction, currency/exchange/index/2025-adjustment fields, the adjusted-income formula used downstream, and the annual log-MAD/p99 cutoffs and retained/removed counts. The Gini references are explicitly validation-only and are not used to determine Stage-02 cutoffs.
+The schema CSVs are variable-level data dictionaries. `pnad_annual_metadata.csv` combines Stage-00 extraction and monetary metadata, external IPEA/World Bank Gini references, and the realized Stage-02 trusted-treatment audit. External Gini values are explicitly validation-only.
 
 The obsolete `pnad_analytics_all.parquet`, `pnad_refined_all_metadata.csv`, and `pnad_trusted_all_metadata.csv` products are removed when Stage 04 runs.
 
-## Stage 05
+## Stage 05 publication layer
 
-Stage 05 is strictly publication-only. `stage_05_publication.py` is the single Stage-05 executable and contains the figure and table-formatting features that consume consolidated trusted Stage-03 outputs.
+Stage 05 is presentation-only. `stage_05_publication.py` consumes persisted Stage-03 scientific results and builds the paper-facing figures and tables. Statistical estimation, bootstrap resampling, likelihood calculations, regime-share estimation and model diagnostics remain in Stage 03.
 
-All fitted parameters, bootstrap standard errors, likelihood-width uncertainties, model-comparison diagnostics, Pareto support diagnostics, and Gompertz/Pareto regime income shares are computed and persisted in Stage 03. Stage 05 does not re-estimate any of these quantities; figure annotations and publication tables consume the persisted values directly.
+The paper tables are `table_01_gompertz_annual.csv`, `table_02_pareto_annual.csv`, `table_03_economic_inequality_annual.csv`, and `table_04_metadata.csv`. Table 04 documents the purpose and schema of the paper-facing tables.
 
-The fixed normalization parameter `A` has no paper-facing standard error because it is not estimated in the current model. The free-intercept `A` and `B` estimates and their bootstrap uncertainties are retained explicitly as Moura–Ribeiro replication diagnostics. `table_04_metadata.csv` documents both the purpose of each table and the meaning, unit, and source of every paper-facing column.
+## Execution
 
-## Runtime
+The repository targets Python 3.12 and pins direct runtime and test dependencies in `requirements.txt`.
 
-The repository targets **Python 3.12**, matching GitHub Actions. Direct runtime and test dependencies are pinned in `requirements.txt`.
+```bash
+pip install -r requirements.txt
+```
+
+Metadata generation:
+
+```bash
+python src/stage_00_build_metadata.py
+```
+
+With the persisted refined layer available:
+
+```bash
+python src/stage_02_build_trusted_pnad.py
+python src/stage_03_pnad_analysis.py
+python src/stage_04_build_analytic_pnad.py
+python src/stage_05_publication.py
+```
+
+Stage 01 requires the original local IBGE fixed-width files and is therefore not part of ordinary GitHub execution.
+
+## Automated workflows
+
+The repository uses GitHub Actions to keep generated products synchronized with their source stages:
+
+- `Build metadata`: regenerates and validates Stage-00 CSV/XLSX metadata;
+- `Build trusted PNAD`: rebuilds Stage-02 trusted annual datasets and validation audits from persisted refined data;
+- `Run PNAD analysis`: executes Stage 03 and validates refined/trusted analytical symmetry;
+- `Build PNAD analytics datasets`: executes Stage 04, validates the five canonical cross-year products, and runs after successful trusted builds;
+- `Build paper assets`: consumes persisted Stage-03 tables and executes Stage 05;
+- `Unit tests`: compiles `src/` and executes the complete `pytest` suite.
 
 ## Tests
 
-The test suite covers Stages 00–04, mathematical/regime routines, Moura–Ribeiro bootstrap and likelihood calculations, Stage-03 baseline/benchmark schema symmetry, Stage-04 dual data products, variable-level schema dictionaries and annual metadata, metadata definitions, and Stage-05 figure/table construction. GitHub Actions installs the pinned `requirements.txt`, compiles `src`, and runs `pytest`.
+The test suite covers Stages 00–04, extraction metadata, trusted-layer invariants, mathematical/regime routines, Moura Jr.–Ribeiro bootstrap and likelihood calculations, Stage-03 baseline/benchmark schema symmetry, Stage-04 consolidated products and metadata, and Stage-05 figure/table construction.

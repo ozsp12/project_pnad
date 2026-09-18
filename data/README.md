@@ -1,30 +1,35 @@
 # Data
 
-The `data` directory contains the empirical material used by the PNAD longitudinal research pipeline. The refined layer is the annual baseline, the trusted layer is the benchmark derived from that baseline, `analytics/` contains consolidated cross-year products for both layers, and `auxiliary/` contains external/reference series rather than PNAD-derived microdata.
+The `data` directory contains the empirical material used by the PNAD longitudinal research pipeline. The refined layer is the annual baseline, the trusted layer is the benchmark derived from that baseline, `analytics/` contains consolidated cross-year products and their publication metadata, and `auxiliary/` contains external/reference series rather than PNAD-derived microdata.
 
 | Directory | Content | Produced or consumed by |
 | --- | --- | --- |
 | `metadata/` | annual extraction specifications, monetary metadata, and processing information | produced by Stage 00; consumed downstream |
 | `refined/` | harmonized annual PNAD/PNAD Contínua baseline datasets before trusted-stage treatment | produced by Stage 01; consumed by Stages 02–04 |
 | `trusted/` | benchmark annual datasets after structural cleaning, log-MAD upper-tail treatment, and validation | produced by Stage 02; consumed by Stages 03–04 |
-| `analytics/` | consolidated refined and trusted cross-year Parquets plus companion metadata/schema CSVs | produced by Stage 04 |
+| `analytics/` | consolidated refined/trusted Parquets, annual metadata, and variable-level schemas | produced by Stage 04 |
 | `auxiliary/` | external Gini/GDP series and published Moura–Ribeiro 2009 reference values | consumed as external/reference inputs |
 | `raw/` | local fixed-width original microdata, approximately 20 GB | deliberately not versioned |
 
 The raw-to-refined boundary is intentionally external to ordinary GitHub execution. Original fixed-width microdata remain local because of their volume, while materialized `data/refined/` files are the persistent repository baseline for downstream processing. `src/stage_01_build_refined_pnad.py` documents reconstruction from the original files.
 
-The distinction between `refined` and `trusted` is substantive. Stage 03 analyzes both layers with exactly the same analytical functions and table schemas so the effect of benchmark construction can be assessed without changing the statistical model or output structure.
+The distinction between `refined` and `trusted` is substantive. Stage 03 currently analyzes both layers with exactly the same analytical functions and table schemas so the effect of benchmark construction can be assessed without changing the statistical model or output structure.
 
 ## Analytics layer
 
-Stage 04 publishes four canonical files:
+Stage 04 publishes five canonical files:
 
 - `pnad_refined_all.parquet`: vertically concatenated refined baseline;
-- `pnad_refined_all_metadata.csv`: refined dataset metadata and schema dictionary;
 - `pnad_trusted_all.parquet`: vertically concatenated trusted benchmark;
-- `pnad_trusted_all_metadata.csv`: trusted dataset metadata and schema dictionary.
+- `pnad_refined_all_schema.csv`: variable-level schema/data dictionary for the refined product;
+- `pnad_trusted_all_schema.csv`: variable-level schema/data dictionary for the trusted product;
+- `pnad_annual_metadata.csv`: one row per survey year with extraction rules, monetary fields, external Gini references, and the realized trusted-treatment audit.
 
-Stage 04 performs validation and vertical concatenation only. It does not filter observations, modify income values, or estimate statistical quantities. Each survey year is stored as one Parquet row group. The metadata CSVs document processing level, provenance, schema version, columns and Arrow types, nullability and observed null counts, descriptions, units, row counts, year coverage, row-group counts, and compression. The former `pnad_analytics_all.parquet` filename is obsolete.
+The two schema CSVs have one row per dataset column. They document description, logical and storage type, unit, source, whether the field is calculated, the stage and formula that produce it, logical/storage nullability, valid/missing counts, and the number of distinct values. Dataset/file-level properties such as Parquet compression and row-group counts are not repeated as variable metadata.
+
+`pnad_annual_metadata.csv` is aligned exactly to the survey years present in the consolidated Parquets. It records the PNAD/PNAD Contínua source field and fixed-width extraction specification, missing-value code, Stage-01 scale/per-capita construction, currency, exchange factor, price index, 2025 adjustment fields, the implemented adjusted-income formula, external IPEA and World Bank Gini reference values, and the Stage-02 log-MAD/p99 treatment parameters, realized cutoffs, and retained/removed counts. The external Gini series are explicitly marked as validation references only; they are not inputs to cutoff selection.
+
+Stage 04 does not filter observations, change income values, or fit scientific models. Each survey year is stored as one Parquet row group. The former `pnad_analytics_all.parquet`, `pnad_refined_all_metadata.csv`, and `pnad_trusted_all_metadata.csv` products are obsolete.
 
 ## Auxiliary series
 

@@ -10,7 +10,7 @@ This repository contains the reproducible computational workflow used to study t
 | 01 | `src/stage_01_build_refined_pnad.py` | Harmonizes local raw PNAD records into annual income samples | `data/refined/pnad_refined_YYYY.parquet` |
 | 02 | `src/stage_02_build_trusted_pnad.py` | Applies deterministic upper-tail treatment and validation | `data/trusted/pnad_trusted_YYYY.parquet` and validation audits |
 | 03 | `src/stage_03_pnad_analysis.py` | Runs descriptive, inequality, CCDF, Gompertz–Pareto, bootstrap and Moura Jr.–Ribeiro reproduction analyses on refined and trusted data | analytical CSV and PNG assets |
-| 04 | `src/stage_04_build_analytic_pnad.py` | Concatenates refined and trusted annual samples into validated cross-year products and schema metadata | `data/analytics/pnad_refined_all.parquet`, `data/analytics/pnad_trusted_all.parquet`, and companion metadata CSVs |
+| 04 | `src/stage_04_build_analytic_pnad.py` | Concatenates refined/trusted annual samples and builds annual metadata plus variable-level schemas | two consolidated Parquets, `pnad_annual_metadata.csv`, and two schema CSVs |
 | 05 | `src/stage_05_publication.py` | Builds the complete paper-facing figure and table set from persisted Stage-03 results | `assets/figures_paper/` and `assets/tables_paper/` |
 
 The original fixed-width PNAD microdata are local files of approximately 20 GB and are not versioned under `data/raw/`. The persisted `data/refined/` layer is therefore the normal reproducible starting point inside GitHub. Source code under `src/` is authoritative.
@@ -40,7 +40,7 @@ The six canonical scientific CSVs in both `assets/tables_analysis_refined/` and 
 - `gompertz_pareto_curves.csv`;
 - `lorenz.csv`.
 
-Each directory additionally contains `metadata.csv`, a data dictionary with table-level descriptions and column-level definitions, units, and sources.
+Each directory additionally contains `metadata.csv`, a data dictionary with table-level descriptions and column-level definitions, units, and sources. This analytical-table organization is intentionally unchanged by the current Stage-04 metadata refactor.
 
 Stage 03 includes descriptive statistics, geometric bins with ratio `r = 1.10`, empirical CCDFs, Lorenz geometry, inequality indices, top-income shares, external Gini validation, and Gompertz–Pareto regime estimation. The current Gompertz model fixes
 
@@ -56,9 +56,21 @@ The numerical values reported in the 2009 paper remain available in `data/auxili
 
 ## Stage 04 analytics datasets
 
-Stage 04 reads both annual data layers and performs validation plus vertical concatenation only. It writes `data/analytics/pnad_refined_all.parquet` from the refined baseline and `data/analytics/pnad_trusted_all.parquet` from the trusted benchmark. No observations are filtered and no values are statistically transformed in Stage 04. Each survey year occupies one Parquet row group.
+Stage 04 reads both annual data layers and performs validation plus vertical concatenation only. It writes `data/analytics/pnad_refined_all.parquet` from the refined baseline and `data/analytics/pnad_trusted_all.parquet` from the trusted benchmark. No observations are filtered and no income values are statistically transformed in Stage 04. Each survey year occupies one Parquet row group.
 
-Each consolidated Parquet has a companion schema/data-dictionary file, `pnad_refined_all_metadata.csv` or `pnad_trusted_all_metadata.csv`, containing layer and processing-level definitions, source provenance, schema version, column names and Arrow types, nullability/null counts, descriptions, units, row counts, survey-year coverage, and row-group counts. These four files form the canonical cross-year analytical data products intended for archival distribution.
+The consolidated microdata remain intentionally narrow, currently containing only `renda` and `ano`. Context needed to interpret and reproduce their treatment is stored separately instead of being repeated for every observation.
+
+Stage 04 additionally writes:
+
+- `data/analytics/pnad_refined_all_schema.csv`;
+- `data/analytics/pnad_trusted_all_schema.csv`;
+- `data/analytics/pnad_annual_metadata.csv`.
+
+The schema files are variable-level data dictionaries with one row per column. They record description, logical and storage type, unit, provenance, whether the variable is calculated, the stage and formula used to construct it, logical/storage nullability, valid/missing counts, and the number of distinct values.
+
+`pnad_annual_metadata.csv` has one row per survey year and is aligned exactly to the years present in both consolidated Parquets. It combines the Stage-00 extraction specification and monetary fields with the external IPEA/World Bank Gini reference series and the realized Stage-02 trusted-treatment audit. It includes the raw income/member fields and fixed-width positions, missing-income code, scale/per-capita construction, currency, exchange factor, price index, 2025 inflation adjustment, the implemented adjusted-income formula, Gini reference values, log-MAD parameters, exceptional p99 information, effective cutoffs, and retained/removed counts. The Gini series are labeled as external validation only and do not determine trusted cutoffs.
+
+The analytical tables produced by Stage 03 are not moved or duplicated into `data/analytics/` by this refactor; their final archival organization remains a separate decision.
 
 ## Stage 05 publication layer
 
@@ -78,7 +90,7 @@ Because the current model fixes `A`, Table 01 does not report a standard error f
 - `Build metadata` executes Stage 00, validates that the generated XLSX and CSV match `build_metadata_df()`, and commits both metadata artifacts when they change.
 - `Build trusted PNAD` executes Stage 02 directly from the persisted refined layer and commits the trusted annual datasets and validation audits.
 - `Run PNAD analysis` executes the canonical Stage-03 analysis, consolidates the Moura–Ribeiro diagnostics into the annual tables, validates baseline/benchmark schema symmetry, and commits analytical assets.
-- `Build PNAD analytics datasets` executes Stage 04 for both refined and trusted layers, validates the four canonical analytics products, and is also triggered after a successful `Build trusted PNAD` run so regenerated trusted data propagate automatically.
+- `Build PNAD analytics datasets` executes Stage 04 for both data layers, builds the variable schemas and annual metadata, validates the five canonical analytics products, and is also triggered after a successful `Build trusted PNAD` run so regenerated trusted data propagate automatically.
 - `Build paper assets` consumes the persisted Stage-03 analytical tables, executes the canonical Stage-05 publication entry point, validates figures/tables, and commits paper assets on `main`.
 - `Unit tests` compiles `src/` and runs the complete `pytest` suite.
 
@@ -115,7 +127,7 @@ python src/stage_03_pnad_analysis.py
 python src/stage_04_build_analytic_pnad.py
 ```
 
-Stage 04 may be executed independently. Publication assets are generated with one canonical command:
+Stage 04 may be executed independently when its persisted refined/trusted, metadata, external-Gini, and trusted-audit inputs are present. Publication assets are generated with one canonical command:
 
 ```bash
 python src/stage_05_publication.py

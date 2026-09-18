@@ -11,6 +11,9 @@ on:
       - "tests/test_stage_04_build_analytic_pnad.py"
       - "data/refined/**"
       - "data/trusted/**"
+      - "data/metadata/df_metadata.csv"
+      - "data/auxiliary/series_gini_ipea_banco_mundial.csv"
+      - "assets/tables_validation/trusted_trim_audit_annual.csv"
       - "requirements.txt"
       - ".github/workflows/build_analytics.yml"
   push:
@@ -19,6 +22,8 @@ on:
       - "src/stage_04_build_analytic_pnad.py"
       - "tests/test_stage_04_build_analytic_pnad.py"
       - "data/trusted/**"
+      - "data/auxiliary/series_gini_ipea_banco_mundial.csv"
+      - "assets/tables_validation/trusted_trim_audit_annual.csv"
       - "requirements.txt"
       - ".github/workflows/build_analytics.yml"
 
@@ -48,7 +53,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Ensure refined and trusted datasets exist
+      - name: Ensure Stage 04 inputs exist
         shell: bash
         run: |
           if ! compgen -G "data/refined/pnad_refined_*.parquet" > /dev/null; then
@@ -59,9 +64,12 @@ jobs:
             echo "Trusted datasets are required to build the analytics layer."
             exit 1
           fi
-          echo "Refined and trusted datasets are present."
+          test -f data/metadata/df_metadata.csv
+          test -f data/auxiliary/series_gini_ipea_banco_mundial.csv
+          test -f assets/tables_validation/trusted_trim_audit_annual.csv
+          echo "Stage 04 inputs are present."
 
-      - name: Build refined and trusted analytics products
+      - name: Build Stage 04 products
         run: python src/stage_04_build_analytic_pnad.py
 
       - name: Validate Stage 04 products
@@ -74,47 +82,80 @@ jobs:
           root = Path("data/analytics")
           expected = {
               "pnad_refined_all.parquet",
-              "pnad_refined_all_metadata.csv",
+              "pnad_refined_all_schema.csv",
               "pnad_trusted_all.parquet",
-              "pnad_trusted_all_metadata.csv",
+              "pnad_trusted_all_schema.csv",
+              "pnad_annual_metadata.csv",
           }
           generated = {p.name for p in root.iterdir() if p.is_file()}
           if generated != expected:
               raise SystemExit(f"Analytics product set mismatch: {sorted(generated)}")
 
-          required_metadata = {
-              "dataset_name", "layer", "processing_level", "dataset_description",
-              "parquet_file", "metadata_file", "schema_version", "stage04_operation",
-              "source", "source_pattern", "column_name", "arrow_type",
-              "parquet_nullable", "observed_null_count", "description", "unit",
-              "n_rows", "n_columns", "n_years", "first_year", "last_year",
-              "n_row_groups", "compression",
+          required_schema = {
+              "layer", "schema_version", "column_name", "description",
+              "logical_type", "storage_type", "unit", "source",
+              "is_calculated", "calculation_stage", "calculation", "nullable",
+              "storage_nullable", "n", "n_missing", "n_unique", "n_categories",
+          }
+          annual_required = {
+              "ano", "survey", "income_variable", "income_position", "income_width",
+              "member_variable", "member_position", "member_width", "raw_source",
+              "raw_subdir", "raw_pattern", "raw_file_count", "missing_income_code",
+              "income_scale_divisor", "currency", "exchange", "price_index",
+              "adjust_2025", "inflation_factor_2025", "stage01_divides_by_members",
+              "income_construction", "adjusted_income_formula", "monetary_provenance",
+              "gini_ipea", "gini_world_bank", "gini_reference_role",
+              "trusted_mad_consistency", "trusted_mad_k", "trusted_log_mad_cutoff",
+              "trusted_p99_exception_quantile", "trusted_p99_exception_cutoff",
+              "trusted_cutoff_rule", "trusted_effective_cutoff", "trusted_n_refined",
+              "trusted_n_invalid_structural", "trusted_n_statistical_outlier",
+              "trusted_n_removed_total", "trusted_n_trusted", "trusted_total_removal_rate",
           }
 
+          parquet_years = None
           for layer in ("refined", "trusted"):
               parquet_path = root / f"pnad_{layer}_all.parquet"
-              metadata_path = root / f"pnad_{layer}_all_metadata.csv"
-              metadata = pd.read_csv(metadata_path)
-              if missing := required_metadata - set(metadata.columns):
-                  raise SystemExit(f"{layer}: missing metadata columns: {sorted(missing)}")
-              if set(metadata["layer"]) != {layer}:
-                  raise SystemExit(f"{layer}: inconsistent metadata layer")
-              if set(metadata["column_name"]) != {"renda", "ano"}:
+              schema_path = root / f"pnad_{layer}_all_schema.csv"
+              schema = pd.read_csv(schema_path)
+              if missing := required_schema - set(schema.columns):
+                  raise SystemExit(f"{layer}: missing schema columns: {sorted(missing)}")
+              if set(schema["layer"]) != {layer}:
+                  raise SystemExit(f"{layer}: inconsistent schema layer")
+              if set(schema["column_name"]) != {"renda", "ano"}:
                   raise SystemExit(f"{layer}: unexpected analytical schema")
-              if metadata["observed_null_count"].sum() != 0:
-                  raise SystemExit(f"{layer}: null values found in analytical product")
+              if schema["n_missing"].sum() != 0:
+                  raise SystemExit(f"{layer}: missing values found in analytical product")
+              if schema["nullable"].astype(bool).any():
+                  raise SystemExit(f"{layer}: logical schema unexpectedly allows nulls")
 
               parquet = pq.ParquetFile(parquet_path)
-              n_rows = int(metadata["n_rows"].iloc[0])
-              n_years = int(metadata["n_years"].iloc[0])
-              if parquet.metadata.num_rows != n_rows:
-                  raise SystemExit(f"{layer}: row-count metadata mismatch")
-              if parquet.metadata.num_row_groups != n_years:
-                  raise SystemExit(f"{layer}: row-group metadata mismatch")
+              n_rows = int(parquet.metadata.num_rows)
+              if set(schema["n"].astype(int)) != {n_rows}:
+                  raise SystemExit(f"{layer}: row-count schema mismatch")
 
               years = pd.read_parquet(parquet_path, columns=["ano"])["ano"]
-              if 2017 not in set(years.unique()):
-                  raise SystemExit(f"{layer}: 2017 is missing from the consolidated product")
+              year_set = set(years.astype(int).unique())
+              if parquet.metadata.num_row_groups != len(year_set):
+                  raise SystemExit(f"{layer}: row-group/year mismatch")
+              if 2017 not in year_set:
+                  raise SystemExit(f"{layer}: 2017 is missing")
+              if parquet_years is None:
+                  parquet_years = year_set
+              elif year_set != parquet_years:
+                  raise SystemExit("refined/trusted survey-year coverage differs")
+
+          annual = pd.read_csv(root / "pnad_annual_metadata.csv")
+          if missing := annual_required - set(annual.columns):
+              raise SystemExit(f"annual metadata missing columns: {sorted(missing)}")
+          if not annual["ano"].is_unique:
+              raise SystemExit("annual metadata contains duplicated years")
+          if set(annual["ano"].astype(int)) != parquet_years:
+              raise SystemExit("annual metadata does not match Parquet survey years")
+          if set(annual["gini_reference_role"]) != {"external validation only"}:
+              raise SystemExit("external Gini role is not explicit")
+          position_2017 = annual.loc[annual["ano"] == 2017, "income_position"].iloc[0]
+          if int(position_2017) != 674:
+              raise SystemExit("2017 income extraction position regression")
           PY
 
       - name: Commit analytics datasets

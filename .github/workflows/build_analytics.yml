@@ -8,12 +8,15 @@ on:
   pull_request:
     paths:
       - "src/stage_04_build_analytic_pnad.py"
+      - "src/build_release_manifest.py"
       - "tests/test_stage_04_build_analytic_pnad.py"
+      - "tests/test_release_manifest.py"
       - "data/refined/**"
       - "data/trusted/**"
       - "data/metadata/df_metadata.csv"
       - "data/auxiliary/series_gini_ipea_banco_mundial.csv"
       - "data/analytics/README.md"
+      - "data/analytics/RELEASE.md"
       - "assets/tables_validation/trusted_trim_audit_annual.csv"
       - "requirements.txt"
       - ".github/workflows/build_analytics.yml"
@@ -21,10 +24,13 @@ on:
     branches: [main]
     paths:
       - "src/stage_04_build_analytic_pnad.py"
+      - "src/build_release_manifest.py"
       - "tests/test_stage_04_build_analytic_pnad.py"
+      - "tests/test_release_manifest.py"
       - "data/trusted/**"
       - "data/auxiliary/series_gini_ipea_banco_mundial.csv"
       - "data/analytics/README.md"
+      - "data/analytics/RELEASE.md"
       - "assets/tables_validation/trusted_trim_audit_annual.csv"
       - "requirements.txt"
       - ".github/workflows/build_analytics.yml"
@@ -70,10 +76,14 @@ jobs:
           test -f data/auxiliary/series_gini_ipea_banco_mundial.csv
           test -f assets/tables_validation/trusted_trim_audit_annual.csv
           test -f data/analytics/README.md
+          test -f data/analytics/RELEASE.md
           echo "Stage 04 inputs are present."
 
       - name: Build Stage 04 products
         run: python src/stage_04_build_analytic_pnad.py
+
+      - name: Build release checksum manifest
+        run: python src/build_release_manifest.py
 
       - name: Validate Stage 04 products
         run: |
@@ -81,10 +91,13 @@ jobs:
           from pathlib import Path
           import pandas as pd
           import pyarrow.parquet as pq
+          from src import build_release_manifest as release_manifest
 
           root = Path("data/analytics")
           expected = {
               "README.md",
+              "RELEASE.md",
+              "SHA256SUMS.txt",
               "pnad_refined_all.parquet",
               "pnad_refined_all_schema.csv",
               "pnad_trusted_all.parquet",
@@ -199,6 +212,10 @@ jobs:
                   raise SystemExit(f"{layer}: unexpected Parquet compression")
               if row["annual_metadata_file"] != "pnad_annual_metadata.csv":
                   raise SystemExit(f"{layer}: annual metadata reference mismatch")
+
+          release_manifest.validate_release_manifest(
+              root, root / "SHA256SUMS.txt"
+          )
           PY
 
       - name: Commit analytics datasets

@@ -2,6 +2,9 @@ cff-version: 1.2.0
 message: "If you use this repository, please cite it using the metadata in this file."
 title: "PNAD Longitudinal Income Research"
 type: software
+version: "1.0.0"
+date-released: "2026-09-18"
+doi: "10.5281/zenodo.22836608"
 authors:
   - family-names: "Queiroz-Santos"
     given-names: "Beatriz"

@@ -3,8 +3,38 @@ message: "If you use this repository, please cite it using the metadata in this 
 title: "PNAD Longitudinal Income Research"
 type: software
 authors:
+  - family-names: "Queiroz-Santos"
+    given-names: "Beatriz"
+    email: "beatriz.santos@graduacao.ie.ufrj.br"
+    affiliation: "Institute of Economics, Universidade Federal do Rio de Janeiro, Rio de Janeiro, Brazil"
+    orcid: "https://orcid.org/0009-0002-7287-5888"
+  - family-names: "Teles"
+    given-names: "Sharon"
+    email: "steles.ts@gmail.com"
+    affiliation: "Physics Institute, Universidade Federal do Rio de Janeiro, Rio de Janeiro, Brazil"
+    orcid: "https://orcid.org/0000-0003-4497-9161"
   - family-names: "Santos-Pereira"
     given-names: "Osvaldo L."
+    email: "olsp@if.ufrj.br"
+    affiliation: "Physics Institute, Universidade Federal do Rio de Janeiro, Rio de Janeiro, Brazil"
+    orcid: "https://orcid.org/0000-0003-2231-517X"
+  - family-names: "Abreu"
+    given-names: "Everton M. C."
+    affiliation: "Physics Department, Universidade Federal Rural do Rio de Janeiro, Seropedica, Brazil"
+    orcid: "https://orcid.org/0000-0002-6638-2588"
+  - family-names: "Ribeiro"
+    given-names: "Marcelo Byrro"
+    email: "mbr@if.ufrj.br"
+    affiliation: "Physics Institute, Universidade Federal do Rio de Janeiro, Rio de Janeiro, Brazil"
+    orcid: "https://orcid.org/0000-0002-6919-2624"
 repository-code: "https://github.com/ozsp12/project_pnad"
 license: MIT
-abstract: "Reproducible computational workflow for longitudinal analysis of Brazilian income distributions using PNAD and PNAD Continua microdata, including harmonization, deterministic upper-tail treatment, inequality statistics, Gompertz-Pareto modeling, diagnostics, and publication assets."
+keywords:
+  - PNAD
+  - PNAD Continua
+  - Brazil
+  - household income
+  - income distribution
+  - econophysics
+  - reproducible research
+abstract: "Reproducible computational workflow for a harmonized record-level household-income dataset from Brazilian PNAD and PNAD Continua surveys, including annual extraction metadata, deterministic trusted-layer treatment, technical validation, inequality statistics, Gompertz-Pareto analysis, and publication assets."

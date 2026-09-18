@@ -10,7 +10,7 @@ The `src` directory contains the canonical scientific workflow. Stages 00–02 b
 | 01 | `stage_01_build_refined_pnad.py` | raw fixed-width records → annual refined datasets |
 | 02 | `stage_02_build_trusted_pnad.py` | structural cleaning, deterministic upper-tail treatment and validation |
 | 03 | `stage_03_pnad_analysis.py` | descriptive, inequality, CCDF, Gompertz–Pareto, uncertainty and 2009-method reproduction analysis |
-| 04 | `stage_04_build_analytic_pnad.py` | consolidated refined/trusted Parquets, annual metadata and variable-level schemas |
+| 04 | `stage_04_build_analytic_pnad.py` | consolidated refined/trusted Parquets, dataset metadata, annual metadata and variable-level schemas |
 | 05 | `stage_05_publication.py` | publication figures and table formatting from persisted Stage-03 results |
 
 ## Stage 00 and Stage 01
@@ -64,17 +64,20 @@ Moura Jr.–Ribeiro reproduction diagnostics are persisted directly in the annua
 
 Stage 04 performs validation and vertical concatenation only. It does not filter observations, transform income values or fit scientific models. Annual values and dtypes are preserved, years are ordered chronologically, and each survey year occupies one Parquet row group.
 
-The five canonical outputs are:
+The six canonical data products are:
 
 - `data/analytics/pnad_refined_all.parquet`;
 - `data/analytics/pnad_trusted_all.parquet`;
 - `data/analytics/pnad_refined_all_schema.csv`;
 - `data/analytics/pnad_trusted_all_schema.csv`;
-- `data/analytics/pnad_annual_metadata.csv`.
+- `data/analytics/pnad_annual_metadata.csv`;
+- `data/analytics/pnad_datasets_metadata.csv`.
 
-The schema CSVs are variable-level data dictionaries. `pnad_annual_metadata.csv` combines Stage-00 extraction and monetary metadata, external IPEA/World Bank Gini references, and the realized Stage-02 trusted-treatment audit. External Gini values are explicitly validation-only.
+The schema CSVs are variable-level data dictionaries. `pnad_annual_metadata.csv` combines Stage-00 extraction and monetary metadata, external IPEA/World Bank Gini references, and the realized Stage-02 trusted-treatment audit. Its monetary provenance explicitly identifies Banco Central do Brasil SGS series 3692 for the exchange-rate series and U.S. Bureau of Labor Statistics CPIAUCSL distributed through FRED for the U.S. price index. External Gini values are validation-only.
 
-The obsolete `pnad_analytics_all.parquet`, `pnad_refined_all_metadata.csv`, and `pnad_trusted_all_metadata.csv` products are removed when Stage 04 runs.
+`pnad_datasets_metadata.csv` contains one row for each consolidated Parquet. It records dataset role, processing level, source stage, file/schema names, row and column counts, year coverage, row-group count, compression, file size, schema version, observation unit and weighting convention. This file documents the datasets themselves; the `*_schema.csv` files document variables; `pnad_annual_metadata.csv` documents year-specific provenance and treatment.
+
+The obsolete `pnad_analytics_all.parquet`, `pnad_refined_all_metadata.csv`, and `pnad_trusted_all_metadata.csv` products are removed when Stage 04 runs. The directory-level contract is documented in `data/analytics/README.md`.
 
 ## Stage 05 publication layer
 
@@ -114,7 +117,7 @@ The repository uses GitHub Actions to keep generated products synchronized with 
 - `Build metadata`: regenerates and validates Stage-00 CSV/XLSX metadata;
 - `Build trusted PNAD`: rebuilds Stage-02 trusted annual datasets and validation audits from persisted refined data;
 - `Run PNAD analysis`: executes Stage 03 and validates refined/trusted analytical symmetry;
-- `Build PNAD analytics datasets`: executes Stage 04, validates the five canonical cross-year products, and runs after successful trusted builds;
+- `Build PNAD analytics datasets`: executes Stage 04, validates the six canonical cross-year data products plus the analytics README, and runs after successful trusted builds;
 - `Build paper assets`: consumes persisted Stage-03 tables and executes Stage 05;
 - `Unit tests`: compiles `src/` and executes the complete `pytest` suite.
 

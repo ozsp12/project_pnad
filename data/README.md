@@ -7,7 +7,7 @@ The `data` directory contains the empirical material used by the PNAD longitudin
 | `metadata/` | annual extraction specifications, monetary metadata, and processing information | produced by Stage 00; consumed downstream |
 | `refined/` | harmonized annual PNAD/PNAD Contínua baseline datasets before trusted-stage treatment | produced by Stage 01; consumed by Stages 02–04 |
 | `trusted/` | benchmark annual datasets after structural cleaning, log-MAD upper-tail treatment, and validation | produced by Stage 02; consumed by Stages 03–04 |
-| `analytics/` | consolidated refined/trusted Parquets, dataset metadata, annual metadata, and variable-level schemas | produced by Stage 04 |
+| `analytics/` | consolidated refined/trusted Parquets, dataset metadata, annual metadata, variable-level schemas, and archival checksums | produced by Stage 04 and release-integrity utility |
 | `auxiliary/` | external Gini/GDP series and published Moura–Ribeiro 2009 reference values | consumed as external/reference inputs |
 | `raw/` | local fixed-width original microdata, approximately 20 GB | deliberately not versioned |
 
@@ -55,6 +55,8 @@ The two schema CSVs have one row per dataset column. They document description, 
 `pnad_annual_metadata.csv` is aligned to the survey years present in the consolidated Parquets. It records the source survey and income variable, fixed-width extraction specification, missing-value code, Stage-01 scale/per-capita construction, currency, exchange factor, price index, 2025 adjustment fields, the implemented adjusted-income formula, external IPEA and World Bank Gini values, and the Stage-02 log-MAD/p99 treatment parameters, effective cutoffs, and retained/removed counts.
 
 The annual monetary provenance explicitly identifies the exchange-rate series as Banco Central do Brasil SGS series 3692 and the U.S. price-index series as BLS CPIAUCSL distributed through FRED by the Federal Reserve Bank of St. Louis. These values are persisted as metadata rather than queried at Stage 04 runtime. The external Gini series remain validation references only.
+
+`SHA256SUMS.txt` is generated after the Stage-04 products and covers the canonical files intended for archival deposition. The manifest is validated immediately after generation to detect stale or modified files. The Zenodo upload set and the fields that remain to be completed at deposition are documented in `data/analytics/RELEASE.md`.
 
 The file-level, variable-level, and annual metadata hierarchy is documented in `data/analytics/README.md`. The former `pnad_analytics_all.parquet`, `pnad_refined_all_metadata.csv`, and `pnad_trusted_all_metadata.csv` products are obsolete.
 

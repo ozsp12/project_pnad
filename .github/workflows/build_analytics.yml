@@ -13,6 +13,7 @@ on:
       - "data/trusted/**"
       - "data/metadata/df_metadata.csv"
       - "data/auxiliary/series_gini_ipea_banco_mundial.csv"
+      - "data/analytics/README.md"
       - "assets/tables_validation/trusted_trim_audit_annual.csv"
       - "requirements.txt"
       - ".github/workflows/build_analytics.yml"
@@ -23,6 +24,7 @@ on:
       - "tests/test_stage_04_build_analytic_pnad.py"
       - "data/trusted/**"
       - "data/auxiliary/series_gini_ipea_banco_mundial.csv"
+      - "data/analytics/README.md"
       - "assets/tables_validation/trusted_trim_audit_annual.csv"
       - "requirements.txt"
       - ".github/workflows/build_analytics.yml"
@@ -67,6 +69,7 @@ jobs:
           test -f data/metadata/df_metadata.csv
           test -f data/auxiliary/series_gini_ipea_banco_mundial.csv
           test -f assets/tables_validation/trusted_trim_audit_annual.csv
+          test -f data/analytics/README.md
           echo "Stage 04 inputs are present."
 
       - name: Build Stage 04 products
@@ -81,11 +84,13 @@ jobs:
 
           root = Path("data/analytics")
           expected = {
+              "README.md",
               "pnad_refined_all.parquet",
               "pnad_refined_all_schema.csv",
               "pnad_trusted_all.parquet",
               "pnad_trusted_all_schema.csv",
               "pnad_annual_metadata.csv",
+              "pnad_datasets_metadata.csv",
           }
           generated = {p.name for p in root.iterdir() if p.is_file()}
           if generated != expected:
@@ -103,16 +108,25 @@ jobs:
               "raw_subdir", "raw_pattern", "raw_file_count", "missing_income_code",
               "income_scale_divisor", "currency", "exchange", "price_index",
               "adjust_2025", "inflation_factor_2025", "stage01_divides_by_members",
-              "income_construction", "adjusted_income_formula", "monetary_provenance",
-              "gini_ipea", "gini_world_bank", "gini_reference_role",
-              "trusted_mad_consistency", "trusted_mad_k", "trusted_log_mad_cutoff",
+              "income_construction", "adjusted_income_formula", "exchange_source",
+              "price_index_source", "monetary_provenance", "gini_ipea",
+              "gini_world_bank", "gini_reference_role", "trusted_mad_consistency",
+              "trusted_mad_k", "trusted_log_mad_cutoff",
               "trusted_p99_exception_quantile", "trusted_p99_exception_cutoff",
               "trusted_cutoff_rule", "trusted_effective_cutoff", "trusted_n_refined",
               "trusted_n_invalid_structural", "trusted_n_statistical_outlier",
               "trusted_n_removed_total", "trusted_n_trusted", "trusted_total_removal_rate",
           }
+          dataset_required = {
+              "dataset_name", "layer", "parquet_file", "description",
+              "processing_level", "source_stage", "source_pattern", "n_rows",
+              "n_columns", "n_years", "first_year", "last_year", "n_row_groups",
+              "compression", "file_size_bytes", "schema_version", "schema_file",
+              "annual_metadata_file", "observation_unit", "record_weighting",
+          }
 
           parquet_years = None
+          parquet_stats = {}
           for layer in ("refined", "trusted"):
               parquet_path = root / f"pnad_{layer}_all.parquet"
               schema_path = root / f"pnad_{layer}_all_schema.csv"
@@ -143,6 +157,11 @@ jobs:
                   parquet_years = year_set
               elif year_set != parquet_years:
                   raise SystemExit("refined/trusted survey-year coverage differs")
+              parquet_stats[layer] = {
+                  "n_rows": n_rows,
+                  "n_columns": int(parquet.metadata.num_columns),
+                  "n_row_groups": int(parquet.metadata.num_row_groups),
+              }
 
           annual = pd.read_csv(root / "pnad_annual_metadata.csv")
           if missing := annual_required - set(annual.columns):
@@ -153,9 +172,33 @@ jobs:
               raise SystemExit("annual metadata does not match Parquet survey years")
           if set(annual["gini_reference_role"]) != {"external validation only"}:
               raise SystemExit("external Gini role is not explicit")
+          if not annual["exchange_source"].str.contains("SGS.*3692", regex=True).all():
+              raise SystemExit("exchange-rate provenance is incomplete")
+          if not annual["price_index_source"].str.contains("CPIAUCSL").all():
+              raise SystemExit("price-index provenance is incomplete")
+          if annual["monetary_provenance"].str.contains("not yet recorded").any():
+              raise SystemExit("annual metadata contains unresolved monetary provenance")
           position_2017 = annual.loc[annual["ano"] == 2017, "income_position"].iloc[0]
           if int(position_2017) != 674:
               raise SystemExit("2017 income extraction position regression")
+
+          datasets = pd.read_csv(root / "pnad_datasets_metadata.csv")
+          if missing := dataset_required - set(datasets.columns):
+              raise SystemExit(f"dataset metadata missing columns: {sorted(missing)}")
+          if datasets["layer"].tolist() != ["refined", "trusted"]:
+              raise SystemExit("dataset metadata must contain refined and trusted rows")
+          for row in datasets.to_dict("records"):
+              layer = row["layer"]
+              stats = parquet_stats[layer]
+              for key in ("n_rows", "n_columns", "n_row_groups"):
+                  if int(row[key]) != stats[key]:
+                      raise SystemExit(f"{layer}: dataset metadata {key} mismatch")
+              if int(row["n_years"]) != len(parquet_years):
+                  raise SystemExit(f"{layer}: dataset metadata year-count mismatch")
+              if row["compression"] != "snappy":
+                  raise SystemExit(f"{layer}: unexpected Parquet compression")
+              if row["annual_metadata_file"] != "pnad_annual_metadata.csv":
+                  raise SystemExit(f"{layer}: annual metadata reference mismatch")
           PY
 
       - name: Commit analytics datasets

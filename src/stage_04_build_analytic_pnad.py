@@ -1,12 +1,11 @@
-"""Build consolidated refined and trusted PNAD analytical data products.
+"""Build consolidated PNAD data products, annual metadata, and data dictionaries.
 
-Stage 04 is a structural data-product stage. It performs validation and vertical
-concatenation only: no observations are filtered, no income values are changed,
-and no statistical quantity is estimated.
+Stage 04 is a structural publication stage. It validates and vertically
+concatenates the annual refined and trusted datasets without changing stored
+values or filtering observations. It also materializes one annual metadata
+table and one schema/data-dictionary CSV per consolidated Parquet.
 
-For each layer, the annual Parquet files are ordered by survey year and written
-to one consolidated Parquet with one row group per year. A companion CSV
-documents the dataset-level metadata and the Parquet schema.
+No scientific model is fitted in this stage.
 """
 
 from __future__ import annotations
@@ -17,6 +16,7 @@ import re
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pyarrow.compute as pc
 import pyarrow.parquet as pq
 from tqdm.auto import tqdm
 
@@ -26,55 +26,112 @@ REFINED_PATH = REPO_ROOT / "data" / "refined"
 TRUSTED_PATH = REPO_ROOT / "data" / "trusted"
 ANALYTICS_PATH = REPO_ROOT / "data" / "analytics"
 
+METADATA_SOURCE_PATH = REPO_ROOT / "data" / "metadata" / "df_metadata.csv"
+GINI_REFERENCE_PATH = (
+    REPO_ROOT / "data" / "auxiliary" / "series_gini_ipea_banco_mundial.csv"
+)
+TRUSTED_AUDIT_PATH = (
+    REPO_ROOT / "assets" / "tables_validation" / "trusted_trim_audit_annual.csv"
+)
+
 REFINED_OUTPUT_PATH = ANALYTICS_PATH / "pnad_refined_all.parquet"
 TRUSTED_OUTPUT_PATH = ANALYTICS_PATH / "pnad_trusted_all.parquet"
-REFINED_METADATA_PATH = ANALYTICS_PATH / "pnad_refined_all_metadata.csv"
-TRUSTED_METADATA_PATH = ANALYTICS_PATH / "pnad_trusted_all_metadata.csv"
+REFINED_SCHEMA_PATH = ANALYTICS_PATH / "pnad_refined_all_schema.csv"
+TRUSTED_SCHEMA_PATH = ANALYTICS_PATH / "pnad_trusted_all_schema.csv"
+ANNUAL_METADATA_PATH = ANALYTICS_PATH / "pnad_annual_metadata.csv"
+
 LEGACY_OUTPUT_PATH = ANALYTICS_PATH / "pnad_analytics_all.parquet"
+LEGACY_METADATA_PATHS = (
+    ANALYTICS_PATH / "pnad_refined_all_metadata.csv",
+    ANALYTICS_PATH / "pnad_trusted_all_metadata.csv",
+)
 
 PARQUET_COMPRESSION = "snappy"
 REQUIRED_COLUMNS = {"renda", "ano"}
-SCHEMA_VERSION = "1.0"
+DATA_SCHEMA_VERSION = "1.0"
 
 LAYER_CONFIG = {
     "refined": {
         "input_path": REFINED_PATH,
         "pattern": "pnad_refined_*.parquet",
         "output_path": REFINED_OUTPUT_PATH,
-        "metadata_path": REFINED_METADATA_PATH,
+        "schema_path": REFINED_SCHEMA_PATH,
         "processing_level": "baseline",
-        "dataset_description": (
-            "Consolidated refined PNAD/PNAD Continua baseline before "
-            "trusted-stage statistical treatment."
-        ),
         "source": "Stage 01 annual refined PNAD Parquet files",
     },
     "trusted": {
         "input_path": TRUSTED_PATH,
         "pattern": "pnad_trusted_*.parquet",
         "output_path": TRUSTED_OUTPUT_PATH,
-        "metadata_path": TRUSTED_METADATA_PATH,
+        "schema_path": TRUSTED_SCHEMA_PATH,
         "processing_level": "validated benchmark",
-        "dataset_description": (
-            "Consolidated trusted PNAD/PNAD Continua benchmark after Stage 02 "
-            "structural cleaning, deterministic upper-tail treatment, and validation."
-        ),
         "source": "Stage 02 annual trusted PNAD Parquet files",
     },
 }
 
-COLUMN_DESCRIPTIONS = {
-    "renda": (
-        "Income value preserved exactly from the corresponding annual data layer. "
-        "For years where Stage 01 applies a per-capita construction, this is the "
-        "resulting per-capita income."
-    ),
-    "ano": "Survey year associated with the observation.",
+COLUMN_DEFINITIONS = {
+    "renda": {
+        "description": (
+            "Harmonized annual income value. Stage 01 applies the annual "
+            "income-scale divisor and, when a member field is configured, "
+            "divides household income by the member count. Exact annual rules "
+            "are recorded in pnad_annual_metadata.csv."
+        ),
+        "logical_type": "continuous numeric",
+        "unit": "nominal survey-year currency units",
+        "is_calculated": True,
+        "calculation_stage": "Stage 01",
+        "calculation": (
+            "income_raw / income_scale_divisor; additionally / member_count "
+            "when stage01_divides_by_members is true"
+        ),
+    },
+    "ano": {
+        "description": "Survey year assigned to each observation.",
+        "logical_type": "integer temporal identifier",
+        "unit": "year",
+        "is_calculated": True,
+        "calculation_stage": "Stage 01",
+        "calculation": "survey year assigned from the annual extraction specification",
+    },
 }
 
-COLUMN_UNITS = {
-    "renda": "nominal survey-year currency units",
-    "ano": "year",
+ANNUAL_METADATA_REQUIRED = {
+    "ano",
+    "var_renda",
+    "pos_renda",
+    "tam_renda",
+    "var_morador",
+    "pos_morador",
+    "tam_morador",
+    "link",
+    "raw_subdir",
+    "raw_pattern",
+    "n_files",
+    "missing_renda",
+    "income_scale_divisor",
+    "Currency",
+    "Exchange",
+    "Index",
+    "Adjust2025",
+    "Inflation",
+}
+
+AUDIT_COLUMNS = {
+    "year",
+    "mad_consistency",
+    "threshold_k",
+    "log_mad_cutoff",
+    "p99_exception_quantile",
+    "p99_exception_cutoff",
+    "cutoff_rule",
+    "statistical_cutoff",
+    "n_refined",
+    "n_invalid_structural",
+    "n_statistical_outlier",
+    "n_removed_total",
+    "n_trusted",
+    "total_removal_rate",
 }
 
 
@@ -131,52 +188,64 @@ def validate_layer_frame(df: pd.DataFrame, year: int, layer: str) -> pd.DataFram
     return df.copy()
 
 
-def _write_metadata(
+def _count_unique_values(parquet_path: Path, column: str) -> int:
+    values = pq.read_table(parquet_path, columns=[column])[column]
+    return int(pc.count_distinct(values, mode="only_valid").as_py())
+
+
+def _write_schema(
     *,
     layer: str,
     output_path: Path,
-    metadata_path: Path,
+    schema_path: Path,
     schema: pa.Schema,
     null_counts: dict[str, int],
     n_rows: int,
-    years: list[int],
 ) -> None:
-    config = LAYER_CONFIG[layer]
-    metadata_path.parent.mkdir(parents=True, exist_ok=True)
-
+    """Write a variable-level schema/data dictionary for one consolidated layer."""
+    schema_path.parent.mkdir(parents=True, exist_ok=True)
     rows = []
+
     for field in schema:
+        definition = COLUMN_DEFINITIONS.get(
+            field.name,
+            {
+                "description": f"Column preserved from annual {layer} data.",
+                "logical_type": "unspecified",
+                "unit": "as stored in annual source",
+                "is_calculated": False,
+                "calculation_stage": "",
+                "calculation": "",
+            },
+        )
+        source = LAYER_CONFIG[layer]["source"]
+        if layer == "trusted":
+            source += "; values retained unchanged after Stage 02 row selection"
+
+        n_missing = int(null_counts[field.name])
         rows.append(
             {
-                "dataset_name": output_path.stem,
                 "layer": layer,
-                "processing_level": config["processing_level"],
-                "dataset_description": config["dataset_description"],
-                "parquet_file": output_path.name,
-                "metadata_file": metadata_path.name,
-                "schema_version": SCHEMA_VERSION,
-                "stage04_operation": "validation and vertical concatenation only",
-                "source": config["source"],
-                "source_pattern": config["pattern"],
+                "schema_version": DATA_SCHEMA_VERSION,
                 "column_name": field.name,
-                "arrow_type": str(field.type),
-                "parquet_nullable": bool(field.nullable),
-                "observed_null_count": int(null_counts[field.name]),
-                "description": COLUMN_DESCRIPTIONS.get(
-                    field.name, f"Column preserved from annual {layer} data."
-                ),
-                "unit": COLUMN_UNITS.get(field.name, "as stored in annual source"),
-                "n_rows": int(n_rows),
-                "n_columns": len(schema),
-                "n_years": len(years),
-                "first_year": years[0],
-                "last_year": years[-1],
-                "n_row_groups": len(years),
-                "compression": PARQUET_COMPRESSION,
+                "description": definition["description"],
+                "logical_type": definition["logical_type"],
+                "storage_type": str(field.type),
+                "unit": definition["unit"],
+                "source": source,
+                "is_calculated": bool(definition["is_calculated"]),
+                "calculation_stage": definition["calculation_stage"],
+                "calculation": definition["calculation"],
+                "nullable": False,
+                "storage_nullable": bool(field.nullable),
+                "n": int(n_rows - n_missing),
+                "n_missing": n_missing,
+                "n_unique": _count_unique_values(output_path, field.name),
+                "n_categories": pd.NA,
             }
         )
 
-    pd.DataFrame(rows).to_csv(metadata_path, index=False)
+    pd.DataFrame(rows).to_csv(schema_path, index=False)
 
 
 def build_layer_product(
@@ -184,16 +253,16 @@ def build_layer_product(
     layer: str,
     input_path: Path | None = None,
     output_path: Path | None = None,
-    metadata_path: Path | None = None,
+    schema_path: Path | None = None,
 ) -> dict[str, int | str]:
-    """Build one consolidated layer Parquet and its metadata/schema CSV."""
+    """Build one consolidated layer Parquet and its schema/data dictionary."""
     if layer not in LAYER_CONFIG:
         raise ValueError(f"Unsupported analytical layer: {layer}")
 
     config = LAYER_CONFIG[layer]
     input_path = Path(input_path or config["input_path"])
     output_path = Path(output_path or config["output_path"])
-    metadata_path = Path(metadata_path or config["metadata_path"])
+    schema_path = Path(schema_path or config["schema_path"])
     files_by_year = discover_layer_files(input_path, layer, str(config["pattern"]))
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -273,26 +342,184 @@ def build_layer_product(
 
     temporary_path.replace(output_path)
 
-    years = list(files_by_year)
-    _write_metadata(
+    _write_schema(
         layer=layer,
         output_path=output_path,
-        metadata_path=metadata_path,
+        schema_path=schema_path,
         schema=canonical_schema,
         null_counts=null_counts,
         n_rows=total_rows,
-        years=years,
     )
 
+    years = list(files_by_year)
     return {
         "layer": layer,
         "output": str(output_path),
-        "metadata": str(metadata_path),
+        "schema": str(schema_path),
         "n_years": len(years),
         "first_year": years[0],
         "last_year": years[-1],
         "n_rows": total_rows,
         "n_row_groups": len(years),
+    }
+
+
+def build_annual_metadata(
+    *,
+    years: list[int],
+    metadata_source_path: Path | None = None,
+    gini_reference_path: Path | None = None,
+    trusted_audit_path: Path | None = None,
+    output_path: Path | None = None,
+) -> dict[str, int | str]:
+    """Build annual metadata aligned exactly to the consolidated datasets."""
+    metadata_source_path = Path(metadata_source_path or METADATA_SOURCE_PATH)
+    gini_reference_path = Path(gini_reference_path or GINI_REFERENCE_PATH)
+    trusted_audit_path = Path(trusted_audit_path or TRUSTED_AUDIT_PATH)
+    output_path = Path(output_path or ANNUAL_METADATA_PATH)
+
+    metadata = pd.read_csv(metadata_source_path)
+    missing = ANNUAL_METADATA_REQUIRED.difference(metadata.columns)
+    if missing:
+        raise ValueError(
+            "Annual Stage-00 metadata is missing columns: "
+            + ", ".join(sorted(missing))
+        )
+    if not metadata["ano"].is_unique:
+        raise ValueError("Annual Stage-00 metadata contains duplicated years.")
+
+    metadata = metadata.loc[metadata["ano"].isin(years)].copy()
+    if set(metadata["ano"].astype(int)) != set(years):
+        missing_years = sorted(set(years) - set(metadata["ano"].astype(int)))
+        raise ValueError(f"Annual metadata is missing survey years: {missing_years}")
+
+    gini = pd.read_csv(gini_reference_path)
+    required_gini = {"ano", "ipea", "banco_mundial"}
+    if missing := required_gini.difference(gini.columns):
+        raise ValueError(
+            "External Gini reference is missing columns: "
+            + ", ".join(sorted(missing))
+        )
+    if not gini["ano"].is_unique:
+        raise ValueError("External Gini reference contains duplicated years.")
+    gini = gini.rename(
+        columns={"ipea": "gini_ipea", "banco_mundial": "gini_world_bank"}
+    )
+
+    audit = pd.read_csv(trusted_audit_path)
+    if missing := AUDIT_COLUMNS.difference(audit.columns):
+        raise ValueError(
+            "Trusted-treatment audit is missing columns: "
+            + ", ".join(sorted(missing))
+        )
+    if not audit["year"].is_unique:
+        raise ValueError("Trusted-treatment audit contains duplicated years.")
+    audit = audit[list(sorted(AUDIT_COLUMNS))].rename(
+        columns={
+            "year": "ano",
+            "mad_consistency": "trusted_mad_consistency",
+            "threshold_k": "trusted_mad_k",
+            "log_mad_cutoff": "trusted_log_mad_cutoff",
+            "p99_exception_quantile": "trusted_p99_exception_quantile",
+            "p99_exception_cutoff": "trusted_p99_exception_cutoff",
+            "cutoff_rule": "trusted_cutoff_rule",
+            "statistical_cutoff": "trusted_effective_cutoff",
+            "n_refined": "trusted_n_refined",
+            "n_invalid_structural": "trusted_n_invalid_structural",
+            "n_statistical_outlier": "trusted_n_statistical_outlier",
+            "n_removed_total": "trusted_n_removed_total",
+            "n_trusted": "trusted_n_trusted",
+            "total_removal_rate": "trusted_total_removal_rate",
+        }
+    )
+
+    renamed = metadata.rename(
+        columns={
+            "var_renda": "income_variable",
+            "pos_renda": "income_position",
+            "tam_renda": "income_width",
+            "var_morador": "member_variable",
+            "pos_morador": "member_position",
+            "tam_morador": "member_width",
+            "link": "raw_source",
+            "n_files": "raw_file_count",
+            "missing_renda": "missing_income_code",
+            "Currency": "currency",
+            "Exchange": "exchange",
+            "Index": "price_index",
+            "Adjust2025": "adjust_2025",
+            "Inflation": "inflation_factor_2025",
+        }
+    )
+
+    selected = [
+        "ano",
+        "income_variable",
+        "income_position",
+        "income_width",
+        "member_variable",
+        "member_position",
+        "member_width",
+        "raw_source",
+        "raw_subdir",
+        "raw_pattern",
+        "raw_file_count",
+        "missing_income_code",
+        "income_scale_divisor",
+        "currency",
+        "exchange",
+        "price_index",
+        "adjust_2025",
+        "inflation_factor_2025",
+    ]
+    annual = renamed[selected].copy()
+    annual.insert(
+        1,
+        "survey",
+        np.where(annual["ano"] >= 2016, "PNAD Continua", "PNAD"),
+    )
+    annual["stage01_divides_by_members"] = (
+        annual["member_position"].notna() & annual["member_width"].notna()
+    )
+    annual["income_construction"] = np.where(
+        annual["stage01_divides_by_members"],
+        "income_raw / income_scale_divisor / member_count",
+        "income_raw / income_scale_divisor",
+    )
+    annual["adjusted_income_formula"] = (
+        "renda / exchange * inflation_factor_2025"
+    )
+    annual["monetary_provenance"] = (
+        "Stage 00 metadata; documentary provenance of historical exchange/index "
+        "series not yet recorded"
+    )
+
+    annual = annual.merge(
+        gini[["ano", "gini_ipea", "gini_world_bank"]],
+        on="ano",
+        how="left",
+        validate="one_to_one",
+    )
+    annual["gini_reference_role"] = "external validation only"
+    annual = annual.merge(audit, on="ano", how="left", validate="one_to_one")
+
+    if annual["trusted_cutoff_rule"].isna().any():
+        missing_years = annual.loc[
+            annual["trusted_cutoff_rule"].isna(), "ano"
+        ].astype(int).tolist()
+        raise ValueError(
+            f"Trusted-treatment audit is missing survey years: {missing_years}"
+        )
+
+    annual = annual.sort_values("ano").reset_index(drop=True)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    annual.to_csv(output_path, index=False)
+
+    return {
+        "output": str(output_path),
+        "n_years": len(annual),
+        "first_year": int(annual["ano"].iloc[0]),
+        "last_year": int(annual["ano"].iloc[-1]),
     }
 
 
@@ -312,26 +539,47 @@ def build_analytics_parquet(
     metadata_path: Path | None = None,
 ) -> dict[str, int | str]:
     """Compatibility wrapper that builds the consolidated trusted product."""
-    if metadata_path is None:
-        metadata_path = Path(output_path).with_name(
-            f"{Path(output_path).stem}_metadata.csv"
-        )
+    schema_path = (
+        Path(metadata_path)
+        if metadata_path is not None
+        else Path(output_path).with_name(f"{Path(output_path).stem}_schema.csv")
+    )
     return build_layer_product(
         layer="trusted",
         input_path=trusted_path,
         output_path=output_path,
-        metadata_path=metadata_path,
+        schema_path=schema_path,
     )
 
 
 def build_analytics_products() -> dict[str, dict[str, int | str]]:
-    """Build both canonical Stage-04 analytical products."""
+    """Build canonical Stage-04 Parquets, schemas, and annual metadata."""
+    refined_files = discover_layer_files(
+        Path(LAYER_CONFIG["refined"]["input_path"]),
+        "refined",
+        str(LAYER_CONFIG["refined"]["pattern"]),
+    )
+    trusted_files = discover_layer_files(
+        Path(LAYER_CONFIG["trusted"]["input_path"]),
+        "trusted",
+        str(LAYER_CONFIG["trusted"]["pattern"]),
+    )
+    years = list(refined_files)
+    if years != list(trusted_files):
+        raise ValueError(
+            "Refined and trusted annual layers must cover the same survey years."
+        )
+
     summaries = {
         "refined": build_layer_product(layer="refined"),
         "trusted": build_layer_product(layer="trusted"),
     }
-    if LEGACY_OUTPUT_PATH.exists():
-        LEGACY_OUTPUT_PATH.unlink()
+    build_annual_metadata(years=years)
+
+    for legacy_path in (LEGACY_OUTPUT_PATH, *LEGACY_METADATA_PATHS):
+        if legacy_path.exists():
+            legacy_path.unlink()
+
     return summaries
 
 
@@ -351,4 +599,5 @@ if __name__ == "__main__":
             f"{summary['n_row_groups']} row groups."
         )
         print(summary["output"])
-        print(summary["metadata"])
+        print(summary["schema"])
+    print(ANNUAL_METADATA_PATH)

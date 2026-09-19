@@ -1,11 +1,11 @@
 # Data
 
-The `data` directory contains the empirical material used by the PNAD longitudinal research pipeline. The directory separates source metadata, harmonized annual observations, quality-controlled observations, consolidated cross-year products, and external reference series.
+The `data` directory contains the empirical material used by the PNAD income-distribution research pipeline. The directory separates source metadata, annual refined observations, quality-controlled observations, consolidated cross-year products, and external reference series.
 
 | Directory | Content | Produced or consumed by |
 | --- | --- | --- |
 | `metadata/` | annual extraction specifications, monetary metadata, and processing information | produced by Stage 00; consumed downstream |
-| `refined/` | harmonized annual PNAD/PNAD Contínua baseline datasets before trusted-stage treatment | produced by Stage 01; consumed by Stages 02–04 |
+| `refined/` | annual PNAD/PNAD Contínua baseline datasets before trusted-stage treatment | produced by Stage 01; consumed by Stages 02–04 |
 | `trusted/` | benchmark annual datasets after structural cleaning, log-MAD upper-tail treatment, and validation | produced by Stage 02; consumed by Stages 03–04 |
 | `analytics/` | consolidated refined/trusted Parquets, dataset metadata, annual metadata, variable-level schemas, and archival checksums | produced by Stage 04 and release-integrity utility |
 | `auxiliary/` | external Gini/GDP series and published Moura–Ribeiro 2009 reference values | consumed as external/reference inputs |
@@ -15,7 +15,7 @@ The `data` directory contains the empirical material used by the PNAD longitudin
 
 The collection covers 45 available survey years between 1976 and 2025. The years 1980, 1991, 1994, 2000, and 2010 are explicit survey gaps and are not interpolated. The files represent repeated annual cross-sections rather than a longitudinal panel: records from different years do not identify the same households or persons through time.
 
-The harmonized analytical target is household income expressed on a per-resident basis when required by the annual source definition. Late historical PNAD uses the household per-capita field `V4621`, while PNAD Contínua uses the derived household per-capita field `VD5008`. The 2015–2016 PNAD/PNAD Contínua transition remains an explicit methodological boundary because survey design, interview structure, and construction of income aggregates changed.
+The common analytical target is household income expressed on a per-resident basis when required by the annual source definition. Late historical PNAD uses the household per-capita field `V4621`, while PNAD Contínua uses the derived household per-capita field `VD5008`. The 2015–2016 PNAD/PNAD Contínua transition remains an explicit methodological boundary because survey design, interview structure, and construction of income aggregates changed.
 
 The released analytical records do not contain the full original survey expansion weights or complex-sample design variables. Quantities computed directly from these records are therefore record-weighted. Population-design-weighted inference requires reconstruction from the original IBGE microdata with the corresponding annual design variables.
 
@@ -56,7 +56,7 @@ The two schema CSVs have one row per dataset column. They document description, 
 
 The annual monetary provenance explicitly identifies the exchange-rate series as Banco Central do Brasil SGS series 3692 and the U.S. price-index series as BLS CPIAUCSL distributed through FRED by the Federal Reserve Bank of St. Louis. These values are persisted as metadata rather than queried at Stage 04 runtime. The external Gini series remain validation references only.
 
-`SHA256SUMS.txt` is generated after the Stage-04 products and covers the canonical files intended for archival deposition. The manifest is validated immediately after generation to detect stale or modified files. The Zenodo upload set and the fields that remain to be completed at deposition are documented in `data/analytics/RELEASE.md`.
+`SHA256SUMS.txt` is generated after the Stage-04 products and covers the canonical files intended for archival deposition. The manifest is validated immediately after generation to detect stale or modified files. The finalized Zenodo upload set and release metadata are documented in `data/analytics/RELEASE.md`.
 
 The file-level, variable-level, and annual metadata hierarchy is documented in `data/analytics/README.md`. The former `pnad_analytics_all.parquet`, `pnad_refined_all_metadata.csv`, and `pnad_trusted_all_metadata.csv` products are obsolete.
 

@@ -1,10 +1,10 @@
-# PNAD Longitudinal Income Research
+# PNAD and PNAD Contínua Income Distribution Research
 
 ## Overview
 
-This repository contains the reproducible data-construction and analysis workflow for a harmonized record-level household-income dataset derived from the Brazilian *Pesquisa Nacional por Amostra de Domicílios* (PNAD) and *PNAD Contínua*. The project covers all 45 available survey years between 1976 and 2025 and preserves the explicit survey gaps in 1980, 1991, 1994, 2000, and 2010.
+This repository contains the reproducible data-construction and analysis workflow for record-level household-income data derived from the Brazilian *Pesquisa Nacional por Amostra de Domicílios* (PNAD) and *PNAD Contínua*. The project covers all 45 available survey years between 1976 and 2025 and preserves the explicit survey gaps in 1980, 1991, 1994, 2000, and 2010.
 
-The released records are repeated annual cross-sections rather than a longitudinal panel. The workflow harmonizes year-specific income fields into a common analytical structure, preserves a minimally transformed `refined` baseline, constructs a quality-controlled `trusted` benchmark, and produces documented cross-year data products suitable for scientific reuse and archival deposition.
+The released records are repeated annual cross-sections rather than a longitudinal panel. The workflow maps year-specific income fields into a common analytical structure, preserves a minimally transformed `refined` baseline, constructs a quality-controlled `trusted` benchmark, and produces documented cross-year data products suitable for scientific reuse and archival deposition.
 
 The research is developed in the context of econophysics and income-distribution studies at the Federal University of Rio de Janeiro and collaborating institutions. The research group is led by **Marcelo Byrro Ribeiro**, who is also the corresponding author of the associated manuscript. The current manuscript author list and affiliations are documented below.
 
@@ -20,7 +20,7 @@ The research is developed in the context of econophysics and income-distribution
 
 ## Scientific scope
 
-The harmonized target is household income expressed on a per-resident basis when required by the original survey field. PNAD and PNAD Contínua use different survey designs and income constructions, so the 2015–2016 transition is retained as an explicit comparability boundary rather than treated as a measurement-equivalent continuation.
+The common analytical target is household income expressed on a per-resident basis when required by the original survey field. PNAD and PNAD Contínua use different survey designs and income constructions, so the 2015–2016 transition is retained as an explicit comparability boundary rather than treated as a measurement-equivalent continuation.
 
 The processed research datasets do not retain the full original survey expansion weights and complex-design variables. Statistics computed directly from the released records are therefore record-weighted and should not be interpreted as official design-weighted population estimates. External IPEA and World Bank Gini series are used only as validation references.
 
@@ -29,7 +29,7 @@ The processed research datasets do not retain the full original survey expansion
 | Stage | Main role | Output |
 | ---: | --- | --- |
 | 00 | annual extraction and monetary metadata | `data/metadata/` |
-| 01 | raw fixed-width records → harmonized annual baseline | `data/refined/` |
+| 01 | raw fixed-width records → annual refined baseline | `data/refined/` |
 | 02 | structural cleaning, deterministic upper-tail treatment, validation | `data/trusted/`, validation tables |
 | 03 | descriptive, inequality, CCDF and Gompertz–Pareto analysis | analytical tables and figures |
 | 04 | cross-year consolidation and publication metadata | `data/analytics/` |
@@ -75,4 +75,4 @@ Release **v1.0.0** corresponds to the Zenodo dataset record published on **18 Se
 
 The archived dataset package contains the two consolidated Parquets, their variable-level schemas, annual metadata, dataset-level metadata, a package README, and SHA-256 checksums. Citation metadata for the repository are provided in [`CITATION.cff`](CITATION.cff).
 
-The repository software is released under the MIT License. The deposited harmonized dataset is licensed separately on Zenodo. Original PNAD and PNAD Contínua source microdata remain attributable to and governed by the Instituto Brasileiro de Geografia e Estatística (IBGE).
+The repository software is released under the MIT License. The deposited dataset is licensed separately on Zenodo. Original PNAD and PNAD Contínua source microdata remain attributable to and governed by the Instituto Brasileiro de Geografia e Estatística (IBGE).

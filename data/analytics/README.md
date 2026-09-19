@@ -30,7 +30,7 @@ The exchange-rate series is documented as Banco Central do Brasil SGS series 369
 
 `src/build_release_manifest.py` computes SHA-256 digests for the canonical archival files and writes `SHA256SUMS.txt`. The same utility validates the manifest immediately after generation so that stale or altered package files are detected before deposition.
 
-The intended Zenodo upload set and the recommended deposit metadata are documented in [`RELEASE.md`](RELEASE.md). DOI, release date, dataset version and the final data-license selection are intentionally completed only when the Zenodo record is finalized.
+The Zenodo upload set and finalized release identifiers and metadata are documented in [`RELEASE.md`](RELEASE.md). The archival dataset remains version `1.0.0`, published on 18 September 2026 with DOI `10.5281/zenodo.22836608`.
 
 ## Interpretation
 

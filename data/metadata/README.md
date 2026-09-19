@@ -1,6 +1,6 @@
 # Metadata
 
-<p align="justify"><code>df_metadata.xlsx</code> and <code>df_metadata.csv</code> are generated together by <code>src/stage_00_build_metadata.py</code>. They contain the same annual PNAD/PNAD Contínua extraction specifications and monetary fields used by the longitudinal normalization. The Excel file remains the canonical input consumed by the analytical pipeline, while the CSV mirror is versioned for direct inspection through the GitHub web interface.</p>
+<p align="justify"><code>df_metadata.xlsx</code> and <code>df_metadata.csv</code> are generated together by <code>src/stage_00_build_metadata.py</code>. They contain the same annual PNAD/PNAD Contínua extraction specifications and monetary fields used by the cross-year analytical normalization. The Excel file remains the canonical input consumed by the analytical pipeline, while the CSV mirror is versioned for direct inspection through the GitHub web interface.</p>
 
 <p align="justify">The <code>Build metadata</code> GitHub Actions workflow runs with Python 3.12, regenerates both files from Stage 00, validates them against <code>build_metadata_df()</code>, and commits refreshed artifacts only when their generated content changes. The metadata files should therefore not be edited manually.</p>
 
@@ -17,4 +17,4 @@
 
 ## Provenance note
 
-<p align="justify">The repository currently stores the numerical <code>Exchange</code> and <code>Index</code> series in <code>stage_00_build_metadata.py</code>, but the exact documentary provenance of those two historical series is not recorded alongside the code. That source documentation should be added when the original references are identified. No bibliographic source or URL is inferred here.</p>
+<p align="justify">The archival metadata identify the exchange-rate series as Banco Central do Brasil SGS series 3692 and the U.S. price-index series as the Bureau of Labor Statistics CPIAUCSL series distributed through FRED by the Federal Reserve Bank of St. Louis. The numerical <code>Exchange</code> and <code>Index</code> values are persisted in the repository and are not fetched dynamically during Stage 04.</p>

@@ -1,10 +1,9 @@
 cff-version: 1.2.0
-message: "If you use this repository, please cite it using the metadata in this file."
-title: "PNAD Longitudinal Income Research"
+message: "If you use this software, please cite it using the metadata in this file. The associated dataset is cited separately below."
+title: "PNAD and PNAD Contínua Income Distribution Research"
 type: software
 version: "1.0.0"
 date-released: "2026-09-18"
-doi: "10.5281/zenodo.22836608"
 authors:
   - family-names: "Queiroz-Santos"
     given-names: "Beatriz"
@@ -40,4 +39,8 @@ keywords:
   - income distribution
   - econophysics
   - reproducible research
-abstract: "Reproducible computational workflow for a harmonized record-level household-income dataset from Brazilian PNAD and PNAD Continua surveys, including annual extraction metadata, deterministic trusted-layer treatment, technical validation, inequality statistics, Gompertz-Pareto analysis, and publication assets."
+abstract: "Reproducible computational workflow for cross-year record-level household-income data from Brazilian PNAD and PNAD Continua surveys, including annual extraction metadata, deterministic trusted-layer treatment, technical validation, inequality statistics, Gompertz-Pareto analysis, and publication assets."
+references:
+  - type: dataset
+    title: "PNAD and PNAD Contínua Household Income Microdata for Brazil, 1976–2025"
+    doi: "10.5281/zenodo.22836608"

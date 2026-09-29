@@ -18,6 +18,7 @@ TRUSTED = ROOT / "data" / "trusted"
 METADATA = ROOT / "data" / "metadata" / "df_metadata.xlsx"
 GDP = ROOT / "data" / "auxiliary" / "gdp_growth_brazil_1978_2025.csv"
 
+PANEL_START_YEAR = 1976
 START_YEAR, END_YEAR, MAX_PANELS, DPI = 1978, 2025, 12, 300
 PAGE_SIZE, SINGLE_SIZE = (7.0, 9.5), (7.0, 4.5)
 
@@ -74,7 +75,7 @@ mpl.rcParams.update(
 
 
 def years_of(values):
-    return sorted(int(y) for y in values if START_YEAR <= int(y) <= END_YEAR)
+    return sorted(int(y) for y in values if PANEL_START_YEAR <= int(y) <= END_YEAR)
 
 
 def groups(years):
@@ -210,7 +211,7 @@ def family(years, stem, draw, xlabel, ylabel, legend=False, ncol=3, figsize=None
 def _year_filter(df):
     df = df.copy()
     df["year"] = pd.to_numeric(df["year"], errors="coerce").astype("Int64")
-    return df[(df.year >= START_YEAR) & (df.year <= END_YEAR)].copy()
+    return df[(df.year >= PANEL_START_YEAR) & (df.year <= END_YEAR)].copy()
 
 
 def load_inputs():

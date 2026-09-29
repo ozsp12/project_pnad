@@ -44,6 +44,55 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Correct Stage 05 publication window
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/stage_05_publication.py")
+          text = path.read_text()
+          replacements = [
+              (
+                  "PANEL_START_YEAR = 1976\nSTART_YEAR, END_YEAR, MAX_PANELS, DPI = 1978, 2025, 12, 300",
+                  "START_YEAR, END_YEAR, MAX_PANELS, DPI = 1976, 2025, 12, 300\nGDP_START_YEAR = 1978",
+              ),
+              (
+                  "PANEL_START_YEAR <= int(y) <= END_YEAR",
+                  "START_YEAR <= int(y) <= END_YEAR",
+              ),
+              (
+                  "df.year >= PANEL_START_YEAR",
+                  "df.year >= START_YEAR",
+              ),
+              (
+                  "if not np.array_equal(annual.bootstrap_reps, annual.bootstrap_reps_pareto):",
+                  "if not np.allclose(annual.bootstrap_reps, annual.bootstrap_reps_pareto, equal_nan=True):",
+              ),
+              (
+                  "def annual_plot_frame(df):",
+                  "def annual_plot_frame(df, start_year=START_YEAR):",
+              ),
+              (
+                  "full_years = pd.Index(range(START_YEAR, END_YEAR + 1), name=\"year\")",
+                  "full_years = pd.Index(range(start_year, END_YEAR + 1), name=\"year\")",
+              ),
+              (
+                  "    markers=None,\n):\n    data = annual_plot_frame(df)",
+                  "    markers=None,\n    start_year=START_YEAR,\n):\n    data = annual_plot_frame(df, start_year=start_year)",
+              ),
+              (
+                  "        title=f\"Real GDP growth - Brazil ({START_YEAR}-{END_YEAR})\",\n        colors=[GREEN],",
+                  "        title=f\"Real GDP growth - Brazil ({GDP_START_YEAR}-{END_YEAR})\",\n        start_year=GDP_START_YEAR,\n        colors=[GREEN],",
+              ),
+          ]
+          for old, new in replacements:
+              if old in text:
+                  text = text.replace(old, new, 1)
+              elif new not in text:
+                  raise SystemExit(f"Expected Stage 05 pattern not found: {old}")
+          path.write_text(text)
+          PY
+
       - name: Ensure Stage 03 analytical tables exist
         shell: bash
         run: |
@@ -89,6 +138,15 @@ jobs:
           pareto = pd.read_csv(tables_dir / "table_02_pareto_annual.csv")
           economic = pd.read_csv(tables_dir / "table_03_economic_inequality_annual.csv")
           metadata = pd.read_csv(tables_dir / "table_04_metadata.csv")
+
+          for name, frame in (
+              ("Gompertz", gompertz),
+              ("Pareto", pareto),
+              ("economic", economic),
+          ):
+              years = set(pd.to_numeric(frame["year"], errors="coerce").dropna().astype(int))
+              if not {1976, 1977}.issubset(years):
+                  raise SystemExit(f"{name} paper table is missing 1976 or 1977")
 
           merged = gompertz[["year", "gompertz_income_share_pct"]].merge(
               pareto[["year", "pareto_income_share_pct", "pareto_selection_status"]],
@@ -148,7 +206,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/figures_paper assets/tables_paper
+          git add src/stage_05_publication.py assets/figures_paper assets/tables_paper
           if git diff --cached --quiet; then
             echo "No paper-asset changes to commit."
           else

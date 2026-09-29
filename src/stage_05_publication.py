@@ -394,7 +394,7 @@ def plot_lorenz(lorenz, stats, years):
         ax.plot([k, k], [0, q], color=RED, ls=":", lw=1.0, zorder=2)
         ax.plot([0, k], [q, q], color=RED, ls=":", lw=1.0, zorder=2)
         ax.scatter([k], [q], color=ORANGE, s=14, zorder=5)
-        ax.text(k + 1.5, 2.0, "k", color=RED, fontsize=7.0, ha="center", va="bottom")
+        ax.text(k + 3.0, 2.0, "k", color=RED, fontsize=7.0, ha="center", va="bottom")
         ax.text(2.0, q, "100-k", color=RED, fontsize=6.6, ha="left", va="bottom")
 
         pietra_index = int(np.argmax(population - income_share))
@@ -402,7 +402,7 @@ def plot_lorenz(lorenz, stats, years):
         p_y = float(income_share[pietra_index])
         ax.plot([p_x, p_x], [p_y, p_x], color=ROYAL_BLUE, ls="--", lw=1.05, zorder=3)
         ax.scatter([p_x], [p_y], color=ROYAL_BLUE, s=14, zorder=5)
-        ax.text(p_x + 1.5, p_y + 3.0, "p", color=ROYAL_BLUE, fontsize=7.0)
+        ax.text(p_x + 1.8, p_y + 6.0, "p", color=ROYAL_BLUE, fontsize=7.0, ha="left", va="bottom")
 
         metrics = (
             (f"k: {k:.3f}", RED),

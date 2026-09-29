@@ -1301,7 +1301,7 @@ def run_analysis():
 
 # --- Stage-03 uncertainty/reproduction features ---
 
-START_YEAR, END_YEAR = 1978, 2025
+START_YEAR, END_YEAR = 1976, 2025
 
 BOOTSTRAP_REPS = int(os.environ.get("PNAD_BOOTSTRAP_REPS", "1000"))
 

@@ -18,8 +18,8 @@ TRUSTED = ROOT / "data" / "trusted"
 METADATA = ROOT / "data" / "metadata" / "df_metadata.xlsx"
 GDP = ROOT / "data" / "auxiliary" / "gdp_growth_brazil_1978_2025.csv"
 
-PANEL_START_YEAR = 1976
-START_YEAR, END_YEAR, MAX_PANELS, DPI = 1978, 2025, 12, 300
+START_YEAR, END_YEAR, MAX_PANELS, DPI = 1976, 2025, 12, 300
+GDP_START_YEAR = 1978
 PAGE_SIZE, SINGLE_SIZE = (7.0, 9.5), (7.0, 4.5)
 
 GOMPERTZ_OUT = TABLES_PAPER / "table_01_gompertz_annual.csv"
@@ -75,7 +75,7 @@ mpl.rcParams.update(
 
 
 def years_of(values):
-    return sorted(int(y) for y in values if PANEL_START_YEAR <= int(y) <= END_YEAR)
+    return sorted(int(y) for y in values if START_YEAR <= int(y) <= END_YEAR)
 
 
 def groups(years):
@@ -211,7 +211,7 @@ def family(years, stem, draw, xlabel, ylabel, legend=False, ncol=3, figsize=None
 def _year_filter(df):
     df = df.copy()
     df["year"] = pd.to_numeric(df["year"], errors="coerce").astype("Int64")
-    return df[(df.year >= PANEL_START_YEAR) & (df.year <= END_YEAR)].copy()
+    return df[(df.year >= START_YEAR) & (df.year <= END_YEAR)].copy()
 
 
 def load_inputs():
@@ -225,7 +225,7 @@ def load_inputs():
     )
     annual = g.merge(p, on="year", validate="one_to_one", suffixes=("", "_pareto"))
     if "bootstrap_reps_pareto" in annual:
-        if not np.array_equal(annual.bootstrap_reps, annual.bootstrap_reps_pareto):
+        if not np.allclose(annual.bootstrap_reps, annual.bootstrap_reps_pareto, equal_nan=True):
             raise AssertionError("Bootstrap replication counts differ")
         annual = annual.drop(columns="bootstrap_reps_pareto")
     return stats, lorenz, annual, curves, meta
@@ -249,7 +249,7 @@ def adjusted_income(year, metadata_index, positive=True):
     return x / float(row["exchange"]) * float(row["Inflation"])
 
 
-def annual_plot_frame(df):
+def annual_plot_frame(df, start_year=START_YEAR):
     """Return a plotting-only annual grid with NaN at unobserved years."""
     data = df.copy()
     data["year"] = pd.to_numeric(data["year"], errors="coerce")
@@ -257,7 +257,7 @@ def annual_plot_frame(df):
     data["year"] = data["year"].astype(int)
     if data["year"].duplicated().any():
         raise ValueError("Annual plotting data must contain unique years.")
-    full_years = pd.Index(range(START_YEAR, END_YEAR + 1), name="year")
+    full_years = pd.Index(range(start_year, END_YEAR + 1), name="year")
     return data.set_index("year").reindex(full_years).reset_index()
 
 
@@ -271,8 +271,9 @@ def line_figure(
     colors=None,
     line_styles=None,
     markers=None,
+    start_year=START_YEAR,
 ):
-    data = annual_plot_frame(df)
+    data = annual_plot_frame(df, start_year=start_year)
     fig, ax = plt.subplots(figsize=SINGLE_SIZE)
     for index, (column, label) in enumerate(series):
         spec = series_style(index)
@@ -717,7 +718,8 @@ def plot_misc(stats, annual):
         "gdp_growth",
         [("gdp_growth_pct", "GDP")],
         "Real GDP growth (%)",
-        title=f"Real GDP growth - Brazil ({START_YEAR}-{END_YEAR})",
+        title=f"Real GDP growth - Brazil ({GDP_START_YEAR}-{END_YEAR})",
+        start_year=GDP_START_YEAR,
         colors=[GREEN],
         line_styles=["-"],
         markers=["o"],

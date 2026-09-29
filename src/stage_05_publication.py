@@ -272,6 +272,8 @@ def line_figure(
     line_styles=None,
     markers=None,
     start_year=START_YEAR,
+    x_tick_start=None,
+    x_tick_step=None,
 ):
     data = annual_plot_frame(df, start_year=start_year)
     fig, ax = plt.subplots(figsize=SINGLE_SIZE)
@@ -288,6 +290,10 @@ def line_figure(
         ax.plot(data.year, scale * data[column], label=label, **spec)
     ax.set_xlabel("Year")
     ax.set_ylabel(ylabel)
+    if x_tick_start is not None:
+        ax.set_xlim(x_tick_start, END_YEAR)
+        if x_tick_step is not None:
+            ax.set_xticks(np.arange(x_tick_start, END_YEAR + 1, x_tick_step))
     if title:
         ax.set_title(title, fontsize=10.0)
     style(ax)
@@ -581,6 +587,8 @@ def plot_income_stats(stats):
         colors=[BLUE],
         line_styles=["-"],
         markers=["o"],
+        x_tick_start=1975,
+        x_tick_step=5,
     )
 
 

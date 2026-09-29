@@ -40,6 +40,22 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Correct Stage 03 analysis window
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/stage_03_pnad_analysis.py")
+          text = path.read_text()
+          old = "START_YEAR, END_YEAR = 1978, 2025"
+          new = "START_YEAR, END_YEAR = 1976, 2025"
+          if old in text:
+              text = text.replace(old, new, 1)
+              path.write_text(text)
+          elif new not in text:
+              raise SystemExit("Stage 03 analysis-window declaration not found")
+          PY
+
       - name: Ensure analysis datasets exist
         shell: bash
         run: |
@@ -73,6 +89,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/stage_03_pnad_analysis.py
           git add -A assets/figures_analysis_trusted assets/figures_analysis_refined
           git add -A assets/tables_analysis_trusted assets/tables_analysis_refined
           if git diff --cached --quiet; then

@@ -598,9 +598,10 @@ def plot_inequality_indices_grid(df, output_path, ncols=2, figsize=(16, 10)):
         ("Kolkata", "Kolkata Index", 100.0, "Index value (%)"),
         ("Pietra", "Pietra Index", 100.0, "Index value (%)"),
     ]
-    fig, axes = plt.subplots(2, ncols, figsize=figsize, squeeze=False, sharex=True)
+    fig, axes = plt.subplots(2, ncols, figsize=figsize, squeeze=False, sharex=False)
     first = int(df["year"].min())
     last = int(df["year"].max())
+    axis_start = 1975
     years = np.arange(first, last + 1)
     indexed = df.set_index("year").reindex(years)
     for ax, (col, title, scale, ylabel) in zip(axes.ravel(), series):
@@ -610,6 +611,9 @@ def plot_inequality_indices_grid(df, output_path, ncols=2, figsize=(16, 10)):
         ax.set_title(f"Evolution of the {title} - Brazil ({first}-{last})")
         ax.set_xlabel("Year")
         ax.set_ylabel(ylabel)
+        ax.set_xlim(axis_start, last)
+        ax.set_xticks(np.arange(axis_start, last + 1, 5))
+        ax.tick_params(axis="x", labelbottom=True)
         ax.grid(True, alpha=0.4)
     fig.tight_layout()
     fig.savefig(output_path, dpi=250, bbox_inches="tight")

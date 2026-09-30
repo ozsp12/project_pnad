@@ -40,32 +40,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Refine inequality grid year axes
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path("src/stage_03_pnad_analysis.py")
-          text = path.read_text()
-          old = '''    fig, axes = plt.subplots(2, ncols, figsize=figsize, squeeze=False, sharex=True)\n    first = int(df["year"].min())\n    last = int(df["year"].max())\n    years = np.arange(first, last + 1)'''
-          new = '''    fig, axes = plt.subplots(2, ncols, figsize=figsize, squeeze=False, sharex=False)\n    first = int(df["year"].min())\n    last = int(df["year"].max())\n    axis_start = 1975\n    years = np.arange(first, last + 1)'''
-          old_axis = '''        ax.set_xlabel("Year")\n        ax.set_ylabel(ylabel)\n        ax.grid(True, alpha=0.4)'''
-          new_axis = '''        ax.set_xlabel("Year")\n        ax.set_ylabel(ylabel)\n        ax.set_xlim(axis_start, last)\n        ax.set_xticks(np.arange(axis_start, last + 1, 5))\n        ax.tick_params(axis="x", labelbottom=True)\n        ax.grid(True, alpha=0.4)'''
-          changed = False
-          if old in text:
-              text = text.replace(old, new, 1)
-              changed = True
-          elif new not in text:
-              raise SystemExit("Inequality grid setup block not found")
-          if old_axis in text:
-              text = text.replace(old_axis, new_axis, 1)
-              changed = True
-          elif new_axis not in text:
-              raise SystemExit("Inequality grid axis block not found")
-          if changed:
-              path.write_text(text)
-          PY
-
       - name: Ensure analysis datasets exist
         shell: bash
         run: |
@@ -99,7 +73,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/stage_03_pnad_analysis.py
           git add -A assets/figures_analysis_trusted assets/figures_analysis_refined
           git add -A assets/tables_analysis_trusted assets/tables_analysis_refined
           if git diff --cached --quiet; then

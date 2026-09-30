@@ -44,6 +44,22 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Refine Gini validation year axis
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/stage_05_publication.py")
+          text = path.read_text()
+          old = '''    ax.set_title("Evolution of the Gini Index - Brazil", fontsize=10.0)\n    ax.set_xlabel("Year")\n    ax.set_ylabel("Gini coefficient")\n    style(ax)'''
+          new = '''    ax.set_title("Evolution of the Gini Index - Brazil", fontsize=10.0)\n    ax.set_xlabel("Year")\n    ax.set_ylabel("Gini coefficient")\n    ax.set_xlim(1975, END_YEAR)\n    ax.set_xticks(np.arange(1975, END_YEAR + 1, 5))\n    style(ax)'''
+          if old in text:
+              text = text.replace(old, new, 1)
+              path.write_text(text)
+          elif new not in text:
+              raise SystemExit("Gini validation axis block not found")
+          PY
+
       - name: Ensure Stage 03 analytical tables exist
         shell: bash
         run: |
@@ -157,7 +173,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/figures_paper assets/tables_paper
+          git add src/stage_05_publication.py assets/figures_paper assets/tables_paper
           if git diff --cached --quiet; then
             echo "No paper-asset changes to commit."
           else

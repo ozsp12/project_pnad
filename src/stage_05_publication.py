@@ -716,6 +716,8 @@ def plot_misc(stats, annual):
     ax.set_title("Evolution of the Gini Index - Brazil", fontsize=10.0)
     ax.set_xlabel("Year")
     ax.set_ylabel("Gini coefficient")
+    ax.set_xlim(1975, END_YEAR)
+    ax.set_xticks(np.arange(1975, END_YEAR + 1, 5))
     style(ax)
     ax.legend(loc="best", ncol=3, handlelength=2.5)
     save(fig, "gini_validation")

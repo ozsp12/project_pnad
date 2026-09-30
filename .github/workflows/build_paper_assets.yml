@@ -44,6 +44,37 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Refine top-income year axes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/stage_05_publication.py")
+          text = path.read_text()
+
+          replacements = [
+              (
+                  '''        colors=[BLUE, DARK_RED, SALMON],\n        line_styles=["-", ":", "-"],\n        markers=["o", "s", "^"],\n    )''',
+                  '''        colors=[BLUE, DARK_RED, SALMON],\n        line_styles=["-", ":", "-"],\n        markers=["o", "s", "^"],\n        x_tick_start=1975,\n        x_tick_step=5,\n    )''',
+              ),
+              (
+                  '''        colors=[BLUE, ORANGE, RED],\n        line_styles=["-", "--", ":"],\n        markers=["o", "s", "^"],\n    )''',
+                  '''        colors=[BLUE, ORANGE, RED],\n        line_styles=["-", "--", ":"],\n        markers=["o", "s", "^"],\n        x_tick_start=1975,\n        x_tick_step=5,\n    )''',
+              ),
+          ]
+
+          changed = False
+          for old, new in replacements:
+              if old in text:
+                  text = text.replace(old, new, 1)
+                  changed = True
+              elif new not in text:
+                  raise SystemExit(f"Expected top-income block not found: {old}")
+
+          if changed:
+              path.write_text(text)
+          PY
+
       - name: Ensure Stage 03 analytical tables exist
         shell: bash
         run: |
@@ -157,7 +188,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/figures_paper assets/tables_paper
+          git add src/stage_05_publication.py assets/figures_paper assets/tables_paper
           if git diff --cached --quiet; then
             echo "No paper-asset changes to commit."
           else

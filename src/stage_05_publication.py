@@ -613,6 +613,8 @@ def plot_misc(stats, annual):
         colors=[BLUE, DARK_RED, SALMON],
         line_styles=["-", ":", "-"],
         markers=["o", "s", "^"],
+        x_tick_start=1975,
+        x_tick_step=5,
     )
     exclusive = stats.assign(
         p90_p99=stats.top_10 - stats.top_1,
@@ -632,6 +634,8 @@ def plot_misc(stats, annual):
         colors=[BLUE, ORANGE, RED],
         line_styles=["-", "--", ":"],
         markers=["o", "s", "^"],
+        x_tick_start=1975,
+        x_tick_step=5,
     )
     line_figure(
         stats,

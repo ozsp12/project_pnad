@@ -607,8 +607,9 @@ def plot_misc(stats, annual, lorenz):
     for year, data in lorenz.groupby("year"):
         population = data["population_share"].to_numpy(float)
         income = data["income_share"].to_numpy(float)
-        share = float(np.interp(0.50, population, income) - np.interp(0.40, population, income))
-        middle_records.append({"year": int(year), "p40_p50": share})
+        bottom_50 = float(np.interp(0.50, population, income))
+        share_40_50 = float(bottom_50 - np.interp(0.40, population, income))
+        middle_records.append({"year": int(year), "bottom_50": bottom_50, "p40_p50": share_40_50})
     middle = pd.DataFrame(middle_records)
     stats = stats.merge(middle, on="year", how="left", validate="one_to_one")
     line_figure(
@@ -624,13 +625,13 @@ def plot_misc(stats, annual, lorenz):
     line_figure(
         stats,
         "top_income_shares",
-        [("p40_p50", "40-50%"), ("top_10", "Top 10%"), ("top_1", "Top 1%"), ("top_01", "Top 0.1%")],
+        [("top_10", "Top 10%"), ("top_1", "Top 1%"), ("top_01", "Top 0.1%"), ("bottom_50", "Bottom 50%")],
         "Income share (%)",
         100,
         title=f"Income concentration - Brazil ({START_YEAR}-{END_YEAR})",
-        colors=[GREEN, BLUE, DARK_RED, SALMON],
-        line_styles=["-.", "-", ":", "-"],
-        markers=["D", "o", "s", "^"],
+        colors=[BLUE, DARK_RED, SALMON, PURPLE],
+        line_styles=["-", ":", "-", "-."],
+        markers=["o", "s", "^", "D"],
         x_tick_start=1975,
         x_tick_step=5,
         observation_guides=True,

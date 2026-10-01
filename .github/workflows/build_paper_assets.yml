@@ -44,6 +44,113 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Add observation-year vertical guides
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/stage_05_publication.py")
+          text = path.read_text()
+
+          annotation_marker = "\n\ndef annotation(ax, text, x=0.05, y=0.06):"
+          helper = '''\n\ndef add_observation_guides(ax, years):
+              """Add grid-style vertical guides at observed years without adding ticks."""
+              major_ticks = np.asarray(ax.get_xticks(), dtype=float)
+              observed = sorted({int(year) for year in years if np.isfinite(year)})
+              for year in observed:
+                  if not np.any(np.isclose(major_ticks, year)):
+                      ax.axvline(
+                          year,
+                          color="0.82",
+                          lw=0.55,
+                          ls="--",
+                          alpha=0.75,
+                          zorder=0,
+                      )
+          '''
+          helper = "\n".join(line[10:] if line.startswith("          ") else line for line in helper.splitlines())
+          if "def add_observation_guides(ax, years):" not in text:
+              if annotation_marker not in text:
+                  raise SystemExit("annotation marker not found")
+              text = text.replace(annotation_marker, helper + annotation_marker, 1)
+
+          old_signature = '''    x_tick_start=None,
+              x_tick_step=None,
+          ):'''
+          old_signature = "\n".join(line[10:] if line.startswith("          ") else line for line in old_signature.splitlines())
+          new_signature = '''    x_tick_start=None,
+              x_tick_step=None,
+              observation_guides=False,
+          ):'''
+          new_signature = "\n".join(line[10:] if line.startswith("          ") else line for line in new_signature.splitlines())
+          if old_signature in text:
+              text = text.replace(old_signature, new_signature, 1)
+          elif "observation_guides=False" not in text:
+              raise SystemExit("line_figure signature not found")
+
+          old_line_style = '''    if title:
+              ax.set_title(title, fontsize=10.0)
+          style(ax)
+          if series:'''
+          old_line_style = "\n".join(line[10:] if line.startswith("          ") else line for line in old_line_style.splitlines())
+          new_line_style = '''    if title:
+              ax.set_title(title, fontsize=10.0)
+          style(ax)
+          if observation_guides:
+              finite_mask = np.zeros(len(data), dtype=bool)
+              for column, _ in series:
+                  finite_mask |= np.isfinite(
+                      pd.to_numeric(data[column], errors="coerce").to_numpy(float)
+                  )
+              add_observation_guides(ax, data.loc[finite_mask, "year"])
+          if series:'''
+          new_line_style = "\n".join(line[10:] if line.startswith("          ") else line for line in new_line_style.splitlines())
+          if old_line_style in text:
+              text = text.replace(old_line_style, new_line_style, 1)
+          elif "if observation_guides:" not in text:
+              raise SystemExit("line_figure body not found")
+
+          targets = [
+              ('"income_statistics"', '        x_tick_step=5,\n'),
+              ('"top_income_shares"', '        x_tick_step=5,\n'),
+              ('"top_income_exclusive_shares"', '        x_tick_step=5,\n'),
+          ]
+          for stem, anchor in targets:
+              start = text.find(stem)
+              if start < 0:
+                  raise SystemExit(f"{stem} block not found")
+              end = text.find("    )", start)
+              block = text[start:end]
+              if "observation_guides=True" not in block:
+                  pos = text.find(anchor, start, end)
+                  if pos < 0:
+                      raise SystemExit(f"tick anchor not found for {stem}")
+                  insert_at = pos + len(anchor)
+                  text = text[:insert_at] + "        observation_guides=True,\n" + text[insert_at:]
+
+          old_gini = '''    ax.set_xticks(np.arange(1975, END_YEAR + 1, 5))
+          style(ax)
+          ax.legend(loc="best", ncol=3, handlelength=2.5)'''
+          old_gini = "\n".join(line[10:] if line.startswith("          ") else line for line in old_gini.splitlines())
+          new_gini = '''    ax.set_xticks(np.arange(1975, END_YEAR + 1, 5))
+          style(ax)
+          guide_columns = [
+              column
+              for column in ("Gini", "IPEA", "Banco_Mundial")
+              if column in gini_validation
+          ]
+          guide_mask = gini_validation[guide_columns].notna().any(axis=1)
+          add_observation_guides(ax, gini_validation.loc[guide_mask, "year"])
+          ax.legend(loc="best", ncol=3, handlelength=2.5)'''
+          new_gini = "\n".join(line[10:] if line.startswith("          ") else line for line in new_gini.splitlines())
+          if old_gini in text:
+              text = text.replace(old_gini, new_gini, 1)
+          elif "guide_columns = [" not in text:
+              raise SystemExit("Gini validation block not found")
+
+          path.write_text(text)
+          PY
+
       - name: Ensure Stage 03 analytical tables exist
         shell: bash
         run: |
@@ -157,7 +264,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/figures_paper assets/tables_paper
+          git add src/stage_05_publication.py assets/figures_paper assets/tables_paper
           if git diff --cached --quiet; then
             echo "No paper-asset changes to commit."
           else

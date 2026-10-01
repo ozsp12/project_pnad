@@ -602,7 +602,15 @@ def plot_income_stats(stats):
     )
 
 
-def plot_misc(stats, annual):
+def plot_misc(stats, annual, lorenz):
+    middle_records = []
+    for year, data in lorenz.groupby("year"):
+        population = data["population_share"].to_numpy(float)
+        income = data["income_share"].to_numpy(float)
+        share = float(np.interp(0.50, population, income) - np.interp(0.40, population, income))
+        middle_records.append({"year": int(year), "p40_p50": share})
+    middle = pd.DataFrame(middle_records)
+    stats = stats.merge(middle, on="year", how="left", validate="one_to_one")
     line_figure(
         stats,
         "gini",
@@ -616,13 +624,13 @@ def plot_misc(stats, annual):
     line_figure(
         stats,
         "top_income_shares",
-        [("top_10", "Top 10%"), ("top_1", "Top 1%"), ("top_01", "Top 0.1%")],
+        [("p40_p50", "40-50%"), ("top_10", "Top 10%"), ("top_1", "Top 1%"), ("top_01", "Top 0.1%")],
         "Income share (%)",
         100,
         title=f"Income concentration - Brazil ({START_YEAR}-{END_YEAR})",
-        colors=[BLUE, DARK_RED, SALMON],
-        line_styles=["-", ":", "-"],
-        markers=["o", "s", "^"],
+        colors=[GREEN, BLUE, DARK_RED, SALMON],
+        line_styles=["-.", "-", ":", "-"],
+        markers=["D", "o", "s", "^"],
         x_tick_start=1975,
         x_tick_step=5,
         observation_guides=True,
@@ -636,15 +644,16 @@ def plot_misc(stats, annual):
         exclusive,
         "top_income_exclusive_shares",
         [
+            ("p40_p50", "40-50%"),
             ("p90_p99", "90-99%"),
             ("p99_p999", "99-99.9%"),
             ("p999_p100", "99.9-100%"),
         ],
         "Income share (%)",
         100,
-        colors=[BLUE, ORANGE, RED],
-        line_styles=["-", "--", ":"],
-        markers=["o", "s", "^"],
+        colors=[GREEN, BLUE, ORANGE, RED],
+        line_styles=["-.", "-", "--", ":"],
+        markers=["D", "o", "s", "^"],
         x_tick_start=1975,
         x_tick_step=5,
         observation_guides=True,
@@ -979,7 +988,7 @@ def main():
     plot_ccdf(curves, annual, years)
     plot_lorenz(lorenz, stats, years)
     plot_model_families(curves, annual, years)
-    plot_misc(stats, annual)
+    plot_misc(stats, annual, lorenz)
     out = build_paper_tables(stats, annual)
     print(f"Stage 05 publication assets generated for {len(years)} survey years.")
     return out

@@ -35,49 +35,70 @@ jobs:
           path = Path("src/stage_05_publication.py")
           text = path.read_text()
 
-          marker = "\n\ndef annotation(ax, text, x=0.05, y=0.06):"
-          helper = '''
-
-          def add_observation_guides(ax, years):
-              """Add grid-style vertical guides at observed years without adding ticks."""
-              major_ticks = np.asarray(ax.get_xticks(), dtype=float)
-              observed = sorted({int(year) for year in years if np.isfinite(year)})
-              for year in observed:
-                  if not np.any(np.isclose(major_ticks, year)):
-                      ax.axvline(year, color="0.82", lw=0.55, ls="--", alpha=0.75, zorder=0)
-          '''
-          helper = "\n".join(line[10:] if line.startswith("          ") else line for line in helper.splitlines())
-          if "def add_observation_guides(ax, years):" not in text:
-              text = text.replace(marker, helper + marker, 1)
-
           text = text.replace(
               "    x_tick_start=None,\n    x_tick_step=None,\n):",
               "    x_tick_start=None,\n    x_tick_step=None,\n    observation_guides=False,\n):",
               1,
           )
-          text = text.replace(
-              "    if title:\n        ax.set_title(title, fontsize=10.0)\n    style(ax)\n    if series:",
-              "    if title:\n        ax.set_title(title, fontsize=10.0)\n    style(ax)\n    if observation_guides:\n        finite_mask = np.zeros(len(data), dtype=bool)\n        for column, _ in series:\n            finite_mask |= np.isfinite(pd.to_numeric(data[column], errors=\"coerce\").to_numpy(float))\n        add_observation_guides(ax, data.loc[finite_mask, \"year\"])\n    if series:",
-              1,
+
+          old = (
+              "    if title:\n"
+              "        ax.set_title(title, fontsize=10.0)\n"
+              "    style(ax)\n"
+              "    if series:"
           )
+          new = (
+              "    if title:\n"
+              "        ax.set_title(title, fontsize=10.0)\n"
+              "    style(ax)\n"
+              "    if observation_guides:\n"
+              "        finite_mask = np.zeros(len(data), dtype=bool)\n"
+              "        for column, _ in series:\n"
+              "            finite_mask |= np.isfinite(pd.to_numeric(data[column], errors=\"coerce\").to_numpy(float))\n"
+              "        major_ticks = np.asarray(ax.get_xticks(), dtype=float)\n"
+              "        for year in data.loc[finite_mask, \"year\"].astype(int):\n"
+              "            if not np.any(np.isclose(major_ticks, year)):\n"
+              "                ax.axvline(year, color=\"0.82\", lw=0.55, ls=\"--\", alpha=0.75, zorder=0)\n"
+              "    if series:"
+          )
+          if old in text:
+              text = text.replace(old, new, 1)
+          elif "if observation_guides:" not in text:
+              raise SystemExit("line_figure block not found")
 
           anchor = "        x_tick_step=5,\n    )"
           replacement = "        x_tick_step=5,\n        observation_guides=True,\n    )"
-          if text.count(anchor) < 3:
-              raise SystemExit(f"Expected at least three quinquennial line_figure calls, found {text.count(anchor)}")
+          count = text.count(anchor)
+          if count < 3:
+              raise SystemExit(f"Expected three quinquennial line_figure calls, found {count}")
           text = text.replace(anchor, replacement, 3)
 
-          text = text.replace(
-              "    ax.set_xticks(np.arange(1975, END_YEAR + 1, 5))\n    style(ax)\n    ax.legend(loc=\"best\", ncol=3, handlelength=2.5)",
-              "    ax.set_xticks(np.arange(1975, END_YEAR + 1, 5))\n    style(ax)\n    guide_columns = [c for c in (\"Gini\", \"IPEA\", \"Banco_Mundial\") if c in gini_validation]\n    guide_mask = gini_validation[guide_columns].notna().any(axis=1)\n    add_observation_guides(ax, gini_validation.loc[guide_mask, \"year\"])\n    ax.legend(loc=\"best\", ncol=3, handlelength=2.5)",
-              1,
+          old_gini = (
+              "    ax.set_xticks(np.arange(1975, END_YEAR + 1, 5))\n"
+              "    style(ax)\n"
+              "    ax.legend(loc=\"best\", ncol=3, handlelength=2.5)"
           )
+          new_gini = (
+              "    ax.set_xticks(np.arange(1975, END_YEAR + 1, 5))\n"
+              "    style(ax)\n"
+              "    guide_columns = [c for c in (\"Gini\", \"IPEA\", \"Banco_Mundial\") if c in gini_validation]\n"
+              "    guide_mask = gini_validation[guide_columns].notna().any(axis=1)\n"
+              "    major_ticks = np.asarray(ax.get_xticks(), dtype=float)\n"
+              "    for year in gini_validation.loc[guide_mask, \"year\"].astype(int):\n"
+              "        if not np.any(np.isclose(major_ticks, year)):\n"
+              "            ax.axvline(year, color=\"0.82\", lw=0.55, ls=\"--\", alpha=0.75, zorder=0)\n"
+              "    ax.legend(loc=\"best\", ncol=3, handlelength=2.5)"
+          )
+          if old_gini in text:
+              text = text.replace(old_gini, new_gini, 1)
+          elif "guide_mask = gini_validation[guide_columns].notna().any(axis=1)" not in text:
+              raise SystemExit("Gini validation block not found")
 
           required = [
-              "def add_observation_guides(ax, years):",
               "observation_guides=False",
               "observation_guides=True",
-              "guide_mask = gini_validation[guide_columns].notna().any(axis=1)",
+              "for year in data.loc[finite_mask, \"year\"].astype(int):",
+              "for year in gini_validation.loc[guide_mask, \"year\"].astype(int):",
           ]
           missing = [item for item in required if item not in text]
           if missing:

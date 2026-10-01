@@ -60,54 +60,26 @@ jobs:
 
           path = Path("src/stage_05_publication.py")
           text = path.read_text()
-          old = '''    middle_records = []
-          for year, data in lorenz.groupby("year"):
-              population = data["population_share"].to_numpy(float)
-              income = data["income_share"].to_numpy(float)
-              share = float(np.interp(0.50, population, income) - np.interp(0.40, population, income))
-              middle_records.append({"year": int(year), "p40_p50": share})
-          middle = pd.DataFrame(middle_records)
-          stats = stats.merge(middle, on="year", how="left", validate="one_to_one")
-          '''
-          new = '''    middle_records = []
-          for year, data in lorenz.groupby("year"):
-              population = data["population_share"].to_numpy(float)
-              income = data["income_share"].to_numpy(float)
-              bottom_50 = float(np.interp(0.50, population, income))
-              share_40_50 = float(bottom_50 - np.interp(0.40, population, income))
-              middle_records.append(
-                  {"year": int(year), "bottom_50": bottom_50, "p40_p50": share_40_50}
-              )
-          middle = pd.DataFrame(middle_records)
-          stats = stats.merge(middle, on="year", how="left", validate="one_to_one")
-          '''
-          old_plot = '''        [("p40_p50", "40-50%"), ("top_10", "Top 10%"), ("top_1", "Top 1%"), ("top_01", "Top 0.1%")],
-                  "Income share (%)",
-                  100,
-                  title=f"Income concentration - Brazil ({START_YEAR}-{END_YEAR})",
-                  colors=[GREEN, BLUE, DARK_RED, SALMON],
-                  line_styles=["-.", "-", ":", "-"],
-                  markers=["D", "o", "s", "^"],
-          '''
-          new_plot = '''        [("top_10", "Top 10%"), ("top_1", "Top 1%"), ("top_01", "Top 0.1%"), ("bottom_50", "Bottom 50%")],
-                  "Income share (%)",
-                  100,
-                  title=f"Income concentration - Brazil ({START_YEAR}-{END_YEAR})",
-                  colors=[BLUE, DARK_RED, SALMON, PURPLE],
-                  line_styles=["-", ":", "-", "-."],
-                  markers=["o", "s", "^", "D"],
-          '''
+          replacements = [
+              (
+                  '        share = float(np.interp(0.50, population, income) - np.interp(0.40, population, income))\n        middle_records.append({"year": int(year), "p40_p50": share})',
+                  '        bottom_50 = float(np.interp(0.50, population, income))\n        share_40_50 = float(bottom_50 - np.interp(0.40, population, income))\n        middle_records.append({"year": int(year), "bottom_50": bottom_50, "p40_p50": share_40_50})',
+              ),
+              (
+                  '        [("p40_p50", "40-50%"), ("top_10", "Top 10%"), ("top_1", "Top 1%"), ("top_01", "Top 0.1%")],',
+                  '        [("top_10", "Top 10%"), ("top_1", "Top 1%"), ("top_01", "Top 0.1%"), ("bottom_50", "Bottom 50%")],',
+              ),
+              ('        colors=[GREEN, BLUE, DARK_RED, SALMON],', '        colors=[BLUE, DARK_RED, SALMON, PURPLE],'),
+              ('        line_styles=["-.", "-", ":", "-"],', '        line_styles=["-", ":", "-", "-."],'),
+              ('        markers=["D", "o", "s", "^"],', '        markers=["o", "s", "^", "D"],'),
+          ]
           changed = False
-          if old in text:
-              text = text.replace(old, new, 1)
-              changed = True
-          elif '"bottom_50": bottom_50' not in text:
-              raise SystemExit("Could not locate Lorenz-share block")
-          if old_plot in text:
-              text = text.replace(old_plot, new_plot, 1)
-              changed = True
-          elif '("bottom_50", "Bottom 50%")' not in text:
-              raise SystemExit("Could not locate top-income plot block")
+          for old, new in replacements:
+              if old in text:
+                  text = text.replace(old, new, 1)
+                  changed = True
+              elif new not in text:
+                  raise SystemExit(f"Could not locate expected source fragment: {old[:70]}")
           if changed:
               path.write_text(text)
           PY

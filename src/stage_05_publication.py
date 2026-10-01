@@ -275,6 +275,8 @@ def line_figure(
     x_tick_start=None,
     x_tick_step=None,
     observation_guides=False,
+    legend_loc="best",
+    legend_bbox_to_anchor=None,
 ):
     data = annual_plot_frame(df, start_year=start_year)
     fig, ax = plt.subplots(figsize=SINGLE_SIZE)
@@ -307,7 +309,10 @@ def line_figure(
             if not np.any(np.isclose(major_ticks, year)):
                 ax.axvline(year, color="0.82", lw=0.55, ls="--", alpha=0.75, zorder=0)
     if series:
-        ax.legend(loc="best", handlelength=2.5)
+        legend_kwargs = {"loc": legend_loc, "handlelength": 2.5}
+        if legend_bbox_to_anchor is not None:
+            legend_kwargs["bbox_to_anchor"] = legend_bbox_to_anchor
+        ax.legend(**legend_kwargs)
     save(fig, stem)
 
 
@@ -608,8 +613,7 @@ def plot_misc(stats, annual, lorenz):
         population = data["population_share"].to_numpy(float)
         income = data["income_share"].to_numpy(float)
         bottom_50 = float(np.interp(0.50, population, income))
-        share_40_50 = float(bottom_50 - np.interp(0.40, population, income))
-        middle_records.append({"year": int(year), "bottom_50": bottom_50, "p40_p50": share_40_50})
+        middle_records.append({"year": int(year), "bottom_50": bottom_50})
     middle = pd.DataFrame(middle_records)
     stats = stats.merge(middle, on="year", how="left", validate="one_to_one")
     line_figure(
@@ -635,6 +639,8 @@ def plot_misc(stats, annual, lorenz):
         x_tick_start=1975,
         x_tick_step=5,
         observation_guides=True,
+        legend_loc="center right",
+        legend_bbox_to_anchor=(0.985, 0.57),
     )
     exclusive = stats.assign(
         p90_p99=stats.top_10 - stats.top_1,
@@ -645,16 +651,15 @@ def plot_misc(stats, annual, lorenz):
         exclusive,
         "top_income_exclusive_shares",
         [
-            ("p40_p50", "40-50%"),
             ("p90_p99", "90-99%"),
             ("p99_p999", "99-99.9%"),
             ("p999_p100", "99.9-100%"),
         ],
         "Income share (%)",
         100,
-        colors=[GREEN, BLUE, ORANGE, RED],
-        line_styles=["-.", "-", "--", ":"],
-        markers=["D", "o", "s", "^"],
+        colors=[BLUE, ORANGE, RED],
+        line_styles=["-", "--", ":"],
+        markers=["o", "s", "^"],
         x_tick_start=1975,
         x_tick_step=5,
         observation_guides=True,

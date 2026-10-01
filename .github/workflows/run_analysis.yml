@@ -1,17 +1,10 @@
 name: Run PNAD analysis
 
 on:
-  workflow_dispatch:
-  workflow_run:
-    workflows: ["Build trusted PNAD"]
-    types: [completed]
   push:
     branches: [main]
     paths:
       - "src/stage_03_pnad_analysis.py"
-      - "data/metadata/df_metadata.xlsx"
-      - "data/auxiliary/**"
-      - "requirements.txt"
       - ".github/workflows/run_analysis.yml"
 
 permissions:
@@ -23,22 +16,16 @@ concurrency:
 
 jobs:
   analysis:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: main
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - run: pip install -r requirements.txt
 
       - name: Add observation-year vertical guides
         run: |
@@ -58,57 +45,18 @@ jobs:
               "        major_ticks = np.arange(axis_start, last + 1, 5)\n"
               "        ax.set_xticks(major_ticks)\n"
               "        ax.tick_params(axis=\"x\", labelbottom=True)\n"
-              "        ax.grid(\n"
-              "            True,\n"
-              "            which=\"major\",\n"
-              "            color=\"0.82\",\n"
-              "            linewidth=0.55,\n"
-              "            linestyle=\"--\",\n"
-              "            alpha=0.75,\n"
-              "            zorder=0,\n"
-              "        )\n"
+              "        ax.grid(True, which=\"major\", color=\"0.82\", linewidth=0.55, linestyle=\"--\", alpha=0.75, zorder=0)\n"
               "        point_years = years[np.isfinite(y.to_numpy(float))]\n"
               "        for year in point_years:\n"
               "            if not np.any(np.isclose(major_ticks, year)):\n"
-              "                ax.axvline(\n"
-              "                    year,\n"
-              "                    color=\"0.82\",\n"
-              "                    linewidth=0.55,\n"
-              "                    linestyle=\"--\",\n"
-              "                    alpha=0.75,\n"
-              "                    zorder=0,\n"
-              "                )"
+              "                ax.axvline(year, color=\"0.82\", linewidth=0.55, linestyle=\"--\", alpha=0.75, zorder=0)"
           )
           if old in text:
               text = text.replace(old, new, 1)
           elif "point_years = years[np.isfinite(y.to_numpy(float))]" not in text:
-              raise SystemExit("Inequality grid axis block not found")
+              raise SystemExit("Inequality grid block not found")
           path.write_text(text)
           PY
-
-      - name: Ensure analysis datasets exist
-        shell: bash
-        run: |
-          if ! compgen -G "data/trusted/pnad_trusted_*.parquet" > /dev/null; then
-            echo "Trusted datasets are required and are not rebuilt by the analysis workflow."
-            exit 1
-          fi
-          if ! compgen -G "data/refined/pnad_refined_*.parquet" > /dev/null; then
-            echo "Refined datasets are required and are not rebuilt by the analysis workflow."
-            exit 1
-          fi
-          echo "Refined and trusted datasets are present."
-
-      - name: Prepare analysis asset directories
-        run: |
-          mkdir -p assets/figures_analysis_trusted assets/figures_analysis_refined
-          mkdir -p assets/tables_analysis_trusted assets/tables_analysis_refined
-          find assets/figures_analysis_trusted -maxdepth 1 -type f -name "*.svg" -delete
-          find assets/figures_analysis_refined -maxdepth 1 -type f -name "*.svg" -delete
-          find assets/figures_analysis_trusted -maxdepth 1 -type f -name "*_analysis_*.png" -delete
-          find assets/figures_analysis_refined -maxdepth 1 -type f -name "*_analysis_*.png" -delete
-          rm -f assets/figures_analysis_trusted/ccdf_lnln.png
-          rm -f assets/figures_analysis_refined/ccdf_lnln.png
 
       - name: Run complete PNAD Stage 03
         env:
@@ -122,9 +70,7 @@ jobs:
           git add src/stage_03_pnad_analysis.py
           git add -A assets/figures_analysis_trusted assets/figures_analysis_refined
           git add -A assets/tables_analysis_trusted assets/tables_analysis_refined
-          if git diff --cached --quiet; then
-            echo "No analysis changes to commit."
-          else
+          if ! git diff --cached --quiet; then
             git commit -m "generate PNAD analysis assets"
             git pull --rebase origin main
             git push origin HEAD:main

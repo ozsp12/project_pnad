@@ -274,6 +274,7 @@ def line_figure(
     start_year=START_YEAR,
     x_tick_start=None,
     x_tick_step=None,
+    observation_guides=False,
 ):
     data = annual_plot_frame(df, start_year=start_year)
     fig, ax = plt.subplots(figsize=SINGLE_SIZE)
@@ -297,6 +298,14 @@ def line_figure(
     if title:
         ax.set_title(title, fontsize=10.0)
     style(ax)
+    if observation_guides:
+        finite_mask = np.zeros(len(data), dtype=bool)
+        for column, _ in series:
+            finite_mask |= np.isfinite(pd.to_numeric(data[column], errors="coerce").to_numpy(float))
+        major_ticks = np.asarray(ax.get_xticks(), dtype=float)
+        for year in data.loc[finite_mask, "year"].astype(int):
+            if not np.any(np.isclose(major_ticks, year)):
+                ax.axvline(year, color="0.82", lw=0.55, ls="--", alpha=0.75, zorder=0)
     if series:
         ax.legend(loc="best", handlelength=2.5)
     save(fig, stem)
@@ -589,6 +598,7 @@ def plot_income_stats(stats):
         markers=["o"],
         x_tick_start=1975,
         x_tick_step=5,
+        observation_guides=True,
     )
 
 
@@ -615,6 +625,7 @@ def plot_misc(stats, annual):
         markers=["o", "s", "^"],
         x_tick_start=1975,
         x_tick_step=5,
+        observation_guides=True,
     )
     exclusive = stats.assign(
         p90_p99=stats.top_10 - stats.top_1,
@@ -636,6 +647,7 @@ def plot_misc(stats, annual):
         markers=["o", "s", "^"],
         x_tick_start=1975,
         x_tick_step=5,
+        observation_guides=True,
     )
     line_figure(
         stats,
@@ -723,6 +735,12 @@ def plot_misc(stats, annual):
     ax.set_xlim(1975, END_YEAR)
     ax.set_xticks(np.arange(1975, END_YEAR + 1, 5))
     style(ax)
+    guide_columns = [c for c in ("Gini", "IPEA", "Banco_Mundial") if c in gini_validation]
+    guide_mask = gini_validation[guide_columns].notna().any(axis=1)
+    major_ticks = np.asarray(ax.get_xticks(), dtype=float)
+    for year in gini_validation.loc[guide_mask, "year"].astype(int):
+        if not np.any(np.isclose(major_ticks, year)):
+            ax.axvline(year, color="0.82", lw=0.55, ls="--", alpha=0.75, zorder=0)
     ax.legend(loc="best", ncol=3, handlelength=2.5)
     save(fig, "gini_validation")
 

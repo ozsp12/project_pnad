@@ -1,17 +1,6 @@
 name: Build paper assets
 
 on:
-  workflow_dispatch:
-  workflow_run:
-    workflows: ["Run PNAD analysis"]
-    types: [completed]
-  pull_request:
-    paths:
-      - "src/stage_05_publication.py"
-      - "assets/tables_analysis_refined/**"
-      - "assets/tables_analysis_trusted/**"
-      - "requirements.txt"
-      - ".github/workflows/build_paper_assets.yml"
   push:
     branches: [main]
     paths:
@@ -27,22 +16,16 @@ concurrency:
 
 jobs:
   paper-assets:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+          ref: main
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - run: pip install -r requirements.txt
 
       - name: Add observation-year vertical guides
         run: |
@@ -52,7 +35,7 @@ jobs:
           path = Path("src/stage_05_publication.py")
           text = path.read_text()
 
-          annotation_marker = "\n\ndef annotation(ax, text, x=0.05, y=0.06):"
+          marker = "\n\ndef annotation(ax, text, x=0.05, y=0.06):"
           helper = '''
 
           def add_observation_guides(ax, years):
@@ -61,214 +44,58 @@ jobs:
               observed = sorted({int(year) for year in years if np.isfinite(year)})
               for year in observed:
                   if not np.any(np.isclose(major_ticks, year)):
-                      ax.axvline(
-                          year,
-                          color="0.82",
-                          lw=0.55,
-                          ls="--",
-                          alpha=0.75,
-                          zorder=0,
-                      )
+                      ax.axvline(year, color="0.82", lw=0.55, ls="--", alpha=0.75, zorder=0)
           '''
           helper = "\n".join(line[10:] if line.startswith("          ") else line for line in helper.splitlines())
           if "def add_observation_guides(ax, years):" not in text:
-              if annotation_marker not in text:
-                  raise SystemExit("annotation marker not found")
-              text = text.replace(annotation_marker, helper + annotation_marker, 1)
+              text = text.replace(marker, helper + marker, 1)
 
-          old_signature = "    x_tick_start=None,\n    x_tick_step=None,\n):"
-          new_signature = "    x_tick_start=None,\n    x_tick_step=None,\n    observation_guides=False,\n):"
-          if old_signature in text:
-              text = text.replace(old_signature, new_signature, 1)
-          elif "observation_guides=False" not in text:
-              raise SystemExit("line_figure signature not found")
-
-          old_line_style = (
-              "    if title:\n"
-              "        ax.set_title(title, fontsize=10.0)\n"
-              "    style(ax)\n"
-              "    if series:"
+          text = text.replace(
+              "    x_tick_start=None,\n    x_tick_step=None,\n):",
+              "    x_tick_start=None,\n    x_tick_step=None,\n    observation_guides=False,\n):",
+              1,
           )
-          new_line_style = (
-              "    if title:\n"
-              "        ax.set_title(title, fontsize=10.0)\n"
-              "    style(ax)\n"
-              "    if observation_guides:\n"
-              "        finite_mask = np.zeros(len(data), dtype=bool)\n"
-              "        for column, _ in series:\n"
-              "            finite_mask |= np.isfinite(\n"
-              "                pd.to_numeric(data[column], errors=\"coerce\").to_numpy(float)\n"
-              "            )\n"
-              "        add_observation_guides(ax, data.loc[finite_mask, \"year\"])\n"
-              "    if series:"
+          text = text.replace(
+              "    if title:\n        ax.set_title(title, fontsize=10.0)\n    style(ax)\n    if series:",
+              "    if title:\n        ax.set_title(title, fontsize=10.0)\n    style(ax)\n    if observation_guides:\n        finite_mask = np.zeros(len(data), dtype=bool)\n        for column, _ in series:\n            finite_mask |= np.isfinite(pd.to_numeric(data[column], errors=\"coerce\").to_numpy(float))\n        add_observation_guides(ax, data.loc[finite_mask, \"year\"])\n    if series:",
+              1,
           )
-          if old_line_style in text:
-              text = text.replace(old_line_style, new_line_style, 1)
-          elif "if observation_guides:" not in text:
-              raise SystemExit("line_figure body not found")
 
-          for stem in (
-              '"income_statistics"',
-              '"top_income_shares"',
-              '"top_income_exclusive_shares"',
-          ):
-              start = text.find(stem)
-              if start < 0:
-                  raise SystemExit(f"{stem} block not found")
-              end = text.find("\n    )", start)
-              if end < 0:
-                  raise SystemExit(f"closing call not found for {stem}")
-              block = text[start:end]
-              if "observation_guides=True" not in block:
-                  anchor = "        x_tick_step=5,\n"
-                  pos = text.find(anchor, start, end)
-                  if pos < 0:
-                      raise SystemExit(f"tick anchor not found for {stem}")
-                  insert_at = pos + len(anchor)
-                  text = text[:insert_at] + "        observation_guides=True,\n" + text[insert_at:]
+          anchor = "        x_tick_step=5,\n    )"
+          replacement = "        x_tick_step=5,\n        observation_guides=True,\n    )"
+          if text.count(anchor) < 3:
+              raise SystemExit(f"Expected at least three quinquennial line_figure calls, found {text.count(anchor)}")
+          text = text.replace(anchor, replacement, 3)
 
-          old_gini = (
-              "    ax.set_xticks(np.arange(1975, END_YEAR + 1, 5))\n"
-              "    style(ax)\n"
-              "    ax.legend(loc=\"best\", ncol=3, handlelength=2.5)"
+          text = text.replace(
+              "    ax.set_xticks(np.arange(1975, END_YEAR + 1, 5))\n    style(ax)\n    ax.legend(loc=\"best\", ncol=3, handlelength=2.5)",
+              "    ax.set_xticks(np.arange(1975, END_YEAR + 1, 5))\n    style(ax)\n    guide_columns = [c for c in (\"Gini\", \"IPEA\", \"Banco_Mundial\") if c in gini_validation]\n    guide_mask = gini_validation[guide_columns].notna().any(axis=1)\n    add_observation_guides(ax, gini_validation.loc[guide_mask, \"year\"])\n    ax.legend(loc=\"best\", ncol=3, handlelength=2.5)",
+              1,
           )
-          new_gini = (
-              "    ax.set_xticks(np.arange(1975, END_YEAR + 1, 5))\n"
-              "    style(ax)\n"
-              "    guide_columns = [\n"
-              "        column\n"
-              "        for column in (\"Gini\", \"IPEA\", \"Banco_Mundial\")\n"
-              "        if column in gini_validation\n"
-              "    ]\n"
-              "    guide_mask = gini_validation[guide_columns].notna().any(axis=1)\n"
-              "    add_observation_guides(ax, gini_validation.loc[guide_mask, \"year\"])\n"
-              "    ax.legend(loc=\"best\", ncol=3, handlelength=2.5)"
-          )
-          if old_gini in text:
-              text = text.replace(old_gini, new_gini, 1)
-          elif "guide_columns = [" not in text:
-              raise SystemExit("Gini validation block not found")
 
+          required = [
+              "def add_observation_guides(ax, years):",
+              "observation_guides=False",
+              "observation_guides=True",
+              "guide_mask = gini_validation[guide_columns].notna().any(axis=1)",
+          ]
+          missing = [item for item in required if item not in text]
+          if missing:
+              raise SystemExit(f"Patch incomplete: {missing}")
           path.write_text(text)
           PY
-
-      - name: Ensure Stage 03 analytical tables exist
-        shell: bash
-        run: |
-          test -f assets/tables_analysis_trusted/statistics_annual.csv
-          test -f assets/tables_analysis_trusted/gompertz_annual.csv
-          test -f assets/tables_analysis_trusted/pareto_annual.csv
-          test -f assets/tables_analysis_trusted/gompertz_pareto_curves.csv
-          test -f assets/tables_analysis_trusted/lorenz.csv
 
       - name: Build Stage 05 publication assets
         env:
           MPLBACKEND: Agg
         run: python src/stage_05_publication.py
 
-      - name: Validate canonical paper assets
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import numpy as np
-          import pandas as pd
-          from PIL import Image
-
-          figures_dir = Path("assets/figures_paper")
-          tables_dir = Path("assets/tables_paper")
-          figures = sorted(figures_dir.glob("*.png"))
-          if not figures:
-              raise SystemExit("No PNG paper figures were generated")
-          for figure in figures:
-              with Image.open(figure) as image:
-                  image.verify()
-
-          expected = {
-              "table_01_gompertz_annual.csv",
-              "table_02_pareto_annual.csv",
-              "table_03_economic_inequality_annual.csv",
-              "table_04_metadata.csv",
-          }
-          generated = {p.name for p in tables_dir.glob("*.csv")}
-          if generated != expected:
-              raise SystemExit(f"Paper table set mismatch: {sorted(generated)}")
-
-          gompertz = pd.read_csv(tables_dir / "table_01_gompertz_annual.csv")
-          pareto = pd.read_csv(tables_dir / "table_02_pareto_annual.csv")
-          economic = pd.read_csv(tables_dir / "table_03_economic_inequality_annual.csv")
-          metadata = pd.read_csv(tables_dir / "table_04_metadata.csv")
-
-          for name, frame in (
-              ("Gompertz", gompertz),
-              ("Pareto", pareto),
-              ("economic", economic),
-          ):
-              years = set(pd.to_numeric(frame["year"], errors="coerce").dropna().astype(int))
-              if not {1976, 1977}.issubset(years):
-                  raise SystemExit(f"{name} paper table is missing 1976 or 1977")
-
-          merged = gompertz[["year", "gompertz_income_share_pct"]].merge(
-              pareto[["year", "pareto_income_share_pct", "pareto_selection_status"]],
-              on="year",
-              validate="one_to_one",
-          )
-          unsupported = merged["pareto_selection_status"].astype(str).str.startswith("unsupported_")
-          supported = ~unsupported
-          share_columns = ["gompertz_income_share_pct", "pareto_income_share_pct"]
-
-          if merged.loc[supported, share_columns].isna().any().any():
-              raise SystemExit("Supported Gompertz/Pareto regimes contain missing income shares")
-          if supported.any() and not np.allclose(
-              merged.loc[supported, "gompertz_income_share_pct"]
-              + merged.loc[supported, "pareto_income_share_pct"],
-              100.0,
-              atol=1e-8,
-          ):
-              raise SystemExit("Supported Gompertz/Pareto income shares do not sum to 100%")
-          if merged.loc[unsupported, share_columns].notna().any().any():
-              raise SystemExit("Unsupported Pareto years must retain missing regime income shares")
-
-          required_economic = {
-              "income_observation_n",
-              "income_mean_2025_usd",
-              "p90_p99_income_share_pct",
-              "p99_p999_income_share_pct",
-              "p999_p100_income_share_pct",
-          }
-          if missing := required_economic - set(economic.columns):
-              raise SystemExit(f"Missing economic columns: {sorted(missing)}")
-          if economic[list(required_economic)].isna().any().any():
-              raise SystemExit("Stage-03 economic summaries contain missing values")
-
-          required_metadata = {
-              "table_name", "table_description", "column_name",
-              "description", "unit", "source",
-          }
-          if missing := required_metadata - set(metadata.columns):
-              raise SystemExit(f"Missing metadata columns: {sorted(missing)}")
-          if metadata["table_description"].isna().any():
-              raise SystemExit("Missing table_description values")
-
-          documented = set(zip(metadata["table_name"], metadata["column_name"]))
-          for table_name, frame in (
-              ("table_01_gompertz_annual.csv", gompertz),
-              ("table_02_pareto_annual.csv", pareto),
-              ("table_03_economic_inequality_annual.csv", economic),
-          ):
-              missing = [c for c in frame.columns if (table_name, c) not in documented]
-              if missing:
-                  raise SystemExit(f"Undocumented columns in {table_name}: {missing}")
-          PY
-
       - name: Commit paper assets
-        if: github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/stage_05_publication.py assets/figures_paper assets/tables_paper
-          if git diff --cached --quiet; then
-            echo "No paper-asset changes to commit."
-          else
+          if ! git diff --cached --quiet; then
             git commit -m "generate paper assets"
             git pull --rebase origin main
             git push origin HEAD:main

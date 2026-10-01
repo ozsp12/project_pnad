@@ -53,89 +53,6 @@ jobs:
           test -f assets/tables_analysis_trusted/gompertz_pareto_curves.csv
           test -f assets/tables_analysis_trusted/lorenz.csv
 
-      - name: Add 40-50 percentile income-share series
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path("src/stage_05_publication.py")
-          text = path.read_text()
-
-          text = text.replace(
-              "def plot_misc(stats, annual):\n",
-              "def plot_misc(stats, annual, lorenz):\n"
-              "    middle_records = []\n"
-              "    for year, data in lorenz.groupby(\"year\"):\n"
-              "        population = data[\"population_share\"].to_numpy(float)\n"
-              "        income = data[\"income_share\"].to_numpy(float)\n"
-              "        share = float(np.interp(0.50, population, income) - np.interp(0.40, population, income))\n"
-              "        middle_records.append({\"year\": int(year), \"p40_p50\": share})\n"
-              "    middle = pd.DataFrame(middle_records)\n"
-              "    stats = stats.merge(middle, on=\"year\", how=\"left\", validate=\"one_to_one\")\n",
-              1,
-          )
-
-          text = text.replace(
-              "        [(\"top_10\", \"Top 10%\"), (\"top_1\", \"Top 1%\"), (\"top_01\", \"Top 0.1%\")],\n"
-              "        \"Income share (%)\",\n"
-              "        100,\n"
-              "        title=f\"Income concentration - Brazil ({START_YEAR}-{END_YEAR})\",\n"
-              "        colors=[BLUE, DARK_RED, SALMON],\n"
-              "        line_styles=[\"-\", \":\", \"-\"],\n"
-              "        markers=[\"o\", \"s\", \"^\"],\n",
-              "        [(\"p40_p50\", \"40-50%\"), (\"top_10\", \"Top 10%\"), (\"top_1\", \"Top 1%\"), (\"top_01\", \"Top 0.1%\")],\n"
-              "        \"Income share (%)\",\n"
-              "        100,\n"
-              "        title=f\"Income concentration - Brazil ({START_YEAR}-{END_YEAR})\",\n"
-              "        colors=[GREEN, BLUE, DARK_RED, SALMON],\n"
-              "        line_styles=[\"-.\", \"-\", \":\", \"-\"],\n"
-              "        markers=[\"D\", \"o\", \"s\", \"^\"],\n",
-              1,
-          )
-
-          text = text.replace(
-              "        [\n"
-              "            (\"p90_p99\", \"90-99%\"),\n"
-              "            (\"p99_p999\", \"99-99.9%\"),\n"
-              "            (\"p999_p100\", \"99.9-100%\"),\n"
-              "        ],\n"
-              "        \"Income share (%)\",\n"
-              "        100,\n"
-              "        colors=[BLUE, ORANGE, RED],\n"
-              "        line_styles=[\"-\", \"--\", \":\"],\n"
-              "        markers=[\"o\", \"s\", \"^\"],\n",
-              "        [\n"
-              "            (\"p40_p50\", \"40-50%\"),\n"
-              "            (\"p90_p99\", \"90-99%\"),\n"
-              "            (\"p99_p999\", \"99-99.9%\"),\n"
-              "            (\"p999_p100\", \"99.9-100%\"),\n"
-              "        ],\n"
-              "        \"Income share (%)\",\n"
-              "        100,\n"
-              "        colors=[GREEN, BLUE, ORANGE, RED],\n"
-              "        line_styles=[\"-.\", \"-\", \"--\", \":\"],\n"
-              "        markers=[\"D\", \"o\", \"s\", \"^\"],\n",
-              1,
-          )
-
-          text = text.replace(
-              "    plot_misc(stats, annual)\n",
-              "    plot_misc(stats, annual, lorenz)\n",
-              1,
-          )
-
-          required = [
-              "def plot_misc(stats, annual, lorenz):",
-              '"p40_p50": share',
-              '("p40_p50", "40-50%")',
-              "plot_misc(stats, annual, lorenz)",
-          ]
-          missing = [item for item in required if item not in text]
-          if missing:
-              raise SystemExit(f"40-50 percentile patch incomplete: {missing}")
-          path.write_text(text)
-          PY
-
       - name: Build Stage 05 publication assets
         env:
           MPLBACKEND: Agg
@@ -235,16 +152,16 @@ jobs:
                   raise SystemExit(f"Undocumented columns in {table_name}: {missing}")
           PY
 
-      - name: Commit paper assets and source
+      - name: Commit paper assets
         if: github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/stage_05_publication.py assets/figures_paper assets/tables_paper
+          git add assets/figures_paper assets/tables_paper
           if git diff --cached --quiet; then
             echo "No paper-asset changes to commit."
           else
-            git commit -m "add 40-50 percentile income-share series"
+            git commit -m "generate paper assets"
             git pull --rebase origin main
             git push origin HEAD:main
           fi

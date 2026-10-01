@@ -612,9 +612,14 @@ def plot_inequality_indices_grid(df, output_path, ncols=2, figsize=(16, 10)):
         ax.set_xlabel("Year")
         ax.set_ylabel(ylabel)
         ax.set_xlim(axis_start, last)
-        ax.set_xticks(np.arange(axis_start, last + 1, 5))
+        major_ticks = np.arange(axis_start, last + 1, 5)
+        ax.set_xticks(major_ticks)
         ax.tick_params(axis="x", labelbottom=True)
-        ax.grid(True, alpha=0.4)
+        ax.grid(True, which="major", color="0.82", linewidth=0.55, linestyle="--", alpha=0.75, zorder=0)
+        point_years = years[np.isfinite(y.to_numpy(float))]
+        for year in point_years:
+            if not np.any(np.isclose(major_ticks, year)):
+                ax.axvline(year, color="0.82", linewidth=0.55, linestyle="--", alpha=0.75, zorder=0)
     fig.tight_layout()
     fig.savefig(output_path, dpi=250, bbox_inches="tight")
     plt.close(fig)

@@ -53,37 +53,6 @@ jobs:
           test -f assets/tables_analysis_trusted/gompertz_pareto_curves.csv
           test -f assets/tables_analysis_trusted/lorenz.csv
 
-      - name: Apply Bottom 50% source change
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path("src/stage_05_publication.py")
-          text = path.read_text()
-          replacements = [
-              (
-                  '        share = float(np.interp(0.50, population, income) - np.interp(0.40, population, income))\n        middle_records.append({"year": int(year), "p40_p50": share})',
-                  '        bottom_50 = float(np.interp(0.50, population, income))\n        share_40_50 = float(bottom_50 - np.interp(0.40, population, income))\n        middle_records.append({"year": int(year), "bottom_50": bottom_50, "p40_p50": share_40_50})',
-              ),
-              (
-                  '        [("p40_p50", "40-50%"), ("top_10", "Top 10%"), ("top_1", "Top 1%"), ("top_01", "Top 0.1%")],',
-                  '        [("top_10", "Top 10%"), ("top_1", "Top 1%"), ("top_01", "Top 0.1%"), ("bottom_50", "Bottom 50%")],',
-              ),
-              ('        colors=[GREEN, BLUE, DARK_RED, SALMON],', '        colors=[BLUE, DARK_RED, SALMON, PURPLE],'),
-              ('        line_styles=["-.", "-", ":", "-"],', '        line_styles=["-", ":", "-", "-."],'),
-              ('        markers=["D", "o", "s", "^"],', '        markers=["o", "s", "^", "D"],'),
-          ]
-          changed = False
-          for old, new in replacements:
-              if old in text:
-                  text = text.replace(old, new, 1)
-                  changed = True
-              elif new not in text:
-                  raise SystemExit(f"Could not locate expected source fragment: {old[:70]}")
-          if changed:
-              path.write_text(text)
-          PY
-
       - name: Build Stage 05 publication assets
         env:
           MPLBACKEND: Agg
@@ -183,16 +152,16 @@ jobs:
                   raise SystemExit(f"Undocumented columns in {table_name}: {missing}")
           PY
 
-      - name: Commit paper assets and source
+      - name: Commit paper assets
         if: github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/stage_05_publication.py assets/figures_paper assets/tables_paper
+          git add assets/figures_paper assets/tables_paper
           if git diff --cached --quiet; then
             echo "No paper-asset changes to commit."
           else
-            git commit -m "use bottom 50 income share in concentration figure"
+            git commit -m "generate paper assets"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
